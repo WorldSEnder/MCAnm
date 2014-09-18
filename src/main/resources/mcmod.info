@@ -1,0 +1,15 @@
+[
+{
+  "modid": "mcanm",
+  "name": "Animated Minecraft",
+  "description": "Developed by WorldSEnder during the making of the Monster Hunter Frontier Craft mod to serve as a basis for animated models.",
+  "logoFile": "logo.png",
+  "url": "http://github.com/WorldSEnder/AnimatedMinecraft",
+  "updateUrl": "",
+  "authors": ["WorldSEnder"],
+  "credits": "Blender Foundation, ZeuX",
+  "parent": "",
+  "screenshots": [],
+  "dependencies": []
+}
+]
