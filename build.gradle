@@ -18,7 +18,7 @@ buildscript {
 apply plugin: 'forge'
 apply plugin: 'eclipse'
 
-version = "0.0.102a_1710"
+version = "0.0.103a_1710"
 group= "com.github.worldsender.mcanm"
 archivesBaseName = "mcanm"
 

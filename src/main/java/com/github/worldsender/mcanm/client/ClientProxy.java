@@ -25,5 +25,6 @@ public class ClientProxy implements Proxy {
 			MCAnm.logger
 					.warn("Couldn't register reload managers. Models will not be reloaded on switching texture pack");
 		}
+		MCAnm.logger.info("Registered Client Side Proxy");
 	}
 }
