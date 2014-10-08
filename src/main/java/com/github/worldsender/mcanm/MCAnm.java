@@ -6,15 +6,15 @@ import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.SidedProxy;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 
-@Mod(modid = "mcanm", name = "Minecraft Animated", version = "0.0.103a_1710")
+@Mod(modid = "@MODID@", name = "Minecraft Animated", version = "@VERSION@")
 public class MCAnm {
 
-	@Mod.Instance("mcanm")
+	@Mod.Instance("@MODID@")
 	public static MCAnm instance;
 
 	public static Logger logger;
 
-	@SidedProxy(modId = "mcanm", clientSide = "com.github.worldsender.mcanm.client.ClientProxy", serverSide = "com.github.worldsender.mcanm.server.ServerProxy")
+	@SidedProxy(modId = "@MODID@", clientSide = "com.github.worldsender.mcanm.client.ClientProxy", serverSide = "com.github.worldsender.mcanm.server.ServerProxy")
 	public static Proxy proxy;
 
 	@Mod.EventHandler
