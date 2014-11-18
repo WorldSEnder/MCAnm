@@ -11,6 +11,7 @@ import net.minecraftforge.client.model.IModelCustomLoader;
 import net.minecraftforge.client.model.ModelFormatException;
 
 import com.github.worldsender.mcanm.MCAnm;
+import com.github.worldsender.mcanm.Reference;
 import com.github.worldsender.mcanm.client.model.mhfcmodel.data.RawData;
 import com.github.worldsender.mcanm.client.model.mhfcmodel.loader.VersionizedModelLoader;
 
@@ -23,8 +24,6 @@ import com.github.worldsender.mcanm.client.model.mhfcmodel.loader.VersionizedMod
  *
  */
 public class MCMDModelLoader implements IModelCustomLoader {
-	private static String[] suffixList = {".mhmd"};
-
 	/**
 	 * This instance is registered in the {@link AdvancedModelLoader}-class
 	 * provided by forge.
@@ -33,12 +32,12 @@ public class MCMDModelLoader implements IModelCustomLoader {
 
 	@Override
 	public String getType() {
-		return "MHFC";
+		return Reference.model_type;
 	}
 
 	@Override
 	public String[] getSuffixes() {
-		return suffixList;
+		return Reference.model_suffix_list;
 	}
 	/**
 	 * Used to load the models in an exception-free manner (for n0bs or just

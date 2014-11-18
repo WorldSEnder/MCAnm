@@ -36,6 +36,8 @@ public class ModelRegistry implements IResourceManagerReloadListener {
 
 	@Override
 	public void onResourceManagerReload(IResourceManager reloadManager) {
+		if (!MCAnm.enableReload.getBoolean())
+			return;
 		this.currentManager = reloadManager;
 		for (Entry<ResourceLocation, ModelMCMD> entry : this.cachedModels
 				.entrySet()) {

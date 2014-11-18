@@ -9,6 +9,7 @@ import net.minecraftforge.client.model.IModelCustom;
 import net.minecraftforge.client.model.ModelFormatException;
 
 import com.github.worldsender.mcanm.MCAnm;
+import com.github.worldsender.mcanm.Reference;
 import com.github.worldsender.mcanm.client.model.mhfcmodel.animation.IAnimatedObject;
 import com.github.worldsender.mcanm.client.model.mhfcmodel.animation.IAnimatedObject.Scale;
 import com.github.worldsender.mcanm.client.model.mhfcmodel.data.RawData;
@@ -67,7 +68,7 @@ public class ModelMCMD implements IModelCustom {
 	 *
 	 * @param resource
 	 *            - The resource to load from. Refer to the wiki on
-	 *            https://github.com/Heltrato/MHFC/wiki/API-overview to get
+	 *            https://github.com/Heltrato/model_type/wiki/API-overview to get
 	 *            detail about the modelformat
 	 */
 	public ModelMCMD(ResourceLocation resource, IResourceManager resManager) {
@@ -166,7 +167,7 @@ public class ModelMCMD implements IModelCustom {
 
 	@Override
 	public String getType() {
-		return "MHFC";
+		return Reference.model_type;
 	}
 
 	/**

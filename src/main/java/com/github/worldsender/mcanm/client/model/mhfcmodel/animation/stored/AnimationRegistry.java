@@ -98,6 +98,8 @@ public class AnimationRegistry implements IResourceManagerReloadListener {
 	}
 	@Override
 	public void onResourceManagerReload(IResourceManager resManager) {
+		if (!MCAnm.enableReload.getBoolean())
+			return;
 		for (StoredAnimation anim : this.registry.values()) {
 			anim.reload(resManager);
 		}
