@@ -13,18 +13,18 @@ import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 
 @Mod(
-		modid = "@MODID@",
-		name = "Minecraft Animated",
-		version = "@VERSION@",
+		modid = Reference.core_modid,
+		name = Reference.core_modname,
+		version = Reference.core_modversion,
 		guiFactory = "com.github.worldsender.mcanm.client.config.MCAnmGuiFactory")
 public class MCAnm {
 
-	@Mod.Instance("@MODID@")
+	@Mod.Instance(Reference.core_modid)
 	public static MCAnm instance;
 
 	public static Logger logger;
 
-	@SidedProxy(modId = "@MODID@",
+	@SidedProxy(modId = Reference.core_modid,
 			clientSide = "com.github.worldsender.mcanm.client.ClientProxy",
 			serverSide = "com.github.worldsender.mcanm.server.ServerProxy")
 	public static Proxy proxy;
@@ -48,7 +48,7 @@ public class MCAnm {
 
 	@SubscribeEvent
 	public void onConfigChange(OnConfigChangedEvent occe) {
-		if (!occe.modID.equals("@MODID@"))
+		if (!occe.modID.equals(Reference.core_modid))
 			return;
 		if (config.hasChanged())
 			config.save();
