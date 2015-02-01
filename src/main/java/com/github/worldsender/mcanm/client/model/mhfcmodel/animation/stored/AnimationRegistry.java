@@ -10,6 +10,7 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.client.model.ModelFormatException;
 
 import com.github.worldsender.mcanm.MCAnm;
+import com.github.worldsender.mcanm.client.model.mhfcmodel.animation.IAnimation;
 
 /**
  * A central place to load animations from. Not only does this class provide the
@@ -40,6 +41,9 @@ public class AnimationRegistry implements IResourceManagerReloadListener {
 	public static StoredAnimation loadAnimation(ResourceLocation resLoc) {
 		return instance.loadAnimation(resLoc, Minecraft.getMinecraft()
 				.getResourceManager());
+	}
+	public static IAnimation loadAnimation(String string) {
+		return loadAnimation(new ResourceLocation(string));
 	}
 	/**
 	 * Same as {@link #loadAnimation(ResourceLocation)} but if no animation has
@@ -104,5 +108,4 @@ public class AnimationRegistry implements IResourceManagerReloadListener {
 			anim.reload(resManager);
 		}
 	}
-
 }

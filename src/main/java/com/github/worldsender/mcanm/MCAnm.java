@@ -38,7 +38,8 @@ public class MCAnm {
 		config = new Configuration(pre.getSuggestedConfigurationFile());
 		config.load();
 		enableReload = config.get(Configuration.CATEGORY_GENERAL,
-				Reference.config_reload_enabled, true).setLanguageKey(Reference.gui_config_reload_enabled);
+				Reference.config_reload_enabled, true).setLanguageKey(
+				Reference.gui_config_reload_enabled);
 		config.save();
 		proxy.register();
 		FMLCommonHandler.instance().bus().register(this);
