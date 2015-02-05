@@ -11,7 +11,6 @@ import net.minecraftforge.client.model.ModelFormatException;
 import com.github.worldsender.mcanm.MCAnm;
 import com.github.worldsender.mcanm.Reference;
 import com.github.worldsender.mcanm.client.model.mhfcmodel.animation.IAnimatedObject;
-import com.github.worldsender.mcanm.client.model.mhfcmodel.animation.IAnimatedObject.Scale;
 import com.github.worldsender.mcanm.client.model.mhfcmodel.data.RawData;
 import com.github.worldsender.mcanm.client.model.mhfcmodel.glcontext.GLHelper;
 import com.github.worldsender.mcanm.client.model.mhfcmodel.loader.VersionizedModelLoader;
@@ -68,8 +67,8 @@ public class ModelMCMD implements IModelCustom {
 	 *
 	 * @param resource
 	 *            - The resource to load from. Refer to the wiki on
-	 *            https://github.com/Heltrato/model_type/wiki/API-overview to get
-	 *            detail about the modelformat
+	 *            https://github.com/Heltrato/model_type/wiki/API-overview to
+	 *            get detail about the modelformat
 	 */
 	public ModelMCMD(ResourceLocation resource, IResourceManager resManager) {
 		// This line could throw
@@ -159,9 +158,6 @@ public class ModelMCMD implements IModelCustom {
 	 *            the object to render (get animations from there)
 	 */
 	public void render(IAnimatedObject object, float parTick) {
-		Scale scale = object.getScale();
-		if (scale != null)
-			scale.apply();
 		renderHelper.render(object, parTick);
 	}
 
