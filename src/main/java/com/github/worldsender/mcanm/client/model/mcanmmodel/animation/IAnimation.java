@@ -13,18 +13,6 @@ import com.github.worldsender.mcanm.client.model.mcanmmodel.Utils;
  */
 public interface IAnimation {
 	/**
-	 * This is a default animation that always returns the binding pose for each
-	 * bone it is asked for. Actually it returns <code>null</code> which is to
-	 * be interpreted as the binding-pose.
-	 */
-	public static final IAnimation BIND_POSE = new IAnimation() {
-		@Override
-		public BoneTransformation getCurrentTransformation(String bone,
-				float frame) {
-			return null;
-		};
-	};
-	/**
 	 * Describes a BoneTransformation, including rotation, translation and
 	 * scaling.
 	 *
