@@ -1,4 +1,4 @@
-package com.github.worldsender.mcanm.client.model.mhfcmodel;
+package com.github.worldsender.mcanm.client.model.mcanmmodel;
 
 import java.util.UUID;
 
@@ -10,10 +10,10 @@ import net.minecraftforge.client.model.ModelFormatException;
 
 import com.github.worldsender.mcanm.MCAnm;
 import com.github.worldsender.mcanm.Reference;
-import com.github.worldsender.mcanm.client.model.mhfcmodel.animation.IAnimatedObject;
-import com.github.worldsender.mcanm.client.model.mhfcmodel.data.RawData;
-import com.github.worldsender.mcanm.client.model.mhfcmodel.glcontext.GLHelper;
-import com.github.worldsender.mcanm.client.model.mhfcmodel.loader.VersionizedModelLoader;
+import com.github.worldsender.mcanm.client.model.mcanmmodel.data.RawData;
+import com.github.worldsender.mcanm.client.model.mcanmmodel.glcontext.GLHelper;
+import com.github.worldsender.mcanm.client.model.mcanmmodel.loader.VersionizedModelLoader;
+import com.github.worldsender.mcanm.client.renderer.IAnimatedObject;
 /**
  * Represents a model that is more abstract than boxes. The format also offers
  * animating the model through bones and a few more things.<br>

@@ -1,9 +1,9 @@
-package com.github.worldsender.mcanm.client.model.mhfcmodel.glcontext;
+package com.github.worldsender.mcanm.client.model.mcanmmodel.glcontext;
 
-import com.github.worldsender.mcanm.client.model.mhfcmodel.animation.IAnimatedObject;
-import com.github.worldsender.mcanm.client.model.mhfcmodel.animation.IAnimation;
-import com.github.worldsender.mcanm.client.model.mhfcmodel.data.ModelDataBasic;
-import com.github.worldsender.mcanm.client.model.mhfcmodel.data.RawDataV1;
+import com.github.worldsender.mcanm.client.model.mcanmmodel.animation.IAnimation;
+import com.github.worldsender.mcanm.client.model.mcanmmodel.data.ModelDataBasic;
+import com.github.worldsender.mcanm.client.model.mcanmmodel.data.RawDataV1;
+import com.github.worldsender.mcanm.client.renderer.IAnimatedObject;
 import com.google.common.base.Predicate;
 
 public class GLHelperBasic extends GLHelper {

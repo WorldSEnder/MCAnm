@@ -1,4 +1,4 @@
-package com.github.worldsender.mcanm.client.model.mhfcmodel.loader;
+package com.github.worldsender.mcanm.client.model.mcanmmodel.loader;
 
 import java.io.BufferedInputStream;
 import java.io.DataInputStream;
@@ -8,9 +8,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-import com.github.worldsender.mcanm.client.model.mhfcmodel.Utils;
-import com.github.worldsender.mcanm.client.model.mhfcmodel.data.RawData;
-import com.github.worldsender.mcanm.client.model.mhfcmodel.data.RawDataV1;
+import com.github.worldsender.mcanm.client.model.mcanmmodel.Utils;
+import com.github.worldsender.mcanm.client.model.mcanmmodel.data.RawData;
+import com.github.worldsender.mcanm.client.model.mcanmmodel.data.RawDataV1;
 
 import net.minecraft.client.resources.IResourceManager;
 import net.minecraft.util.ResourceLocation;

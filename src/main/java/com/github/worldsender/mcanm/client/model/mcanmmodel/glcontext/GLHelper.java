@@ -1,9 +1,9 @@
-package com.github.worldsender.mcanm.client.model.mhfcmodel.glcontext;
+package com.github.worldsender.mcanm.client.model.mcanmmodel.glcontext;
 
-import com.github.worldsender.mcanm.client.model.mhfcmodel.animation.IAnimatedObject;
-import com.github.worldsender.mcanm.client.model.mhfcmodel.data.RawData;
-import com.github.worldsender.mcanm.client.model.mhfcmodel.data.RawDataV1;
-import com.github.worldsender.mcanm.client.model.mhfcmodel.loader.VersionizedModelLoader;
+import com.github.worldsender.mcanm.client.model.mcanmmodel.data.RawData;
+import com.github.worldsender.mcanm.client.model.mcanmmodel.data.RawDataV1;
+import com.github.worldsender.mcanm.client.model.mcanmmodel.loader.VersionizedModelLoader;
+import com.github.worldsender.mcanm.client.renderer.IAnimatedObject;
 
 /**
  * Represents an GLHelper. That is a render-glHelper for the correct OpenGL-

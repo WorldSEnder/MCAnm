@@ -1,10 +1,10 @@
-package com.github.worldsender.mcanm.client.model.mhfcmodel.animation;
+package com.github.worldsender.mcanm.client.model.mcanmmodel.animation;
 
 import org.lwjgl.util.vector.Matrix4f;
 import org.lwjgl.util.vector.Quaternion;
 import org.lwjgl.util.vector.Vector3f;
 
-import com.github.worldsender.mcanm.client.model.mhfcmodel.Utils;
+import com.github.worldsender.mcanm.client.model.mcanmmodel.Utils;
 /**
  * An animation to transform the model.
  *

@@ -1,5 +1,6 @@
-package com.github.worldsender.mcanm.client.model.mhfcmodel.animation;
+package com.github.worldsender.mcanm.client.renderer;
 
+import com.github.worldsender.mcanm.client.model.mcanmmodel.animation.IAnimation;
 import com.github.worldsender.mcanm.client.renderer.entity.RenderAnimatedModel;
 import com.google.common.base.Predicate;
 /**

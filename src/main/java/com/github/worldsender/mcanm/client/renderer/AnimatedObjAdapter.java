@@ -1,5 +1,6 @@
-package com.github.worldsender.mcanm.client.model.mhfcmodel.animation;
+package com.github.worldsender.mcanm.client.renderer;
 
+import com.github.worldsender.mcanm.client.model.mcanmmodel.animation.IAnimation;
 import com.google.common.base.Predicate;
 /**
  * Kind of a default implementation for {@link IAnimatedObject} which means that

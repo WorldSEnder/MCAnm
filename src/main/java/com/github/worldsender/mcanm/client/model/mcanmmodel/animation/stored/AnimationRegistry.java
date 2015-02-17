@@ -1,4 +1,4 @@
-package com.github.worldsender.mcanm.client.model.mhfcmodel.animation.stored;
+package com.github.worldsender.mcanm.client.model.mcanmmodel.animation.stored;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -10,7 +10,7 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.client.model.ModelFormatException;
 
 import com.github.worldsender.mcanm.MCAnm;
-import com.github.worldsender.mcanm.client.model.mhfcmodel.animation.IAnimation;
+import com.github.worldsender.mcanm.client.model.mcanmmodel.animation.IAnimation;
 
 /**
  * A central place to load animations from. Not only does this class provide the

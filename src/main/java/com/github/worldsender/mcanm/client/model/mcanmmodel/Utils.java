@@ -1,4 +1,4 @@
-package com.github.worldsender.mcanm.client.model.mhfcmodel;
+package com.github.worldsender.mcanm.client.model.mcanmmodel;
 
 import static org.lwjgl.opengl.GL11.GL_FALSE;
 import static org.lwjgl.opengl.GL20.GL_ATTACHED_SHADERS;

@@ -1,4 +1,4 @@
-package com.github.worldsender.mcanm.client.model.mhfcmodel.animation.stored;
+package com.github.worldsender.mcanm.client.model.mcanmmodel.animation.stored;
 
 import java.io.DataInputStream;
 import java.io.IOException;

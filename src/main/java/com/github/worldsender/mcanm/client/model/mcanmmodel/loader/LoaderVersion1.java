@@ -1,4 +1,4 @@
-package com.github.worldsender.mcanm.client.model.mhfcmodel.loader;
+package com.github.worldsender.mcanm.client.model.mcanmmodel.loader;
 
 import java.io.DataInputStream;
 import java.io.EOFException;
@@ -13,15 +13,15 @@ import org.lwjgl.util.vector.Quaternion;
 import org.lwjgl.util.vector.Vector2f;
 import org.lwjgl.util.vector.Vector3f;
 
-import com.github.worldsender.mcanm.client.model.mhfcmodel.Utils;
-import com.github.worldsender.mcanm.client.model.mhfcmodel.data.RawData;
-import com.github.worldsender.mcanm.client.model.mhfcmodel.data.RawDataV1;
-import com.github.worldsender.mcanm.client.model.mhfcmodel.data.RawDataV1.Bone;
-import com.github.worldsender.mcanm.client.model.mhfcmodel.data.RawDataV1.BoneBinding;
-import com.github.worldsender.mcanm.client.model.mhfcmodel.data.RawDataV1.Header;
-import com.github.worldsender.mcanm.client.model.mhfcmodel.data.RawDataV1.Material;
-import com.github.worldsender.mcanm.client.model.mhfcmodel.data.RawDataV1.ModelPart;
-import com.github.worldsender.mcanm.client.model.mhfcmodel.data.RawDataV1.TesselationPoint;
+import com.github.worldsender.mcanm.client.model.mcanmmodel.Utils;
+import com.github.worldsender.mcanm.client.model.mcanmmodel.data.RawData;
+import com.github.worldsender.mcanm.client.model.mcanmmodel.data.RawDataV1;
+import com.github.worldsender.mcanm.client.model.mcanmmodel.data.RawDataV1.Bone;
+import com.github.worldsender.mcanm.client.model.mcanmmodel.data.RawDataV1.BoneBinding;
+import com.github.worldsender.mcanm.client.model.mcanmmodel.data.RawDataV1.Header;
+import com.github.worldsender.mcanm.client.model.mcanmmodel.data.RawDataV1.Material;
+import com.github.worldsender.mcanm.client.model.mcanmmodel.data.RawDataV1.ModelPart;
+import com.github.worldsender.mcanm.client.model.mcanmmodel.data.RawDataV1.TesselationPoint;
 
 /**
  * Loads a file with version signature 1. This implementation follows the all or

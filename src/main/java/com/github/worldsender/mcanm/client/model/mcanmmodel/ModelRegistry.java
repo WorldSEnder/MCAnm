@@ -1,4 +1,4 @@
-package com.github.worldsender.mcanm.client.model.mhfcmodel;
+package com.github.worldsender.mcanm.client.model.mcanmmodel;
 
 import java.util.HashMap;
 import java.util.Map.Entry;

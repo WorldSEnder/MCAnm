@@ -1,8 +1,8 @@
-package com.github.worldsender.mcanm.client.model.mhfcmodel.data;
+package com.github.worldsender.mcanm.client.model.mcanmmodel.data;
 
 import java.util.UUID;
 
-import com.github.worldsender.mcanm.client.model.mhfcmodel.glcontext.GLHelper;
+import com.github.worldsender.mcanm.client.model.mcanmmodel.glcontext.GLHelper;
 
 import net.minecraft.util.ResourceLocation;
 

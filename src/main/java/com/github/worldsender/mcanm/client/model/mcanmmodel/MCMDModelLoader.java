@@ -1,4 +1,4 @@
-package com.github.worldsender.mcanm.client.model.mhfcmodel;
+package com.github.worldsender.mcanm.client.model.mcanmmodel;
 
 import java.io.DataInputStream;
 import java.io.IOError;
@@ -12,8 +12,8 @@ import net.minecraftforge.client.model.ModelFormatException;
 
 import com.github.worldsender.mcanm.MCAnm;
 import com.github.worldsender.mcanm.Reference;
-import com.github.worldsender.mcanm.client.model.mhfcmodel.data.RawData;
-import com.github.worldsender.mcanm.client.model.mhfcmodel.loader.VersionizedModelLoader;
+import com.github.worldsender.mcanm.client.model.mcanmmodel.data.RawData;
+import com.github.worldsender.mcanm.client.model.mcanmmodel.loader.VersionizedModelLoader;
 
 /**
  * This class can be used to load a model without registering it automatically

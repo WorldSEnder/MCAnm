@@ -1,4 +1,4 @@
-package com.github.worldsender.mcanm.client.model.mhfcmodel.animation.stored;
+package com.github.worldsender.mcanm.client.model.mcanmmodel.animation.stored;
 
 import java.io.DataInputStream;
 import java.io.EOFException;
@@ -6,8 +6,8 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.github.worldsender.mcanm.client.model.mhfcmodel.Utils;
-import com.github.worldsender.mcanm.client.model.mhfcmodel.animation.IAnimation;
+import com.github.worldsender.mcanm.client.model.mcanmmodel.Utils;
+import com.github.worldsender.mcanm.client.model.mcanmmodel.animation.IAnimation;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.IResourceManager;

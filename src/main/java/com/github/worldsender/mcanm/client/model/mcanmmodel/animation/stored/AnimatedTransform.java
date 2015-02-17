@@ -1,4 +1,4 @@
-package com.github.worldsender.mcanm.client.model.mhfcmodel.animation.stored;
+package com.github.worldsender.mcanm.client.model.mcanmmodel.animation.stored;
 
 import java.io.DataInputStream;
 import java.io.IOException;
@@ -8,7 +8,7 @@ import net.minecraftforge.client.model.ModelFormatException;
 import org.lwjgl.util.vector.Quaternion;
 import org.lwjgl.util.vector.Vector3f;
 
-import com.github.worldsender.mcanm.client.model.mhfcmodel.animation.IAnimation.BoneTransformation;
+import com.github.worldsender.mcanm.client.model.mcanmmodel.animation.IAnimation.BoneTransformation;
 /**
  * Represents the animation of one bone from the {@link StoredAnimation}.
  *

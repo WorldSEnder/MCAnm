@@ -1,4 +1,4 @@
-package com.github.worldsender.mcanm.client.model.mhfcmodel.data;
+package com.github.worldsender.mcanm.client.model.mcanmmodel.data;
 
 import static org.lwjgl.opengl.GL11.GL_TRIANGLES;
 
@@ -14,10 +14,10 @@ import org.lwjgl.util.vector.Vector2f;
 import org.lwjgl.util.vector.Vector3f;
 import org.lwjgl.util.vector.Vector4f;
 
-import com.github.worldsender.mcanm.client.model.mhfcmodel.Utils;
-import com.github.worldsender.mcanm.client.model.mhfcmodel.animation.IAnimation;
-import com.github.worldsender.mcanm.client.model.mhfcmodel.animation.IAnimation.BoneTransformation;
-import com.github.worldsender.mcanm.client.model.mhfcmodel.data.RawDataV1.TesselationPoint;
+import com.github.worldsender.mcanm.client.model.mcanmmodel.Utils;
+import com.github.worldsender.mcanm.client.model.mcanmmodel.animation.IAnimation;
+import com.github.worldsender.mcanm.client.model.mcanmmodel.animation.IAnimation.BoneTransformation;
+import com.github.worldsender.mcanm.client.model.mcanmmodel.data.RawDataV1.TesselationPoint;
 import com.google.common.base.Predicate;
 
 public class ModelDataBasic implements IModelData {

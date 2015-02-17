@@ -1,7 +1,7 @@
-package com.github.worldsender.mcanm.client.model.mhfcmodel.data;
+package com.github.worldsender.mcanm.client.model.mcanmmodel.data;
 
-import com.github.worldsender.mcanm.client.model.mhfcmodel.animation.IAnimation;
-import com.github.worldsender.mcanm.client.model.mhfcmodel.glcontext.GLHelper;
+import com.github.worldsender.mcanm.client.model.mcanmmodel.animation.IAnimation;
+import com.github.worldsender.mcanm.client.model.mcanmmodel.glcontext.GLHelper;
 import com.google.common.base.Predicate;
 
 /**
