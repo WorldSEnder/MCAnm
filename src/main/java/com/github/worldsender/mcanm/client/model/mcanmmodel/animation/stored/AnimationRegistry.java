@@ -1,4 +1,4 @@
-package com.github.worldsender.mcanm.client.model.util;
+package com.github.worldsender.mcanm.client.model.mcanmmodel.animation.stored;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -11,7 +11,6 @@ import net.minecraft.util.ResourceLocation;
 import com.github.worldsender.mcanm.MCAnm;
 import com.github.worldsender.mcanm.client.exceptions.ModelFormatException;
 import com.github.worldsender.mcanm.client.model.mcanmmodel.animation.IAnimation;
-import com.github.worldsender.mcanm.client.model.mcanmmodel.animation.stored.StoredAnimation;
 
 /**
  * A central place to load animations from. Not only does this class provide the
@@ -21,8 +20,8 @@ import com.github.worldsender.mcanm.client.model.mcanmmodel.animation.stored.Sto
  * @author WorldSEnder
  *
  */
-public class AnimationLoader implements IResourceManagerReloadListener {
-	public static final AnimationLoader instance = new AnimationLoader();
+public class AnimationRegistry implements IResourceManagerReloadListener {
+	public static final AnimationRegistry instance = new AnimationRegistry();
 
 	private Map<ResourceLocation, StoredAnimation> registry = new HashMap<>();
 	/**

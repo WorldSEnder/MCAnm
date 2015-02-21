@@ -14,6 +14,7 @@ import java.util.Objects;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.Tessellator;
+import net.minecraft.client.renderer.WorldRenderer;
 import net.minecraft.util.ResourceLocation;
 
 import org.lwjgl.util.vector.Matrix4f;
@@ -30,7 +31,8 @@ import com.google.common.base.Predicate;
 
 public class ModelDataBasic implements IModelData {
 	protected static Minecraft mc = Minecraft.getMinecraft();
-	private static Tessellator tess = Tessellator.instance;
+	private static WorldRenderer renderer = Tessellator.getInstance()
+			.getWorldRenderer();
 
 	private static class Part {
 		private static class Point {
@@ -54,9 +56,9 @@ public class ModelDataBasic implements IModelData {
 				 * that the Tessellator is already drawing.
 				 */
 				public void render() {
-					tess.setNormal(norm.x, norm.z, -norm.y);
-					tess.setTextureUV(uv.x, uv.y);
-					tess.addVertex(pos.x / pos.w, pos.z / pos.w, -pos.y / pos.w);
+					renderer.func_178980_d(norm.x, norm.z, -norm.y);
+					renderer.setTextureUV(uv.x, uv.y);
+					renderer.addVertex(pos.x / pos.w, pos.z / pos.w, -pos.y / pos.w);
 				}
 				/**
 				 * Offsets this Vertex by the {@link Vector4f} given.
@@ -505,38 +507,39 @@ public class ModelDataBasic implements IModelData {
 	}
 
 	@Override
-	public void renderAll(IAnimation currAnimation, float frame) {
+	public void setup(IAnimation currAnimation, float frame) {
 		setupBones(currAnimation, frame);
-		tess.startDrawing(GL_TRIANGLES);
+	}
+	
+	@Override
+	public void renderAll() {
+		renderer.startDrawing(GL_TRIANGLES);
 		for (Part part : this.parts) {
 			part.render();
 		}
-		tess.draw();
+		renderer.draw();
 	}
-
-	@Override
-	public void renderFiltered(Predicate<String> filter,
-			IAnimation currAnimation, float frame) {
-		setupBones(currAnimation, frame);
-
-		tess.startDrawing(GL_TRIANGLES);
+	
+	public void renderFiltered(Predicate<String> filter) {
+		renderer.startDrawing(GL_TRIANGLES);
 		for (Part part : this.parts) {
 			if (filter.apply(part.getName()))
 				part.render();
 		}
-		tess.draw();
+		renderer.draw();
 		if (MCAnm.isDebug) {
-			tess.startDrawing(GL_LINES);
+			renderer.startDrawing(GL_LINES);
 			glDisable(GL_TEXTURE_2D);
 			glColor4f(1, 1, 1, 1);
 			for (Bone bone : bones) {
 				Vector4f tail = bone.getTail();
 				Vector4f head = bone.getHead();
-				tess.addVertex(tail.x, tail.z, -tail.y);
-				tess.addVertex(head.x, head.z, -head.y);
+				renderer.addVertex(tail.x, tail.z, -tail.y);
+				renderer.addVertex(head.x, head.z, -head.y);
 			}
-			tess.draw();
+			renderer.draw();
 			glEnable(GL_TEXTURE_2D);
 		}
+		renderer.draw();
 	}
 }
