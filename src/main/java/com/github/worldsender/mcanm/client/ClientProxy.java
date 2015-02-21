@@ -3,18 +3,15 @@ package com.github.worldsender.mcanm.client;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.IReloadableResourceManager;
 import net.minecraft.client.resources.IResourceManager;
-import net.minecraftforge.client.model.AdvancedModelLoader;
 
 import com.github.worldsender.mcanm.MCAnm;
 import com.github.worldsender.mcanm.Proxy;
-import com.github.worldsender.mcanm.client.model.mcanmmodel.MCMDModelLoader;
 import com.github.worldsender.mcanm.client.model.mcanmmodel.ModelRegistry;
 import com.github.worldsender.mcanm.client.model.mcanmmodel.animation.stored.AnimationRegistry;
 
 public class ClientProxy implements Proxy {
 	@Override
 	public void register() {
-		AdvancedModelLoader.registerModelHandler(MCMDModelLoader.instance);
 		IResourceManager resManager = Minecraft.getMinecraft()
 				.getResourceManager();
 		if (resManager instanceof IReloadableResourceManager) {

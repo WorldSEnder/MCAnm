@@ -7,12 +7,11 @@ import java.util.Arrays;
 import java.util.Set;
 import java.util.TreeSet;
 
-import net.minecraftforge.client.model.ModelFormatException;
-
 import org.lwjgl.util.vector.Quaternion;
 import org.lwjgl.util.vector.Vector2f;
 import org.lwjgl.util.vector.Vector3f;
 
+import com.github.worldsender.mcanm.client.exceptions.ModelFormatException;
 import com.github.worldsender.mcanm.client.model.mcanmmodel.Utils;
 import com.github.worldsender.mcanm.client.model.mcanmmodel.data.RawData;
 import com.github.worldsender.mcanm.client.model.mcanmmodel.data.RawDataV1;

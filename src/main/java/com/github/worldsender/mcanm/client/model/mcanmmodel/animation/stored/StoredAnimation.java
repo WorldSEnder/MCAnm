@@ -6,13 +6,13 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.github.worldsender.mcanm.client.model.mcanmmodel.Utils;
-import com.github.worldsender.mcanm.client.model.mcanmmodel.animation.IAnimation;
-
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.IResourceManager;
 import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.client.model.ModelFormatException;
+
+import com.github.worldsender.mcanm.client.exceptions.ModelFormatException;
+import com.github.worldsender.mcanm.client.model.mcanmmodel.Utils;
+import com.github.worldsender.mcanm.client.model.mcanmmodel.animation.IAnimation;
 
 public class StoredAnimation implements IAnimation {
 	public static final long MAGIC_NUMBER = 0x4d48464320414e4dL;

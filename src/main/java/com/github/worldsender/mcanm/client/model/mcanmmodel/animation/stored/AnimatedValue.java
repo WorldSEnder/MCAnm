@@ -5,9 +5,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import net.minecraftforge.client.model.ModelFormatException;
-
 import org.lwjgl.util.vector.Vector2f;
+
+import com.github.worldsender.mcanm.client.exceptions.ModelFormatException;
 
 public class AnimatedValue {
 	/** The splines making up the full curve. */

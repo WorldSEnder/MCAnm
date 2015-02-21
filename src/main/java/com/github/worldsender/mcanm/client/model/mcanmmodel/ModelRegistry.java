@@ -49,7 +49,11 @@ public class ModelRegistry implements IResourceManagerReloadListener {
 	 * registered this method does nothing and returns false.<br>
 	 * It is an error to register <code>null</code> or a model that has not been
 	 * loaded from a valid {@link ResourceLocation}. It is valid though to
-	 * register a model that has been loaded incorrectly but through
+	 * register a model that has been loaded incorrectly but from an existing
+	 * ResourceLocation.<br>
+	 * Registering a model here will automatically reload the model when the
+	 * {@link IResourceManager} changes - most likely because a texture pack was
+	 * changed.
 	 *
 	 * @param model
 	 *            the model to register
@@ -75,8 +79,7 @@ public class ModelRegistry implements IResourceManagerReloadListener {
 	 * Loads a {@link ModelMCMD} from the {@link ResourceLocation} given. If a
 	 * model for the requested resource location has been previously registered
 	 * or loaded with this method that model will be returned instead.<br>
-	 * This method automatically registers a model if it is loaded through this
-	 * method and not already registered.
+	 * This method registers a model if it is not already registered.
 	 *
 	 * @param resLocation
 	 *            the resource location to load the model from
@@ -87,7 +90,8 @@ public class ModelRegistry implements IResourceManagerReloadListener {
 		ModelMCMD model = this.cachedModels.get(resLocation);
 		if (model == null) {
 			logger.trace(String.format(
-					"[ModelRegistry] Loading new model from %s", resLocation));
+					"[ModelRegistry] Trying to load new model from %s",
+					resLocation));
 			// Not registered
 			model = MCMDModelLoader.instance.loadInstance(resLocation,
 					this.currentManager, false);

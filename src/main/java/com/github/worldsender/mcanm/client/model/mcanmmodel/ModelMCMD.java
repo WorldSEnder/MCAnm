@@ -5,11 +5,12 @@ import java.util.UUID;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.IResourceManager;
 import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.client.model.IModelCustom;
-import net.minecraftforge.client.model.ModelFormatException;
+import net.minecraftforge.client.model.IModelPart;
+import net.minecraftforge.client.model.IModelState;
+import net.minecraftforge.client.model.TRSRTransformation;
 
 import com.github.worldsender.mcanm.MCAnm;
-import com.github.worldsender.mcanm.Reference;
+import com.github.worldsender.mcanm.client.exceptions.ModelFormatException;
 import com.github.worldsender.mcanm.client.model.mcanmmodel.data.RawData;
 import com.github.worldsender.mcanm.client.model.mcanmmodel.glcontext.GLHelper;
 import com.github.worldsender.mcanm.client.model.mcanmmodel.loader.VersionizedModelLoader;
@@ -20,12 +21,31 @@ import com.github.worldsender.mcanm.client.renderer.IAnimatedObject;
  * The model can be registered for reloading in the {@link ModelRegistry}. This
  * will reload the model whenever the user changes the active texture packs.
  * This means that mobs or whatever it is can be customized by the texture pack.
- * AWESOME.
+ * AWESOME.<br>
+ * Maybe in the future minecraft accepts non-baked/models with a geometry
+ * shader. In that case this will get a rework.
  *
  * @author WorldSEnder
  *
  */
-public class ModelMCMD implements IModelCustom {
+public class ModelMCMD {
+	public static class MCMDState implements IModelState {
+		private RawData rawData;
+
+		public MCMDState(RawData data) {
+			rawData = data;
+		}
+
+		public RawData getData() {
+			return rawData;
+		}
+
+		@Override
+		public TRSRTransformation apply(IModelPart part) {
+			return null; // Actually unused??! no calls in the MC-lib
+		}
+	}
+
 	private static RawData loadDataChecked(ResourceLocation resource,
 			IResourceManager resManager) {
 		try {
@@ -44,6 +64,8 @@ public class ModelMCMD implements IModelCustom {
 	 * change.
 	 */
 	private ResourceLocation reloadLocation;
+	private MCMDState stateCache;
+
 	private String artist;
 	private UUID modelUUID;
 	/**
@@ -103,14 +125,24 @@ public class ModelMCMD implements IModelCustom {
 			// DO nothing if failed
 		}
 	}
+	/**
+	 * "Bakes" the model, resolves as much as possible
+	 *
+	 * @param format
+	 *            the supported format, //FIXME: format currently UNUSED
+	 */
+	public void preBake() {
+		renderHelper.preBake(stateCache, null);
+	}
 	/** Helper function */
 	private void putData(RawData data) {
 		if (data != null) {
-			this.renderHelper.loadInto(data);
+			this.stateCache = new MCMDState(data);
 			this.artist = data.artist;
 			this.modelUUID = data.modelUUID;
 			this.reloadLocation = data.srcLocation;
 		} else {
+			this.stateCache = new MCMDState(data);
 			this.artist = "UNKOWN_ARTIST";
 			this.modelUUID = new UUID(0, 0);
 			this.reloadLocation = null;
@@ -160,12 +192,6 @@ public class ModelMCMD implements IModelCustom {
 	public void render(IAnimatedObject object, float parTick) {
 		renderHelper.render(object, parTick);
 	}
-
-	@Override
-	public String getType() {
-		return Reference.model_type;
-	}
-
 	/**
 	 * @return the artist
 	 */
@@ -177,26 +203,5 @@ public class ModelMCMD implements IModelCustom {
 	 */
 	public UUID getModelUUID() {
 		return modelUUID;
-	}
-	// ---------------------- Never used ---------------------------
-	private static void throwUsage() {
-		throw new IllegalAccessError(
-				"Can't use this method with this model-type. Use one of render(...)");
-	}
-	@Override
-	public void renderAll() {
-		throwUsage();
-	}
-	@Override
-	public void renderOnly(String... groupNames) {
-		throwUsage();
-	}
-	@Override
-	public void renderPart(String partName) {
-		throwUsage();
-	}
-	@Override
-	public void renderAllExcept(String... excludedGroupNames) {
-		throwUsage();
 	}
 }

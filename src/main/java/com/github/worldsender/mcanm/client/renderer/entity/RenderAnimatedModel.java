@@ -1,6 +1,8 @@
 package com.github.worldsender.mcanm.client.renderer.entity;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.entity.RenderLiving;
+import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLiving;
@@ -10,12 +12,13 @@ import net.minecraft.util.ResourceLocation;
 import com.github.worldsender.mcanm.client.model.ModelAnimated;
 
 public class RenderAnimatedModel extends RenderLiving {
-	private static final ResourceLocation ignored = TextureMap.locationItemsTexture;
+	private static final ResourceLocation ignored = TextureMap.locationBlocksTexture;
 
 	protected ModelAnimated model;
 
-	public RenderAnimatedModel(ModelAnimated model, float shadowSize) {
-		super(model, shadowSize);
+	public RenderAnimatedModel(RenderManager manager, ModelAnimated model,
+			float shadowSize) {
+		super(manager, model, shadowSize);
 		this.model = model;
 	}
 
@@ -46,6 +49,7 @@ public class RenderAnimatedModel extends RenderLiving {
 	 */
 	public static RenderAnimatedModel fromResLocation(ResourceLocation resLoc,
 			float shadowSize) {
-		return new RenderAnimatedModel(new ModelAnimated(resLoc), shadowSize);
+		return new RenderAnimatedModel(Minecraft.getMinecraft()
+				.getRenderManager(), new ModelAnimated(resLoc), shadowSize);
 	}
 }

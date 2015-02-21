@@ -5,9 +5,9 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-import net.minecraftforge.client.model.ModelFormatException;
-
 import org.lwjgl.util.vector.Vector2f;
+
+import com.github.worldsender.mcanm.client.exceptions.ModelFormatException;
 
 /**
  * A spline is the line between two key-frames k<SUB>1</SUB> and k<SUB>2</SUB>.

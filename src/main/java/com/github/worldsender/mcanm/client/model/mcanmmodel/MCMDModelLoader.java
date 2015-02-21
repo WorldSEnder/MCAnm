@@ -5,13 +5,11 @@ import java.io.IOError;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.IResourceManager;
+import net.minecraft.client.resources.IResourceManagerReloadListener;
 import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.client.model.AdvancedModelLoader;
-import net.minecraftforge.client.model.IModelCustomLoader;
-import net.minecraftforge.client.model.ModelFormatException;
 
 import com.github.worldsender.mcanm.MCAnm;
-import com.github.worldsender.mcanm.Reference;
+import com.github.worldsender.mcanm.client.exceptions.ModelFormatException;
 import com.github.worldsender.mcanm.client.model.mcanmmodel.data.RawData;
 import com.github.worldsender.mcanm.client.model.mcanmmodel.loader.VersionizedModelLoader;
 
@@ -23,22 +21,21 @@ import com.github.worldsender.mcanm.client.model.mcanmmodel.loader.VersionizedMo
  * @author WorldSEnder
  *
  */
-public class MCMDModelLoader implements IModelCustomLoader {
+public class MCMDModelLoader implements IResourceManagerReloadListener {
 	/**
 	 * This instance is registered in the {@link AdvancedModelLoader}-class
 	 * provided by forge.
 	 */
 	public static final MCMDModelLoader instance = new MCMDModelLoader();
 
-	@Override
-	public String getType() {
-		return Reference.model_type;
+	private IResourceManager manager;
+
+	private IResourceManager getManager() {
+		return manager == null
+				? Minecraft.getMinecraft().getResourceManager()
+				: manager;
 	}
 
-	@Override
-	public String[] getSuffixes() {
-		return Reference.model_suffix_list;
-	}
 	/**
 	 * Used to load the models in an exception-free manner (for n0bs or just
 	 * lazy guys who don't want to deal with exceptions). Static version of
@@ -49,7 +46,7 @@ public class MCMDModelLoader implements IModelCustomLoader {
 	 * @return the loaded model, never null
 	 * @see #loadInstance(ResourceLocation)
 	 */
-	public static ModelMCMD loadModel(ResourceLocation resLoc) {
+	public static ModelMCMD loadMCMDModel(ResourceLocation resLoc) {
 		return instance.loadInstance(resLoc);
 	}
 	/**
@@ -65,10 +62,8 @@ public class MCMDModelLoader implements IModelCustomLoader {
 	 *            the resource to load this model from
 	 * @return the newly loaded {@link ModelMCMD}, never <code>null</code>
 	 */
-	@Override
 	public ModelMCMD loadInstance(ResourceLocation resource) {
-		return this.loadInstance(resource, Minecraft.getMinecraft()
-				.getResourceManager(), true);
+		return this.loadInstance(resource, getManager(), true);
 	}
 	/**
 	 * Actually loads the model. Note that this method will (normally) not
@@ -88,18 +83,20 @@ public class MCMDModelLoader implements IModelCustomLoader {
 	public ModelMCMD loadInstance(ResourceLocation resource,
 			IResourceManager resManager, boolean register) {
 		// The following constructor will not throw but eat our loaded data even
-		// when that is null.
+		// when that is illegal.
 		ModelMCMD model = new ModelMCMD(resource, resManager);
 		if (register) {
 			ModelRegistry.instance.registerModel(model);
 		}
+		model.preBake();
 		return model;
 	}
 	/**
 	 * ADVANCED USE<br>
 	 * Use this to load a Model and receive any occuring Exceptions. The
 	 * received model can later be registered in the {@link ModelRegistry} to
-	 * cache it.
+	 * cache it.<br>
+	 * This does also NOT bake the model, you have to do that later on
 	 *
 	 * @param resLocation
 	 *            the {@link ResourceLocation} to load from
@@ -111,7 +108,7 @@ public class MCMDModelLoader implements IModelCustomLoader {
 	 * @throws ModelFormatException
 	 *             if any exception occurs during loading
 	 */
-	public ModelMCMD loadChecked(ResourceLocation resLocation,
+	public ModelMCMD loadUnchecked(ResourceLocation resLocation,
 			IResourceManager resManager) throws ModelFormatException {
 		MCAnm.logger.trace(String.format(
 				"[Model] Attempting to load model from resource: %s",
@@ -141,6 +138,12 @@ public class MCMDModelLoader implements IModelCustomLoader {
 				"[Model] Attempting to load model from stream: %s", filename));
 		RawData loadedData = VersionizedModelLoader.loadVersionized(dis,
 				filename);
-		return new ModelMCMD(loadedData);
+		ModelMCMD model = new ModelMCMD(loadedData);
+		model.preBake();
+		return model;
+	}
+	@Override
+	public void onResourceManagerReload(IResourceManager newManager) {
+		manager = newManager;
 	}
 }

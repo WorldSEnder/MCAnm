@@ -11,7 +11,13 @@ import com.google.common.base.Predicate;
  *
  */
 public interface IModelData {
-	public void renderAll(IAnimation currAttack, float frame);
-	public void renderFiltered(Predicate<String> filter, IAnimation currAttack,
-			float frame);
+	/**
+	 * Setup the animation and frame given and prepares the model.
+	 * 
+	 * @param currAnimation
+	 * @param frame
+	 */
+	public void setup(IAnimation currAnimation, float frame);
+	public void renderAll();
+	public void renderFiltered(Predicate<String> filter);
 }
