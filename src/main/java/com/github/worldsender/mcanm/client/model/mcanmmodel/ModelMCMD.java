@@ -15,6 +15,7 @@ import com.github.worldsender.mcanm.client.model.mcanmmodel.data.RawData;
 import com.github.worldsender.mcanm.client.model.mcanmmodel.glcontext.GLHelper;
 import com.github.worldsender.mcanm.client.model.mcanmmodel.loader.VersionizedModelLoader;
 import com.github.worldsender.mcanm.client.renderer.IAnimatedObject;
+import com.google.common.base.Optional;
 /**
  * Represents a model that is more abstract than boxes. The format also offers
  * animating the model through bones and a few more things.<br>
@@ -30,13 +31,13 @@ import com.github.worldsender.mcanm.client.renderer.IAnimatedObject;
  */
 public class ModelMCMD {
 	public static class MCMDState implements IModelState {
-		private RawData rawData;
+		private Optional<RawData> rawData;
 
-		public MCMDState(RawData data) {
+		public MCMDState(Optional<RawData> data) {
 			rawData = data;
 		}
 
-		public RawData getData() {
+		public Optional<RawData> getData() {
 			return rawData;
 		}
 
@@ -46,16 +47,17 @@ public class ModelMCMD {
 		}
 	}
 
-	private static RawData loadDataChecked(ResourceLocation resource,
+	private static Optional<RawData> loadDataChecked(ResourceLocation resource,
 			IResourceManager resManager) {
 		try {
-			return VersionizedModelLoader.loadVersionized(resource, resManager);
+			return Optional.of(VersionizedModelLoader.loadVersionized(resource,
+					resManager));
 		} catch (ModelFormatException mfe) {
 			MCAnm.logger.error(
 					String.format("Error loading model from %s.", resource),
 					mfe);
 		}
-		return null;
+		return Optional.absent();
 	}
 
 	private GLHelper renderHelper;
@@ -63,7 +65,7 @@ public class ModelMCMD {
 	 * Resource location of the data that will be loaded on next texturepack
 	 * change.
 	 */
-	private ResourceLocation reloadLocation;
+	private Optional<ResourceLocation> reloadLocation;
 	private MCMDState stateCache;
 
 	private String artist;
@@ -102,7 +104,7 @@ public class ModelMCMD {
 	 * This constructor will not throw. INTERNAL USE<br>
 	 * This constructor is thought as a possibility to load the
 	 */
-	protected ModelMCMD(RawData data) {
+	protected ModelMCMD(Optional<RawData> data) {
 		this.renderHelper = GLHelper.getNewAppropriateHelper();
 		this.putData(data);
 		// Else there was an error during loading, we are supposed not to react
@@ -119,10 +121,10 @@ public class ModelMCMD {
 			return;
 		try {
 			RawData data = VersionizedModelLoader.loadVersionized(
-					this.reloadLocation, newManager);
-			this.putData(data);
+					this.reloadLocation.get(), newManager);
+			this.putData(Optional.of(data));
 		} catch (ModelFormatException mfe) {
-			// DO nothing if failed
+			this.putData(Optional.<RawData> absent());
 		}
 	}
 	/**
@@ -135,14 +137,14 @@ public class ModelMCMD {
 		renderHelper.preBake(stateCache, null);
 	}
 	/** Helper function */
-	private void putData(RawData data) {
-		if (data != null) {
-			this.stateCache = new MCMDState(data);
+	private void putData(Optional<RawData> loaded) {
+		this.stateCache = new MCMDState(loaded);
+		if (loaded.isPresent()) {
+			RawData data = loaded.get();
 			this.artist = data.artist;
 			this.modelUUID = data.modelUUID;
-			this.reloadLocation = data.srcLocation;
+			this.reloadLocation = Optional.fromNullable(data.srcLocation);
 		} else {
-			this.stateCache = new MCMDState(data);
 			this.artist = "UNKOWN_ARTIST";
 			this.modelUUID = new UUID(0, 0);
 			this.reloadLocation = null;
@@ -154,7 +156,7 @@ public class ModelMCMD {
 	 *
 	 * @return
 	 */
-	public ResourceLocation getResourceLocation() {
+	public Optional<ResourceLocation> getResourceLocation() {
 		return this.reloadLocation;
 	}
 	/**

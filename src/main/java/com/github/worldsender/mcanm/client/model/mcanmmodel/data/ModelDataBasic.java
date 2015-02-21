@@ -294,13 +294,9 @@ public class ModelDataBasic implements IModelData {
 		 *            the subframe
 		 */
 		public void setTransformation(IAnimation anim, float frame) {
-			if (anim == null) {
-				resetTransform();
-				return;
-			}
 			BoneTransformation btr = anim.getCurrentTransformation(this.name,
 					frame);
-			if (btr == null) {
+			if (btr.equals(identity)) {
 				resetTransform();
 				return;
 			}
@@ -369,7 +365,7 @@ public class ModelDataBasic implements IModelData {
 		public static Bone fromData(RawDataV1.Bone data, Bone[] allBones) {
 			Matrix4f localToParent = Utils.fromRotTrans(data.rotation,
 					data.offset, 1.0F);
-			if (data.parent != -1)
+			if (data.parent != 0xFF)
 				return new ParentedBone(localToParent, data.name,
 						allBones[data.parent & 0xFF]);
 			return new Bone(localToParent, data.name);

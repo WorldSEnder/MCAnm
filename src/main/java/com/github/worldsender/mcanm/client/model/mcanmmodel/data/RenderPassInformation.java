@@ -1,6 +1,9 @@
 package com.github.worldsender.mcanm.client.model.mcanmmodel.data;
 
+import java.util.Objects;
+
 import com.github.worldsender.mcanm.client.model.mcanmmodel.animation.IAnimation;
+import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 /**
  * Used to simplify the pre-render callback process. This class is an aggregate
@@ -48,13 +51,13 @@ public class RenderPassInformation {
 		@Override
 		public BoneTransformation getCurrentTransformation(String bone,
 				float frame) {
-			return null;
+			return BoneTransformation.identity;
 		};
 	};
 
 	private float frame;
 	private IAnimation animation;
-	private Predicate<String> partPredicate;
+	private Optional<Predicate<String>> partPredicate;
 
 	public RenderPassInformation() {
 		this.reset();
@@ -62,17 +65,15 @@ public class RenderPassInformation {
 
 	public RenderPassInformation(float frame, IAnimation animation,
 			Predicate<String> partPredicate) {
-		this.frame = frame;
-		this.animation = animation;
-		this.partPredicate = partPredicate;
+		this.setFrame(frame).setAnimation(animation)
+				.setPartPredicate(Optional.fromNullable(partPredicate));
 	}
 	/**
 	 * Resets this information to be reused.
 	 */
 	public void reset() {
-		this.frame = 0F;
-		this.animation = BIND_POSE;
-		this.partPredicate = RENDER_ALL;
+		this.setFrame(0F).setAnimation(BIND_POSE)
+				.setPartPredicate(Optional.of(RENDER_ALL));
 	}
 	/**
 	 * Returns the current Frame in the animation. This is not inside the
@@ -103,10 +104,10 @@ public class RenderPassInformation {
 	}
 	/**
 	 * @param animation
-	 *            the animation to set
+	 *            the animation to set, never null
 	 */
 	public RenderPassInformation setAnimation(IAnimation animation) {
-		this.animation = animation;
+		this.animation = Objects.requireNonNull(animation);
 		return this;
 	}
 	/**
@@ -115,16 +116,16 @@ public class RenderPassInformation {
 	 *
 	 * @return a predicate to match parts against that may be rendered
 	 */
-	public Predicate<String> getPartPredicate() {
+	public Optional<Predicate<String>> getPartPredicate() {
 		return partPredicate;
 	}
 	/**
 	 * @param partPredicate
-	 *            the partPredicate to set
+	 *            the partPredicate to set, never null
 	 */
 	public RenderPassInformation setPartPredicate(
-			Predicate<String> partPredicate) {
-		this.partPredicate = partPredicate;
+			Optional<Predicate<String>> partPredicate) {
+		this.partPredicate = Objects.requireNonNull(partPredicate);
 		return this;
 	}
 

@@ -19,7 +19,8 @@ public interface IAnimatedObject {
 	 *            the current subFrame (subTick)
 	 * @param callback
 	 *            a {@link RenderPassInformation} to prepare
-	 * @return A {@link RenderPassInformation} to use in the current pass
+	 * @return A {@link RenderPassInformation} to use in the current pass, not
+	 *         null
 	 */
 	public RenderPassInformation preRenderCallback(float subFrame,
 			RenderPassInformation callback);
