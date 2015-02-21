@@ -14,6 +14,8 @@ import com.github.worldsender.mcanm.client.model.mcanmmodel.data.RawData;
 import com.github.worldsender.mcanm.client.model.mcanmmodel.loader.VersionizedModelLoader;
 import com.github.worldsender.mcanm.client.model.util.ModelLoader;
 
+import com.google.common.base.Optional;
+
 /**
  * This class can be used to load a model without registering it automatically
  * in the {@link ModelLoader}. This can be useful if you later want to load
@@ -105,7 +107,7 @@ public class MCMDModelLoader implements IResourceManagerReloadListener {
 	 *            the {@link IResourceManager} to use during loading. You may
 	 *            use <code>Minecraft.getMinecraft().getResourceManager()</code>
 	 *            .
-	 * @return the loaded model
+	 * @return the loaded model, never null, may contain no data
 	 * @throws ModelFormatException
 	 *             if any exception occurs during loading
 	 */
@@ -116,7 +118,7 @@ public class MCMDModelLoader implements IResourceManagerReloadListener {
 				resLocation));
 		RawData loadedData = VersionizedModelLoader.loadVersionized(
 				resLocation, resManager);
-		return new ModelMCMD(loadedData);
+		return new ModelMCMD(Optional.of(loadedData));
 	}
 	/**
 	 * ADVANCED USE<br>
@@ -139,7 +141,7 @@ public class MCMDModelLoader implements IResourceManagerReloadListener {
 				"[Model] Attempting to load model from stream: %s", filename));
 		RawData loadedData = VersionizedModelLoader.loadVersionized(dis,
 				filename);
-		ModelMCMD model = new ModelMCMD(loadedData);
+		ModelMCMD model = new ModelMCMD(Optional.of(loadedData));
 		model.preBake();
 		return model;
 	}

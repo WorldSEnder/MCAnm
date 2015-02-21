@@ -2,6 +2,7 @@ package com.github.worldsender.mcanm.client.model.mcanmmodel;
 
 import java.util.HashMap;
 import java.util.Map.Entry;
+import java.util.Objects;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.IResourceManager;
@@ -64,9 +65,8 @@ public class ModelRegistry implements IResourceManagerReloadListener {
 	 *             an invalid {@link ResourceLocation}
 	 */
 	public boolean registerModel(ModelMCMD model) {
-		if (model == null)
-			throw new IllegalArgumentException("Model can't be null");
-		ResourceLocation resLoc = model.getResourceLocation();
+		Objects.requireNonNull(model, "Model can't be null");
+		ResourceLocation resLoc = model.getResourceLocation().orNull();
 		if (resLoc == null)
 			throw new IllegalArgumentException(
 					"The model you are trying to register has not been loaded from a valid ResourceLocation.");

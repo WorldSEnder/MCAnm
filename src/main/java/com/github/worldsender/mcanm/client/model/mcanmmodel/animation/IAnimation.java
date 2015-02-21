@@ -60,15 +60,17 @@ public interface IAnimation {
 	}
 	/**
 	 * Returns the bone's current {@link BoneTransformation} (identified by
-	 * name). If <code>null</code> is returned by this method it is assumed that
-	 * Bone is in his binding-pose-state (identity transform).<br>
-	 * The returned matrix should already be interpolated correctly.
+	 * name). <br>
+	 * If the requested bone is not known to the animation it may throw or
+	 * simply return {@link BoneTransformation#identity}. It may never return
+	 * <code>null</code>.
 	 *
 	 * @param bone
 	 *            the name of the bone the matrix is requested
 	 * @param frame
 	 *            the current frame in the animation
-	 * @return the actual, present state of the requested bone
+	 * @return the actual, present state of the requested bone, never
+	 *         <code>null</code>
 	 */
 	public BoneTransformation getCurrentTransformation(String bone, float frame);
 }

@@ -135,7 +135,7 @@ public class StoredAnimation implements IAnimation {
 	public BoneTransformation getCurrentTransformation(String bone, float frame) {
 		AnimatedTransform anim = this.animations.get(bone);
 		if (anim == null)
-			return null;
+			return BoneTransformation.identity;
 		return anim.getTransformAt(frame);
 	}
 	/**

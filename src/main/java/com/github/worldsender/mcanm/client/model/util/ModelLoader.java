@@ -13,6 +13,7 @@ import org.apache.logging.log4j.Logger;
 import com.github.worldsender.mcanm.MCAnm;
 import com.github.worldsender.mcanm.client.model.mcanmmodel.MCMDModelLoader;
 import com.github.worldsender.mcanm.client.model.mcanmmodel.ModelMCMD;
+import com.google.common.base.Optional;
 /**
  * This class caches and safes all models that were loaded with it. It functions
  * at a global control point. All model loading should, generally, be done
@@ -76,13 +77,13 @@ public class ModelLoader implements IResourceManagerReloadListener {
 	public boolean registerModel(ModelMCMD model) {
 		if (model == null)
 			throw new IllegalArgumentException("Model can't be null");
-		ResourceLocation resLoc = model.getResourceLocation();
-		if (resLoc == null)
+		Optional<ResourceLocation> resLoc = model.getResourceLocation();
+		if (!resLoc.isPresent())
 			throw new IllegalArgumentException(
 					"The model you are trying to register has not been loaded from a valid ResourceLocation.");
 		if (this.cachedModels.containsKey(resLoc))
 			return false;
-		this.cachedModels.put(resLoc, model);
+		this.cachedModels.put(resLoc.get(), model);
 		return true;
 	}
 	/**
@@ -108,9 +109,8 @@ public class ModelLoader implements IResourceManagerReloadListener {
 			boolean registered = this.registerModel(model);
 			assert registered == true;
 		} else {
-			logger.trace(String
-					.format("[ModelLoader] Loading cached model from %s",
-							resLocation));
+			logger.trace(String.format(
+					"[ModelLoader] Loading cached model from %s", resLocation));
 		}
 		return model;
 	}

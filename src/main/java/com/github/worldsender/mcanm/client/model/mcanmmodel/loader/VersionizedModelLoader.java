@@ -6,6 +6,7 @@ import java.io.EOFException;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 
 import net.minecraft.client.resources.IResourceManager;
@@ -33,7 +34,7 @@ public abstract class VersionizedModelLoader {
 	 *            the loader to register
 	 */
 	public static boolean registerLoader(int version, VersionizedModelLoader vml) {
-		return registeredLoaders.put(version, vml) != null;
+		return registeredLoaders.put(version, Objects.requireNonNull(vml)) != null;
 	}
 	/**
 	 * Interprets the resource location as a file with a version. The correct
@@ -45,9 +46,8 @@ public abstract class VersionizedModelLoader {
 	 */
 	public static RawData loadVersionized(ResourceLocation resLocation,
 			IResourceManager resourceManager) throws ModelFormatException {
-		if (resourceManager == null)
-			throw new IllegalArgumentException(
-					"Resource-Manager can't be null.");
+		Objects.requireNonNull(resourceManager,
+				"Resource-Manager can't be null.");
 		try (DataInputStream dis = new DataInputStream(new BufferedInputStream(
 				resourceManager.getResource(resLocation).getInputStream()))) {
 			return loadFromStream(dis, resLocation, resLocation.toString());
@@ -70,9 +70,7 @@ public abstract class VersionizedModelLoader {
 	 */
 	public static RawData loadVersionized(DataInputStream dis, String filename)
 			throws ModelFormatException {
-		if (dis == null)
-			throw new IllegalArgumentException(
-					"DataInputStream can not be null");
+		Objects.requireNonNull(dis, "DataInputStream can not be null");
 		return loadFromStream(dis, null, filename);
 
 	}
