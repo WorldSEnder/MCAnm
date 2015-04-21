@@ -12,7 +12,7 @@ Any violators shall be pursuit with demands of law.
 
 2.) Do not claim any of this to be your work unless authorized by one of it's developers.
 
-3.) Only developers of the MHFC modding group (www.github.com/Heltrato/MHFC/) might alter and or/use altered code of this project without permission.
+3.) Only developers of the MHFC modding group (https://github.com/Guild-Hall) might alter and or/use altered code of this project without permission.
 
 ### Some words at the start
 
