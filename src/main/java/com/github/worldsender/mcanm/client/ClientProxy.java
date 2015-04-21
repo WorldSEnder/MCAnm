@@ -20,7 +20,7 @@ public class ClientProxy implements Proxy {
 			registry.registerReloadListener(ModelRegistry.instance);
 		} else {
 			MCAnm.logger
-					.warn("Couldn't register reload managers. Models will not be reloaded on switching texture pack");
+					.warn("Couldn't register reload managers. Models will not be reloaded on switching resource pack");
 		}
 		MCAnm.logger.info("Registered Reload Managers.");
 	}
