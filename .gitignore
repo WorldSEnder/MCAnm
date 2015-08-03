@@ -1,15 +1,18 @@
 # push src/ only
-*
-!src/
-!gradle/
+/*
+!/src/
+!/gradle/
+!/scripts/
 !gradlew
 !gradlew.bat
 !README.md
 !LICENSE
 !build.gradle
 !build.properties
+!.gitignore
 
 *.class
+__pycache__/
 
 # Mobile Tools for Java (J2ME)
 .mtj.tmp/
