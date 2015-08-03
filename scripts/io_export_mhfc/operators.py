@@ -105,7 +105,7 @@ class ObjectExporter(Operator):
 			error("Active Object not a Mesh")
 		if self.armature:
 			opt.arm = extract_safe(bpy.data.armatures, self.armature, "Armature {item} not in bpy.data.armatures")
-			if opt.arm not in [mod.object.data for mod in opt.obj.modifiers if mod.type == 'ARMATURE']:
+			if opt.arm not in [mod.object.data for mod in opt.obj.modifiers if mod.type == 'ARMATURE' and mod.object is not None]:
 				warning("Armature {arm} is not active on object {obj}", arm=self.armature, obj=self.object)
 		else:
 			opt.arm = None
@@ -124,6 +124,7 @@ class ObjectExporter(Operator):
 		return export_mesh(context, opt)
 
 	def invoke(self, context, event):
+		warning.active_op = self
 		if context.object is None or context.object.type != 'MESH':
 			error("Active object must be a mesh")
 
@@ -134,7 +135,6 @@ class ObjectExporter(Operator):
 		self.mod_id = prefs.mod_id
 		if not self.mod_id:
 			self.mod_id = 'minecraft'
-		self.filepath = prefs.directory
 		self.model_path = prefs.model_path
 		if not self.model_path:
 			self.model_path = '{modid}:models/{modelname}/{modelname}.mcmd'
@@ -158,6 +158,7 @@ class ObjectExporter(Operator):
 
 		self.export_tex = sceprops.export_tex
 
+		self.filepath = bpy.path.abspath(prefs.directory)
 		context.window_manager.fileselect_add(self)
 		return {'RUNNING_MODAL'}
 
@@ -213,18 +214,19 @@ class ArmAnimationExporter(Operator):
 	
 	def draw(self, context):
 		layout = self.layout
-		layout.prop(self, "filepath")
 		layout.prop(self, "artist")
 		layout.prop_search(self, "armature", bpy.data, "armatures", icon="ARMATURE_DATA")
 		layout.prop_search(self, "arm_action", bpy.data, "actions", icon="ANIM_DATA")
 		layout.prop(self, "offset")
 
 	def execute(self, context):
+		warning.active_op = self
 		armature = extract_safe(bpy.data.armatures, self.armature, "Invalid armature: {item}, not in bpy.data.armatures")
 		action = extract_safe(bpy.data.actions, self.arm_action, "Invalid action: {item}, not in bpy.data.actions")
 		return export_action(self.filepath, action, self.offset, self.artist, armature)
 
 	def invoke(self, context, event):
+		warning.active_op = self
 		if context.object.type != 'ARMATURE':
 			error("Active object {obj} is not an armature", obj=context.object.name)
 		self.armature = context.object.data.name

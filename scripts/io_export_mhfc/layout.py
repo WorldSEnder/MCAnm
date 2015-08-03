@@ -134,6 +134,7 @@ class ObjectExportPanel(Panel):
 		layout.prop(sceneprops, 'export_tex', text="Export Textures")
 		# Add operator
 		operator_box = layout.row()
+		operator_box.operator_context = 'EXEC_DEFAULT'
 		op = operator_box.operator(ObjectExporter.bl_idname)
 		op.object = obj.name
 		op.version = meshprops.version

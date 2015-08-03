@@ -55,7 +55,7 @@ class Point(object):
 				fatal("(Point) Inserted tupple is None")
 			for idx, (_ex_idx, ex_value) in enumerate(self.bindings):
 				if b_value > ex_value:
-					self.bindings.insert(idx, ex_value)
+					self.bindings.insert(idx, bind)
 					break
 			else:
 				self.bindings.append(bind)
@@ -116,6 +116,7 @@ class Part(object):
 			warning("Group {name} has an invalid image ({img}) assigned. Defaulted to {default}",
 					name=self.name, img=group.image, default=options.def_image)
 			img = options.def_image.name
+		self.image = bpy.data.images[img]
 		self.img_location = options.texpath.format(
 						modid=options.mod_id,
 						modelname=options.modelname,
@@ -328,7 +329,7 @@ def export_mesh_v1(context, options, file_h):
 					os.path.join(
 							options.dirpath,
 							asset_to_dir(path))
-			bpy.data.images[img].save_render(bpy.path.abspath(ext_path), scene=context.scene)
+			img.save_render(bpy.path.abspath(ext_path), scene=context.scene)
 
 	return 'Exported with ({numparts} parts, {numbones} bones)'.format(
 			numparts=len(part_dict),
@@ -361,7 +362,7 @@ def export_mesh(context, options):
 		try:
 			message = known_exporters[options.version](context, options, file_h)
 			if message is not None:
-				context.active_operator.report({'INFO'}, message)
+				warning.active_op.report({'INFO'}, message)
 		except (KeyError, NotImplementedError) as ex:
 			fatal("Version {v} is not implemented yet", v=options.version)
 	return {'FINISHED'}
