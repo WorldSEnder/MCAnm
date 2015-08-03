@@ -245,7 +245,7 @@ class ArmatureUpdater(Operator):
 		return context.object is not None and context.object.type == 'MESH'
 
 	def execute(self, context):
-		obj = context.objects
+		obj = context.object
 		armlist = obj.data.mcprops.poss_arms
 		armlist.clear()
 		for mod in obj.modifiers:
