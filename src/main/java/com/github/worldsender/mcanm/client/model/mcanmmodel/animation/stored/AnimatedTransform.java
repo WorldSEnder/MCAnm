@@ -58,6 +58,7 @@ public class AnimatedTransform {
 		Quaternion quaternion = new Quaternion(quat_x.getValueAt(frame),
 				quat_y.getValueAt(frame), quat_z.getValueAt(frame),
 				quat_w.getValueAt(frame));
+		quaternion = quaternion.normalise(quaternion);
 		Vector3f scale = new Vector3f(scale_x.getValueAt(frame),
 				scale_y.getValueAt(frame), scale_z.getValueAt(frame));
 		return new BoneTransformation(translation, quaternion, scale);
