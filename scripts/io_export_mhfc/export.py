@@ -50,15 +50,9 @@ class Point(object):
 			"""
 			bind tuple: Can't be None, (idx, value) of binding
 			"""
-			_b_idx, b_value = bind
 			if bind is None:
 				fatal("(Point) Inserted tupple is None")
-			for idx, (_ex_idx, ex_value) in enumerate(self.bindings):
-				if b_value > ex_value:
-					self.bindings.insert(idx, bind)
-					break
-			else:
-				self.bindings.append(bind)
+			self.bindings.append(bind)
 		# iterate over all bones (as indices)
 		for idx, vgroup_idx in enumerate(arm_vgroup_idxs):
 			if vgroup_idx == -1:
@@ -73,7 +67,7 @@ class Point(object):
 				if value > 0:
 					insert_into_binds((idx, value))
 	def to_bytes(self, file_h):
-		binds = self.bindings[0:4]
+		binds = sorted(self.bindings, key=lambda x: x[1])[-4:]
 		co = self.coords
 		norm = self.normal
 		uv = self.uv
@@ -301,35 +295,35 @@ def export_mesh_v1(context, options, file_h):
 			if group not in part_dict:
 				part_dict.update({group: Part(group, options)})
 			part_dict[group].append_face(face, uv_layer, deform_layer, arm_vgroup_idxs)
-	if len(part_dict) > 255:
-		error("Too many parts")
-	bones = ([] if arm is None else
-			 [Bone(bone) for bone in arm.bones])
-	if len(bones) > 255:
-		error("Too many bones")
-	bone_parents = ([] if arm is None else
-					[arm.bones.find(b.parent.name) & 0xFF if b.parent is not None else 255 for b in arm.bones])
+		if len(part_dict) > 255:
+			error("Too many parts")
+		bones = ([] if arm is None else
+				 [Bone(bone) for bone in arm.bones])
+		if len(bones) > 255:
+			error("Too many bones")
+		bone_parents = ([] if arm is None else
+						[arm.bones.find(b.parent.name) & 0xFF if b.parent is not None else 255 for b in arm.bones])
 
-	# write the stuff
-	write_packed(">I", file_h, 1)
-	write_packed(">2B", file_h, len(part_dict), len(bones))
-	for key in part_dict.keys():
-		part = part_dict[key]
-		part.to_bytes(file_h)
-	for bone in bones:
-		bone.to_bytes(file_h)
-	write_packed(">{nums}B".format(nums=len(bones)), file_h, *bone_parents)
+		# write the stuff
+		write_packed(">I", file_h, 1)
+		write_packed(">2B", file_h, len(part_dict), len(bones))
+		for key in part_dict.keys():
+			part = part_dict[key]
+			part.to_bytes(file_h)
+		for bone in bones:
+			bone.to_bytes(file_h)
+		write_packed(">{nums}B".format(nums=len(bones)), file_h, *bone_parents)
 
-	if options.export_tex:
-		settings = context.scene.render.image_settings
-		settings.file_format = 'PNG'
-		settings.color_mode = 'RGBA'
-		for img, path in set([(p.image, p.img_location) for p in part_dict.values()]):
-			ext_path =\
-					os.path.join(
-							options.dirpath,
-							asset_to_dir(path))
-			img.save_render(bpy.path.abspath(ext_path), scene=context.scene)
+		if options.export_tex:
+			settings = context.scene.render.image_settings
+			settings.file_format = 'PNG'
+			settings.color_mode = 'RGBA'
+			for img, path in set([(p.image, p.img_location) for p in part_dict.values()]):
+				ext_path =\
+						os.path.join(
+								options.dirpath,
+								asset_to_dir(path))
+				img.save_render(bpy.path.abspath(ext_path), scene=context.scene)
 
 	return 'Exported with ({numparts} parts, {numbones} bones)'.format(
 			numparts=len(part_dict),
