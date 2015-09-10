@@ -5,12 +5,16 @@ import net.minecraftforge.common.config.Property;
 
 import org.apache.logging.log4j.Logger;
 
+import com.github.worldsender.mcanm.test.CubeEntity;
+
 import cpw.mods.fml.client.event.ConfigChangedEvent.OnConfigChangedEvent;
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.SidedProxy;
+import cpw.mods.fml.common.event.FMLInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
+import cpw.mods.fml.common.registry.EntityRegistry;
 
 @Mod(
 		modid = Reference.core_modid,
@@ -18,6 +22,10 @@ import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 		version = Reference.core_modversion,
 		guiFactory = "com.github.worldsender.mcanm.client.config.MCAnmGuiFactory")
 public class MCAnm {
+	/**
+	 * Enables various visual outputs, e.g. the bones of models are rendered.
+	 */
+	public static final boolean isDebug = false;
 
 	@Mod.Instance(Reference.core_modid)
 	public static MCAnm instance;
@@ -44,6 +52,15 @@ public class MCAnm {
 		proxy.register();
 		FMLCommonHandler.instance().bus().register(this);
 		logger.info("Successfully loaded MC Animations");
+	}
+
+	@Mod.EventHandler
+	public void init(FMLInitializationEvent event) {
+		if (!isDebug)
+			return;
+		int id = 0;
+		EntityRegistry.registerModEntity(CubeEntity.class, "Cube", id, this,
+				80, 1, true);
 	}
 
 	@SubscribeEvent

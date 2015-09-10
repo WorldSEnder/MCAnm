@@ -1,9 +1,16 @@
 package com.github.worldsender.mcanm.client.model.mcanmmodel.data;
 
+import static org.lwjgl.opengl.GL11.GL_LINES;
+import static org.lwjgl.opengl.GL11.GL_TEXTURE_2D;
 import static org.lwjgl.opengl.GL11.GL_TRIANGLES;
+import static org.lwjgl.opengl.GL11.glColor4f;
+import static org.lwjgl.opengl.GL11.glDisable;
+import static org.lwjgl.opengl.GL11.glEnable;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.Tessellator;
@@ -14,6 +21,7 @@ import org.lwjgl.util.vector.Vector2f;
 import org.lwjgl.util.vector.Vector3f;
 import org.lwjgl.util.vector.Vector4f;
 
+import com.github.worldsender.mcanm.MCAnm;
 import com.github.worldsender.mcanm.client.model.mcanmmodel.Utils;
 import com.github.worldsender.mcanm.client.model.mcanmmodel.animation.IAnimation;
 import com.github.worldsender.mcanm.client.model.mcanmmodel.animation.IAnimation.BoneTransformation;
@@ -48,7 +56,7 @@ public class ModelDataBasic implements IModelData {
 				public void render() {
 					tess.setNormal(norm.x, norm.z, -norm.y);
 					tess.setTextureUV(uv.x, uv.y);
-					tess.addVertex(pos.x, pos.z, -pos.y);
+					tess.addVertex(pos.x / pos.w, pos.z / pos.w, -pos.y / pos.w);
 				}
 				/**
 				 * Offsets this Vertex by the {@link Vector4f} given.
@@ -57,7 +65,7 @@ public class ModelDataBasic implements IModelData {
 				 *            the offset
 				 */
 				public void offset(Vector4f vector) {
-					Vector4f.add(this.pos, vector, this.pos);
+					this.pos = Vector4f.add(this.pos, vector, this.pos);
 				}
 				/**
 				 * Adds the normal to this Vertex basically interpolating
@@ -123,31 +131,27 @@ public class ModelDataBasic implements IModelData {
 				private static Vector4f normBuff = new Vector4f();
 
 				private Bone bone;
-				private Vertex vert;
 				private float strength;
-				public Binding(Bone bone, Vertex vert, float strenght) {
+				public Binding(Bone bone, float strenght) {
 					this.bone = bone;
-					this.vert = vert;
 					this.strength = strenght;
 				}
 				/**
-				 * Computes the current position of the vertex owned with the
-				 * bone and the strenght owned and adds it position to the given
-				 * vertex.
+				 * Computes the transformed and weighted position of the given
+				 * vertex. Adds that to the target vertex.
 				 *
 				 * @param base
-				 *            the vertex to add the transformed version of the
-				 *            owned vertex to
+				 *            the vertex to transform
+				 * @param trgt
+				 *            the vertex to add to. If null is given, it is just
+				 *            assigned to
 				 * @return the final vertex, a new vertex if <code>null</code>
 				 *         was given
 				 */
-				public Vertex addTransformed(Vertex base) {
-					if (base == null)
-						base = new Vertex(null, null, null);
-					posBuff.set(this.vert.pos.x, this.vert.pos.y,
-							this.vert.pos.z, 1.0F);
-					normBuff.set(this.vert.norm.x, this.vert.norm.y,
-							this.vert.norm.z, 0.0F);
+				public Vertex addTransformed(Vertex base, Vertex trgt) {
+					Objects.requireNonNull(base);
+					posBuff.set(base.pos.x, base.pos.y, base.pos.z, 1.0F);
+					normBuff.set(base.norm.x, base.norm.y, base.norm.z, 0.0F);
 					// Transform matrix
 					Matrix4f globalTransform = this.bone.getTransformGlobal();
 					Matrix4f globalTransformIT = this.bone
@@ -162,9 +166,13 @@ public class ModelDataBasic implements IModelData {
 							normBuff.z);
 					position.scale(this.strength);
 					normal.scale(this.strength);
-					base.offset(position);
-					base.addNormal(normal);
-					return base;
+					if (trgt == null) {
+						trgt = new Vertex(position, normal, null);
+					} else {
+						trgt.offset(position);
+						trgt.addNormal(normal);
+					}
+					return trgt;
 				}
 				public void normalize(float sum) {
 					this.strength /= sum;
@@ -180,8 +188,10 @@ public class ModelDataBasic implements IModelData {
 				this.binds = new ArrayList<>();
 				float strengthSummed = 0.0F;
 				for (RawDataV1.BoneBinding bind : readBinds) {
+					if (bind.bindingValue <= 0.0f)
+						continue;
 					this.binds.add(new Binding(bones[bind.boneIndex & 0xFF],
-							this.vert, bind.bindingValue));
+							bind.bindingValue));
 					strengthSummed += bind.bindingValue;
 				}
 				for (Binding bind : this.binds) {
@@ -191,12 +201,13 @@ public class ModelDataBasic implements IModelData {
 
 			@Override
 			public void render() {
-				Vertex base = null;
+				Vertex base = this.vert;
+				Vertex transformed = null;
 				for (Binding bind : this.binds) {
-					base = bind.addTransformed(base);
+					transformed = bind.addTransformed(base, transformed);
 				}
-				base.setUV(this.vert.uv);
-				base.render();
+				transformed.setUV(this.vert.uv);
+				transformed.render();
 			}
 		}
 
@@ -214,7 +225,7 @@ public class ModelDataBasic implements IModelData {
 			this.pointsList = points;
 			this.resLocation = new ResourceLocation(
 					data.material.resLocationRaw);
-			this.indices = data.indices;
+			this.indices = Arrays.copyOf(data.indices, data.indices.length);
 			this.name = data.name;
 		}
 
@@ -236,48 +247,67 @@ public class ModelDataBasic implements IModelData {
 		private static class ParentedBone extends Bone {
 			private Bone parent;
 
-			protected ParentedBone(Matrix4f lTp, String name, Bone parent) {
-				super(lTp, name);
-				if (parent == null)
-					throw new IllegalArgumentException(String.format(
-							"Parent of bone %s can't be null", this.name));
-				this.parent = parent;
+			protected ParentedBone(Matrix4f localToParent, String name,
+					Bone parent) {
+				super(localToParent, name);
+				this.parent = Objects.requireNonNull(parent, String.format(
+						"Parent of bone %s can't be null", this.name));
 			}
 
 			@Override
-			protected Matrix4f worldToLocal(Matrix4f dst) {
-				// = parentToLocal * worldToParent
-				dst = this.parent.worldToLocal(dst);
-				return Matrix4f.mul(parentToLocal, dst, dst);
+			protected Matrix4f globalToLocal(Matrix4f src, Matrix4f dest) {
+				// local <- parent <- global
+				dest = this.parent.globalToLocal(src, dest);
+				return super.globalToLocal(dest, dest);
 			}
 
 			@Override
-			protected Matrix4f localToWorld(Matrix4f dst) {
-				// = parentToWorld * localToParent * transform
-				dst = this.parent.localToWorld(dst);
-				Matrix4f.mul(dst, this.localToParent, dst);
-				return Matrix4f.mul(dst, TMP_transform, dst);
+			protected Matrix4f localToGlobal(Matrix4f src, Matrix4f dest) {
+				// world <- parent <- transformedLocal <- local
+				dest = super.localToGlobal(src, dest);
+				return this.parent.localToGlobal(dest, dest);
 			}
 		}
 
-		protected Matrix4f localToParent;
-		protected Matrix4f parentToLocal;
+		protected final Matrix4f localToParent;
+		protected final Matrix4f parentToLocal;
 		public final String name;
 
-		protected Matrix4f TMP_transform = new Matrix4f();
-		protected Matrix4f TMP_globalMatrix = new Matrix4f();
-		protected Matrix4f TMP_globalMatrixIT = new Matrix4f();
+		protected Matrix4f transformed = new Matrix4f(); // For childs
+		protected Matrix4f transformedGlobalToGlobal = new Matrix4f(); // vertices
+		protected Matrix4f transformedGlobalToGlobalIT = new Matrix4f(); // normals
 
 		protected Bone(Matrix4f localMatrix, String name) {
 			this.localToParent = localMatrix;
 			this.parentToLocal = Matrix4f.invert(localMatrix, null);
 			this.name = name;
 		}
+		/**
+		 * Debug!
+		 *
+		 * @return the head of the bone
+		 */
+		public Vector4f getHead() {
+			Matrix4f localToGlobal = this.localToGlobal(identity, null);
+			Vector4f head = new Vector4f();
+			head.y = 1.0f;
+			head.w = 1.0f;
+			Matrix4f.transform(localToGlobal, head, head);
+			return head;
+		}
+
+		public Vector4f getTail() {
+			Matrix4f localToGlobal = this.localToGlobal(identity, null);
+			Vector4f head = new Vector4f();
+			head.w = 1.0f;
+			Matrix4f.transform(localToGlobal, head, head);
+			return head;
+		}
 
 		private void resetTransform() {
-			Matrix4f.load(TMP_transform, identity);
-			Matrix4f.load(TMP_globalMatrix, identity);
-			Matrix4f.load(TMP_globalMatrixIT, identity);
+			Matrix4f.load(identity, transformed);
+			Matrix4f.load(identity, transformedGlobalToGlobal);
+			Matrix4f.load(identity, transformedGlobalToGlobalIT);
 		}
 		/**
 		 * Sets up this bone for the following calls to
@@ -302,35 +332,48 @@ public class ModelDataBasic implements IModelData {
 				resetTransform();
 				return;
 			}
-			Matrix4f.load(btr.asMatrix(), TMP_transform);
-			Matrix4f worldToLocal = this.worldToLocal(null);
-			Matrix4f localToWorld = this.localToWorld(null);
-			Matrix4f.mul(localToWorld, worldToLocal, this.TMP_globalMatrix);
-			Matrix4f.load(TMP_globalMatrix, TMP_globalMatrixIT);
-			this.TMP_globalMatrixIT.invert().transpose();
+			Matrix4f worldToLocal = this.globalToLocal(identity, null);
+			Matrix4f.load(btr.asMatrix(), transformed);
+			Matrix4f transformedLocalToWorld = this.localToGlobal(identity,
+					null);
+			Matrix4f.mul(transformedLocalToWorld, worldToLocal,
+					transformedGlobalToGlobal);
+			Matrix4f.load(transformedGlobalToGlobal,
+					transformedGlobalToGlobalIT);
+			transformedGlobalToGlobalIT.invert().transpose();
 		}
 		/**
-		 * Gets a a matrix transformation from world to local coordinates
+		 * Transforms the source matrix into local space and stores the
+		 * resulting matrix in destination.<br>
+		 * If dest is <code>null</code> a new matrix with the result is returned
 		 *
-		 * @param dst
-		 *            the matrix to place the result in
-		 * @return
+		 * @param src
+		 *            the matrix to transform
+		 * @param dest
+		 *            the matrix to store the result in
+		 * @return dest if dest is not <code>null</code>, a new matrix otherwise
 		 */
-		protected Matrix4f worldToLocal(Matrix4f dst) {
-			if (dst == null)
-				dst = new Matrix4f();
-			return dst.load(this.parentToLocal);
+		protected Matrix4f globalToLocal(Matrix4f src, Matrix4f dest) {
+			return Matrix4f.mul(parentToLocal, src, dest);
 		}
 		/**
-		 * Gets a matrix that transforms from local to world respecting the
-		 * current transformation.
+		 * Transforms the source matrix from local into global space and stores
+		 * the resulting matrix in destination.<br>
+		 * This method is - contrary to
+		 * {@link #globalToLocal(Matrix4f, Matrix4f)} sensitive to this bone's
+		 * current transformation.<br>
+		 * If dest is <code>null</code> a new matrix with the result is
+		 * returned.
 		 *
-		 * @param dst
-		 *            the matrix to place the result in
-		 * @return a new matrix if dst is <code>null</code>
+		 * @param src
+		 *            the matrix to transform
+		 * @param dest
+		 *            the matrix to store the result in
+		 * @return dest if dest is not <code>null</code>, a new matrix otherwise
 		 */
-		protected Matrix4f localToWorld(Matrix4f dst) {
-			return Matrix4f.mul(this.localToParent, TMP_transform, dst);
+		protected Matrix4f localToGlobal(Matrix4f src, Matrix4f dest) {
+			dest = Matrix4f.mul(transformed, src, dest);
+			return Matrix4f.mul(localToParent, dest, dest);
 		}
 		/**
 		 * Gets the transform previously applied with
@@ -340,18 +383,18 @@ public class ModelDataBasic implements IModelData {
 		 * @return world to transformed world
 		 */
 		public Matrix4f getTransformGlobal() {
-			return TMP_globalMatrix;
+			return transformedGlobalToGlobal;
 		}
 		/**
 		 * Gets the inverse transposed transform previously applied with
 		 * {@link #setTransformation(IAnimation, int, float)} already
 		 * transformed to the global matrix. This matrix is suitable for usage
-		 * with normals
+		 * with normals.
 		 *
 		 * @return world to transformed world
 		 */
 		public Matrix4f getTransformGlobalIT() {
-			return TMP_globalMatrixIT;
+			return transformedGlobalToGlobalIT;
 		}
 		/**
 		 * Returns a new bone from the data given. If the bone has a parent it
@@ -475,11 +518,25 @@ public class ModelDataBasic implements IModelData {
 	public void renderFiltered(Predicate<String> filter,
 			IAnimation currAnimation, float frame) {
 		setupBones(currAnimation, frame);
+
 		tess.startDrawing(GL_TRIANGLES);
 		for (Part part : this.parts) {
 			if (filter.apply(part.getName()))
 				part.render();
 		}
 		tess.draw();
+		if (MCAnm.isDebug) {
+			tess.startDrawing(GL_LINES);
+			glDisable(GL_TEXTURE_2D);
+			glColor4f(1, 1, 1, 1);
+			for (Bone bone : bones) {
+				Vector4f tail = bone.getTail();
+				Vector4f head = bone.getHead();
+				tess.addVertex(tail.x, tail.z, -tail.y);
+				tess.addVertex(head.x, head.z, -head.y);
+			}
+			tess.draw();
+			glEnable(GL_TEXTURE_2D);
+		}
 	}
 }

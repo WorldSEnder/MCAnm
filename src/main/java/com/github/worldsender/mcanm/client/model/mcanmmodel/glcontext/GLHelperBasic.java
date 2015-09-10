@@ -25,16 +25,17 @@ public class GLHelperBasic extends GLHelper {
 		passInformation.reset();
 		RenderPassInformation currentPass = object.preRenderCallback(subFrame,
 				passInformation);
-		if (currentPass == null)
-			this.modelData.renderAll(RenderPassInformation.BIND_POSE, 0.0F);
-		else {
-			Predicate<String> filter = currentPass.getPartPredicate();
-			IAnimation animation = currentPass.getAnimation();
-			float frame = currentPass.getFrame();
-			if (filter != null)
-				this.modelData.renderFiltered(filter, animation, frame);
-			else
-				this.modelData.renderAll(animation, frame);
-		}
+
+		IAnimation animation = currentPass == null
+				|| currentPass.getAnimation() == null
+				? RenderPassInformation.BIND_POSE
+				: currentPass.getAnimation();
+		Predicate<String> filter = currentPass == null
+				|| currentPass.getPartPredicate() == null
+				? RenderPassInformation.RENDER_ALL
+				: currentPass.getPartPredicate();
+		float frame = currentPass == null ? 0f : currentPass.getFrame();
+
+		this.modelData.renderFiltered(filter, animation, frame);
 	}
 }

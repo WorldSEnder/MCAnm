@@ -14,10 +14,11 @@ import com.github.worldsender.mcanm.MCAnm;
 import com.github.worldsender.mcanm.Reference;
 import com.github.worldsender.mcanm.client.model.mcanmmodel.data.RawData;
 import com.github.worldsender.mcanm.client.model.mcanmmodel.loader.VersionizedModelLoader;
+import com.github.worldsender.mcanm.client.model.util.ModelLoader;
 
 /**
  * This class can be used to load a model without registering it automatically
- * in the {@link ModelRegistry}. This can be useful if you later want to load
+ * in the {@link ModelLoader}. This can be useful if you later want to load
  * the model with different data.
  *
  * @author WorldSEnder
@@ -91,14 +92,14 @@ public class MCMDModelLoader implements IModelCustomLoader {
 		// when that is null.
 		ModelMCMD model = new ModelMCMD(resource, resManager);
 		if (register) {
-			ModelRegistry.instance.registerModel(model);
+			ModelLoader.instance.registerModel(model);
 		}
 		return model;
 	}
 	/**
 	 * ADVANCED USE<br>
 	 * Use this to load a Model and receive any occuring Exceptions. The
-	 * received model can later be registered in the {@link ModelRegistry} to
+	 * received model can later be registered in the {@link ModelLoader} to
 	 * cache it.
 	 *
 	 * @param resLocation

@@ -217,10 +217,12 @@ class BoneAction(object):
 		self.loc_x = Animation(loc_curves[0], offset)
 		self.loc_y = Animation(loc_curves[1], offset)
 		self.loc_z = Animation(loc_curves[2], offset)
+
 		self.rot_w = Animation(rot_curves[0], offset)
 		self.rot_x = Animation(rot_curves[1], offset)
 		self.rot_y = Animation(rot_curves[2], offset)
 		self.rot_z = Animation(rot_curves[3], offset)
+
 		self.scale_x = Animation(scale_curves[0], offset)
 		self.scale_y = Animation(scale_curves[1], offset)
 		self.scale_z = Animation(scale_curves[2], offset)
@@ -230,10 +232,12 @@ class BoneAction(object):
 		self.loc_x.to_file(file_h)
 		self.loc_y.to_file(file_h)
 		self.loc_z.to_file(file_h)
+
 		self.rot_x.to_file(file_h)
 		self.rot_y.to_file(file_h)
 		self.rot_z.to_file(file_h)
 		self.rot_w.to_file(file_h)
+
 		self.scale_x.to_file(file_h)
 		self.scale_y.to_file(file_h)
 		self.scale_z.to_file(file_h)

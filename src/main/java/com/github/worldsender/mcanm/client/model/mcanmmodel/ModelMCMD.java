@@ -13,11 +13,12 @@ import com.github.worldsender.mcanm.Reference;
 import com.github.worldsender.mcanm.client.model.mcanmmodel.data.RawData;
 import com.github.worldsender.mcanm.client.model.mcanmmodel.glcontext.GLHelper;
 import com.github.worldsender.mcanm.client.model.mcanmmodel.loader.VersionizedModelLoader;
+import com.github.worldsender.mcanm.client.model.util.ModelLoader;
 import com.github.worldsender.mcanm.client.renderer.IAnimatedObject;
 /**
  * Represents a model that is more abstract than boxes. The format also offers
  * animating the model through bones and a few more things.<br>
- * The model can be registered for reloading in the {@link ModelRegistry}. This
+ * The model can be registered for reloading in the {@link ModelLoader}. This
  * will reload the model whenever the user changes the active texture packs.
  * This means that mobs or whatever it is can be customized by the texture pack.
  * AWESOME.
@@ -135,15 +136,21 @@ public class ModelMCMD implements IModelCustom {
 	 */
 	@Override
 	public boolean equals(Object obj) {
-		if (obj instanceof ModelMCMD) {
-			ModelMCMD other = (ModelMCMD) obj;
-			// Compare loading locations
-			if (this.reloadLocation == other.reloadLocation
-					&& this.reloadLocation != null)
-				return true;
-			// Compare model ids
-			if (this.modelUUID == other.modelUUID)
-				return true;
+		if (obj == null) {
+			return false;
+		}
+		if (!(obj instanceof ModelMCMD)) {
+			return false;
+		}
+		ModelMCMD other = (ModelMCMD) obj;
+		// Compare loading locations
+		if (this.reloadLocation != null
+				&& this.reloadLocation.equals(other.reloadLocation)) {
+			return true;
+		}
+		// Compare model ids
+		if (this.modelUUID == other.modelUUID) {
+			return true;
 		}
 		return false;
 	}
@@ -181,7 +188,7 @@ public class ModelMCMD implements IModelCustom {
 	// ---------------------- Never used ---------------------------
 	private static void throwUsage() {
 		throw new IllegalAccessError(
-				"Can't use this method with this model-type. Use one of render(...)");
+				"Can't use this method with this model-type. Use one of #render(...)");
 	}
 	@Override
 	public void renderAll() {

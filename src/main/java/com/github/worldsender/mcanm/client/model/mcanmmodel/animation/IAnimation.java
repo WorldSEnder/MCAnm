@@ -23,16 +23,6 @@ public interface IAnimation {
 		private static Vector3f identityScale() {
 			return new Vector3f(1.0F, 1.0F, 1.0F);
 		}
-		/**
-		 * For every value the 'left' and 'right' {@link BoneTransformation}s
-		 * argument hold, the value in the result will be<br>
-		 * <code>(1-factor)^2*(2*factor+1)*left + factor^2*(3-2*factor)*right</code>
-		 * .<br>
-		 * Note: this holds that no two different factors will generate the same
-		 * output value (if left and right differ and factor is in [0, 1])
-		 */
-		@Deprecated
-		public static final int SPLINE = 3;
 
 		public static final BoneTransformation identity = new BoneTransformation();
 

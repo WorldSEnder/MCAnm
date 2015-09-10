@@ -1,4 +1,4 @@
-package com.github.worldsender.mcanm.client.model.mcanmmodel;
+package com.github.worldsender.mcanm.client.model.util;
 
 import java.util.HashMap;
 import java.util.Map.Entry;
@@ -11,6 +11,8 @@ import net.minecraft.util.ResourceLocation;
 import org.apache.logging.log4j.Logger;
 
 import com.github.worldsender.mcanm.MCAnm;
+import com.github.worldsender.mcanm.client.model.mcanmmodel.MCMDModelLoader;
+import com.github.worldsender.mcanm.client.model.mcanmmodel.ModelMCMD;
 /**
  * This class caches and safes all models that were loaded with it. It functions
  * at a global control point. All model loading should, generally, be done
@@ -22,11 +24,23 @@ import com.github.worldsender.mcanm.MCAnm;
  * @author WorldSEnder
  *
  */
-public class ModelRegistry implements IResourceManagerReloadListener {
-	public static final ModelRegistry instance = new ModelRegistry();
+public class ModelLoader implements IResourceManagerReloadListener {
+	public static final ModelLoader instance = new ModelLoader();
 	private static final Logger logger = MCAnm.logger;
-
+	/**
+	 * Loads a model from the {@link ResourceLocation}.
+	 *
+	 * @see #loadModelFrom(ResourceLocation)
+	 */
 	public static ModelMCMD loadFrom(ResourceLocation resLoc) {
+		return instance.loadModelFrom(resLoc);
+	}
+	/**
+	 * Loads a model from the {@link ResourceLocation}.
+	 *
+	 * @see #loadModelFrom(String)
+	 */
+	public static ModelMCMD loadFrom(String resLoc) {
 		return instance.loadModelFrom(resLoc);
 	}
 
@@ -87,7 +101,7 @@ public class ModelRegistry implements IResourceManagerReloadListener {
 		ModelMCMD model = this.cachedModels.get(resLocation);
 		if (model == null) {
 			logger.trace(String.format(
-					"[ModelRegistry] Loading new model from %s", resLocation));
+					"[ModelLoader] Loading new model from %s", resLocation));
 			// Not registered
 			model = MCMDModelLoader.instance.loadInstance(resLocation,
 					this.currentManager, false);
@@ -95,9 +109,23 @@ public class ModelRegistry implements IResourceManagerReloadListener {
 			assert registered == true;
 		} else {
 			logger.trace(String
-					.format("[ModelRegistry] Loading cached model from %s",
+					.format("[ModelLoader] Loading cached model from %s",
 							resLocation));
 		}
 		return model;
+	}
+	/**
+	 * Loads a {@link ModelMCMD} from the Resource-location given. This will
+	 * simply call {@link #loadModelFrom(ResourceLocation)} with
+	 * <code>new {@link ResourceLocation}(resLocation)</code>.
+	 *
+	 * @param resLocation
+	 *            the resource location to load the model from
+	 * @return a {@link ModelMCMD} that corresponds to the requested
+	 *         {@link ResourceLocation}
+	 * @see #loadModelFrom(ResourceLocation)
+	 */
+	public ModelMCMD loadModelFrom(String resLocation) {
+		return loadModelFrom(new ResourceLocation(resLocation));
 	}
 }
