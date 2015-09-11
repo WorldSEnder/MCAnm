@@ -12,5 +12,5 @@ public class GLHelperBasic extends GLHelper {
 	public Optional<IModelData> preBakeV1(RawDataV1 datav1, VertexFormat format) {
 		return Optional.<IModelData> of(new ModelDataBasic(datav1));
 	}
-	
+
 }

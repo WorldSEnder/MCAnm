@@ -97,7 +97,11 @@ public class MCMDModelLoader implements IResourceManagerReloadListener {
 	/**
 	 * ADVANCED USE<br>
 	 * Use this to load a Model and receive any occuring Exceptions. The
+<<<<<<< HEAD
 	 * received model can later be registered in the {@link ModelLoader} to
+=======
+	 * received model can later be registered in the {@link ModelRegistry} to
+>>>>>>> branch '1.8' of https://github.com/WorldSEnder/MCAnm
 	 * cache it.<br>
 	 * This does also NOT bake the model, you have to do that later on
 	 *

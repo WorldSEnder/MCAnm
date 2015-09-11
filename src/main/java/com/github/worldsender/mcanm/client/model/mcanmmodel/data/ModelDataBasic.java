@@ -506,7 +506,7 @@ public class ModelDataBasic implements IModelData {
 	public void setup(IAnimation currAnimation, float frame) {
 		setupBones(currAnimation, frame);
 	}
-	
+
 	@Override
 	public void renderAll() {
 		renderer.startDrawing(GL_TRIANGLES);
@@ -515,7 +515,8 @@ public class ModelDataBasic implements IModelData {
 		}
 		renderer.draw();
 	}
-	
+
+	@Override
 	public void renderFiltered(Predicate<String> filter) {
 		renderer.startDrawing(GL_TRIANGLES);
 		for (Part part : this.parts) {
