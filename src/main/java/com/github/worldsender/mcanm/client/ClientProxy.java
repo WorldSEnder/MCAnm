@@ -15,7 +15,7 @@ import com.github.worldsender.mcanm.test.CubeEntity;
 
 public class ClientProxy implements Proxy {
 	@Override
-	public void register() {
+	public void preInit() {
 		IResourceManager resManager = Minecraft.getMinecraft()
 				.getResourceManager();
 		if (resManager instanceof IReloadableResourceManager) {
@@ -27,6 +27,10 @@ public class ClientProxy implements Proxy {
 					.warn("Couldn't register reload managers. Models will not be reloaded on switching resource pack");
 		}
 		MCAnm.logger.info("Registered Reload Managers.");
+	}
+
+	@Override
+	public void init() {
 		if (MCAnm.isDebug) {
 			RenderingRegistry.registerEntityRenderingHandler(CubeEntity.class,
 					RenderAnimatedModel.fromResLocation(new ResourceLocation(

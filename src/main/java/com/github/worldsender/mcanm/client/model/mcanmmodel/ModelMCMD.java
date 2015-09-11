@@ -106,7 +106,7 @@ public class ModelMCMD {
 	 * This constructor is thought as a possibility to load the
 	 */
 	protected ModelMCMD(Optional<RawData> data) {
-		this.renderHelper = GLHelper.getNewAppropriateHelper();
+		this.renderHelper = GLHelper.getAppropriateHelper();
 		this.putData(data);
 		// Else there was an error during loading, we are supposed not to react
 		// to that

@@ -58,7 +58,8 @@ public class ModelDataBasic implements IModelData {
 				public void render() {
 					renderer.func_178980_d(norm.x, norm.z, -norm.y);
 					renderer.setTextureUV(uv.x, uv.y);
-					renderer.addVertex(pos.x / pos.w, pos.z / pos.w, -pos.y / pos.w);
+					renderer.addVertex(pos.x / pos.w, pos.z / pos.w, -pos.y
+							/ pos.w);
 				}
 				/**
 				 * Offsets this Vertex by the {@link Vector4f} given.
@@ -408,7 +409,7 @@ public class ModelDataBasic implements IModelData {
 		public static Bone fromData(RawDataV1.Bone data, Bone[] allBones) {
 			Matrix4f localToParent = Utils.fromRotTrans(data.rotation,
 					data.offset, 1.0F);
-			if (data.parent != 0xFF)
+			if (data.parent != (byte) 0xFF)
 				return new ParentedBone(localToParent, data.name,
 						allBones[data.parent & 0xFF]);
 			return new Bone(localToParent, data.name);
@@ -525,8 +526,8 @@ public class ModelDataBasic implements IModelData {
 		}
 		renderer.draw();
 		if (MCAnm.isDebug) {
-			renderer.startDrawing(GL_LINES);
 			glDisable(GL_TEXTURE_2D);
+			renderer.startDrawing(GL_LINES);
 			glColor4f(1, 1, 1, 1);
 			for (Bone bone : bones) {
 				Vector4f tail = bone.getTail();
@@ -537,6 +538,5 @@ public class ModelDataBasic implements IModelData {
 			renderer.draw();
 			glEnable(GL_TEXTURE_2D);
 		}
-		renderer.draw();
 	}
 }

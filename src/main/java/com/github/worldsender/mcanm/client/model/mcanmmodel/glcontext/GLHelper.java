@@ -14,13 +14,11 @@ import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 
 /**
- * Represents an GLHelper. That is a render-glHelper for the correct OpenGL-
- * version present on this computer.
+ * Represents an GLHelper. That is a glHelper for the correct OpenGL- version
+ * present on this computer.
  *
  * @author WorldSEnder
  *
- * @param <T>
- *            the ModelDataType this GLHelper can handle
  */
 public abstract class GLHelper {
 	protected Optional<IModelData> currentData;
@@ -45,7 +43,8 @@ public abstract class GLHelper {
 	}
 	/**
 	 * Loads data of version 1. This method should return an absent Optional
-	 * when the data couldn't be processed, never null
+	 * when the data couldn't be processed, never null. Should also log the fail
+	 * somewhere.
 	 *
 	 * @param datav1
 	 *            the data to be loaded into this handler
@@ -70,18 +69,15 @@ public abstract class GLHelper {
 		RenderPassInformation currentPass = object.preRenderCallback(subFrame,
 				passCache);
 		IAnimation animation = currentPass.getAnimation();
+		Predicate<String> filter = currentPass.getPartPredicate();
 		float frame = currentPass.getFrame();
-		Optional<Predicate<String>> filter = currentPass.getPartPredicate();
 		data.setup(animation, frame);
-		if (filter.isPresent())
-			data.renderFiltered(filter.get());
-		else
-			data.renderAll();
+		data.renderFiltered(filter);
 	}
 	/**
 	 * Selects an appropriate {@link GLHelper} from the known types.
 	 */
-	public static GLHelper getNewAppropriateHelper() {
+	public static GLHelper getAppropriateHelper() {
 		// TODO: enable advanced rendering, write when you feel like you have to
 		// optimize
 		return new GLHelperBasic();

@@ -48,7 +48,7 @@ public class MCAnm {
 				Reference.config_reload_enabled, true).setLanguageKey(
 				Reference.gui_config_reload_enabled);
 		config.save();
-		proxy.register();
+		proxy.preInit();
 		FMLCommonHandler.instance().bus().register(this);
 		logger.info("Successfully loaded MC Animations");
 	}
@@ -60,6 +60,7 @@ public class MCAnm {
 		int id = 0;
 		EntityRegistry.registerModEntity(CubeEntity.class, "Cube", id, this,
 				80, 1, true);
+		proxy.init();
 	}
 
 	@SubscribeEvent

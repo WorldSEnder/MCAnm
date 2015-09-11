@@ -7,6 +7,7 @@ import com.github.worldsender.mcanm.client.model.mcanmmodel.animation.IAnimation
 import com.github.worldsender.mcanm.client.model.mcanmmodel.data.RenderPassInformation;
 import com.github.worldsender.mcanm.client.model.util.AnimationLoader;
 import com.github.worldsender.mcanm.client.renderer.IAnimatedObject;
+import com.google.common.base.Optional;
 
 public class CubeEntity extends EntityPig implements IAnimatedObject {
 	public static final IAnimation animation = AnimationLoader
@@ -19,7 +20,7 @@ public class CubeEntity extends EntityPig implements IAnimatedObject {
 	@Override
 	public RenderPassInformation preRenderCallback(float subFrame,
 			RenderPassInformation callback) {
-		return callback.setAnimation(animation).setFrame(
+		return callback.setAnimation(Optional.of(animation)).setFrame(
 				this.ticksExisted % 90 + subFrame);
 	}
 }

@@ -1,7 +1,5 @@
 package com.github.worldsender.mcanm.client.model.mcanmmodel.data;
 
-import java.util.Objects;
-
 import com.github.worldsender.mcanm.client.model.mcanmmodel.animation.IAnimation;
 import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
@@ -57,22 +55,22 @@ public class RenderPassInformation {
 
 	private float frame;
 	private IAnimation animation;
-	private Optional<Predicate<String>> partPredicate;
+	private Predicate<String> partPredicate;
 
 	public RenderPassInformation() {
 		this.reset();
 	}
 
-	public RenderPassInformation(float frame, IAnimation animation,
-			Predicate<String> partPredicate) {
+	public RenderPassInformation(float frame, Optional<IAnimation> animation,
+			Optional<Predicate<String>> partPredicate) {
 		this.setFrame(frame).setAnimation(animation)
-				.setPartPredicate(Optional.fromNullable(partPredicate));
+				.setPartPredicate(partPredicate);
 	}
 	/**
 	 * Resets this information to be reused.
 	 */
 	public void reset() {
-		this.setFrame(0F).setAnimation(BIND_POSE)
+		this.setFrame(0F).setAnimation(Optional.of(BIND_POSE))
 				.setPartPredicate(Optional.of(RENDER_ALL));
 	}
 	/**
@@ -106,8 +104,8 @@ public class RenderPassInformation {
 	 * @param animation
 	 *            the animation to set, never null
 	 */
-	public RenderPassInformation setAnimation(IAnimation animation) {
-		this.animation = Objects.requireNonNull(animation);
+	public RenderPassInformation setAnimation(Optional<IAnimation> animation) {
+		this.animation = animation.or(BIND_POSE);
 		return this;
 	}
 	/**
@@ -116,7 +114,7 @@ public class RenderPassInformation {
 	 *
 	 * @return a predicate to match parts against that may be rendered
 	 */
-	public Optional<Predicate<String>> getPartPredicate() {
+	public Predicate<String> getPartPredicate() {
 		return partPredicate;
 	}
 	/**
@@ -125,7 +123,7 @@ public class RenderPassInformation {
 	 */
 	public RenderPassInformation setPartPredicate(
 			Optional<Predicate<String>> partPredicate) {
-		this.partPredicate = Objects.requireNonNull(partPredicate);
+		this.partPredicate = partPredicate.or(RENDER_ALL);
 		return this;
 	}
 
