@@ -52,7 +52,7 @@ public interface IAnimation {
 		}
 
 		public Matrix4f asMatrix() {
-			Matrix4f mat = Utils.fromRotTrans(this.rotationQuat,
+			Matrix4f mat = Utils.fromRTS(this.rotationQuat,
 					this.translation, 1.0F);
 			mat.scale(scale);
 			return mat;

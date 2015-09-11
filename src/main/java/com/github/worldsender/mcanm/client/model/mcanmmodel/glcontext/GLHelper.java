@@ -72,7 +72,7 @@ public abstract class GLHelper {
 		Predicate<String> filter = currentPass.getPartPredicate();
 		float frame = currentPass.getFrame();
 		data.setup(animation, frame);
-		data.renderFiltered(filter);
+		data.render(filter);
 	}
 	/**
 	 * Selects an appropriate {@link GLHelper} from the known types.

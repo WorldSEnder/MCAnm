@@ -366,7 +366,7 @@ public class Utils {
 	 *
 	 * @return
 	 */
-	public static Matrix4f fromRotTrans(Quaternion q, Vector3f off, float scale) {
+	public static Matrix4f fromRTS(Quaternion q, Vector3f off, float scale) {
 		Matrix4f mat = new Matrix4f();
 		if (q != null) {
 			Quat4f quat = new Quat4f(q.x, q.y, q.z, q.w);
