@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import net.minecraft.client.renderer.WorldRenderer;
+
 import org.lwjgl.util.vector.Matrix4f;
 import org.lwjgl.util.vector.Vector2f;
 import org.lwjgl.util.vector.Vector3f;
@@ -92,14 +94,14 @@ public class Point {
 		}
 
 		@Override
-		public void render() {
+		public void render(WorldRenderer renderer) {
 			Vertex base = this.vert;
 			Vertex transformed = null;
 			for (Binding bind : this.binds) {
 				transformed = bind.addTransformed(base, transformed);
 			}
 			transformed.setUV(this.vert.getUV());
-			transformed.render();
+			transformed.render(renderer);
 		}
 	}
 
@@ -114,8 +116,8 @@ public class Point {
 	 * @param bones
 	 *            the models bones
 	 */
-	public void render() {
-		this.vert.render();
+	public void render(WorldRenderer renderer) {
+		this.vert.render(renderer);
 	}
 	/**
 	 * Constructs a bone from the {@link TesselationPoint} given. This is

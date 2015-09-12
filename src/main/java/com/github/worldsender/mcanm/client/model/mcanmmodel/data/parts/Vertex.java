@@ -8,8 +8,6 @@ import org.lwjgl.util.vector.Vector3f;
 import org.lwjgl.util.vector.Vector4f;
 
 public class Vertex {
-	private static WorldRenderer renderer = Tessellator.getInstance()
-			.getWorldRenderer();
 
 	private Vector4f pos;
 	private Vector3f norm;
@@ -30,7 +28,7 @@ public class Vertex {
 	 * Uses the {@link Tessellator} to draw the model. Take care that the
 	 * Tessellator is already drawing.
 	 */
-	public void render() {
+	public void render(WorldRenderer renderer) {
 		renderer.func_178980_d(norm.x, norm.z, -norm.y);
 		renderer.setTextureUV(uv.x, uv.y);
 		renderer.addVertex(pos.x / pos.w, pos.z / pos.w, -pos.y / pos.w);

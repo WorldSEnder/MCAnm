@@ -3,6 +3,7 @@ package com.github.worldsender.mcanm.client.model.mcanmmodel.data.parts;
 import java.util.Arrays;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.WorldRenderer;
 import net.minecraft.util.ResourceLocation;
 
 import com.github.worldsender.mcanm.client.model.mcanmmodel.data.RawDataV1;
@@ -27,13 +28,12 @@ public class Part {
 		this.name = data.name;
 	}
 
-	public void render() {
+	public void render(WorldRenderer renderer) {
 		mc.renderEngine.bindTexture(this.resLocation);
 		for (short idx : this.indices) {
-			this.pointsList[idx & 0xFFFF].render();
+			this.pointsList[idx & 0xFFFF].render(renderer);
 		}
 	}
-
 	public String getName() {
 		return this.name;
 	}

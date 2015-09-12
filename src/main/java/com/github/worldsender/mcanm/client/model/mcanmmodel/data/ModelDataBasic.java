@@ -10,7 +10,6 @@ import static org.lwjgl.opengl.GL11.glEnable;
 import java.util.ArrayList;
 import java.util.List;
 
-import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.WorldRenderer;
 
 import org.lwjgl.util.vector.Vector4f;
@@ -19,11 +18,10 @@ import com.github.worldsender.mcanm.MCAnm;
 import com.github.worldsender.mcanm.client.model.mcanmmodel.animation.IAnimation;
 import com.github.worldsender.mcanm.client.model.mcanmmodel.data.parts.Bone;
 import com.github.worldsender.mcanm.client.model.mcanmmodel.data.parts.Part;
+import com.github.worldsender.mcanm.client.model.mcanmmodel.glcontext.IRenderPass;
 import com.google.common.base.Predicate;
 
 public class ModelDataBasic implements IModelData {
-	private static WorldRenderer renderer = Tessellator.getInstance()
-			.getWorldRenderer();
 
 	private final Part[] parts; // May have Random order
 	private final Bone[] bones; // Breadth-first
@@ -113,17 +111,20 @@ public class ModelDataBasic implements IModelData {
 		}
 	}
 
-	@Override
 	public void setup(IAnimation currAnimation, float frame) {
 		setupBones(currAnimation, frame);
 	}
 
 	@Override
-	public void render(Predicate<String> filter) {
+	public void render(IRenderPass pass) {
+		WorldRenderer renderer = pass.getRenderer();
+		Predicate<String> filter = pass.getPartPredicate();
+
+		setup(pass.getAnimation(), pass.getFrame());
 		renderer.startDrawing(GL_TRIANGLES);
 		for (Part part : this.parts) {
 			if (filter.apply(part.getName()))
-				part.render();
+				part.render(renderer);
 		}
 		renderer.draw();
 		if (MCAnm.isDebug) {

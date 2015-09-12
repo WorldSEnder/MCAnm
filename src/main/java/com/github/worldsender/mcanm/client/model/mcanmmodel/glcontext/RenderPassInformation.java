@@ -1,4 +1,4 @@
-package com.github.worldsender.mcanm.client.model.mcanmmodel.data;
+package com.github.worldsender.mcanm.client.model.mcanmmodel.glcontext;
 
 import com.github.worldsender.mcanm.client.model.mcanmmodel.animation.IAnimation;
 import com.google.common.base.Optional;
@@ -10,12 +10,12 @@ import com.google.common.base.Predicate;
  * getter methods to return what you need.<br>
  * You should not call new RenderPassInformation(...) every time one is needed
  * but reuse instances you used before. The internal API doesn't keep custom
- * instances around after the render-pass is over.
+ * instances around after the render-pass is over, only its own.
  *
  * @author WorldSEnder
  *
  */
-public class RenderPassInformation {
+public class RenderPassInformation implements IRenderPassInformation {
 	/**
 	 * A suitable {@link Predicate} to return in
 	 * {@link #getPartPredicate(float)} to render all parts without exception.
@@ -80,6 +80,7 @@ public class RenderPassInformation {
 	 *
 	 * @return the current frame
 	 */
+	@Override
 	public float getFrame() {
 		return frame;
 	}
@@ -97,6 +98,7 @@ public class RenderPassInformation {
 	 *
 	 * @return the current animation
 	 */
+	@Override
 	public IAnimation getAnimation() {
 		return animation;
 	}
@@ -114,6 +116,7 @@ public class RenderPassInformation {
 	 *
 	 * @return a predicate to match parts against that may be rendered
 	 */
+	@Override
 	public Predicate<String> getPartPredicate() {
 		return partPredicate;
 	}

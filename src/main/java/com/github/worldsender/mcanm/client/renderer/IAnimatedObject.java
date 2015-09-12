@@ -1,6 +1,6 @@
 package com.github.worldsender.mcanm.client.renderer;
 
-import com.github.worldsender.mcanm.client.model.mcanmmodel.data.RenderPassInformation;
+import com.github.worldsender.mcanm.client.model.mcanmmodel.glcontext.RenderPassInformation;
 import com.github.worldsender.mcanm.client.renderer.entity.RenderAnimatedModel;
 /**
  * An animatable type that is typically rendered with a
