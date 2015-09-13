@@ -1,14 +1,13 @@
 package com.github.worldsender.mcanm.client.model.mcanmmodel.glcontext;
 
-import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.vertex.VertexFormat;
 
+import com.github.worldsender.mcanm.client.model.mcanmmodel.IRenderPass;
 import com.github.worldsender.mcanm.client.model.mcanmmodel.ModelMCMD.MCMDState;
 import com.github.worldsender.mcanm.client.model.mcanmmodel.data.IModelData;
 import com.github.worldsender.mcanm.client.model.mcanmmodel.data.RawData;
 import com.github.worldsender.mcanm.client.model.mcanmmodel.data.RawDataV1;
 import com.github.worldsender.mcanm.client.model.mcanmmodel.loader.VersionizedModelLoader;
-import com.github.worldsender.mcanm.client.renderer.IAnimatedObject;
 import com.google.common.base.Optional;
 
 /**
@@ -20,9 +19,6 @@ import com.google.common.base.Optional;
  */
 public abstract class GLHelper {
 	protected Optional<IModelData> currentData;
-
-	protected RenderPassInformation userPassCache = new RenderPassInformation();
-	protected RenderPass passCache = new RenderPass(userPassCache, null);
 	/**
 	 * This method is used to translate the {@link RawDataV1} that was
 	 * previously read by the appropriate {@link VersionizedModelLoader}.
@@ -56,23 +52,15 @@ public abstract class GLHelper {
 	 * data has been loaded yet, this method is expected to instantly return. It
 	 * may log but it is not required and/or expected to do so.
 	 *
-	 * @param entity
-	 *            the entity to render
-	 * @param subFrame
-	 *            the current subFrame, always 0.0 <= subFrame <= 1.0
+	 * @param currentPass
+	 *            the current Render pass
 	 **/
-	public void render(IAnimatedObject object, float subFrame) {
-		if (object == null || !this.currentData.isPresent()) // Model is absent
+	public void render(IRenderPass currentPass) {
+		if (!this.currentData.isPresent()) // Model is absent
 			return;
+
 		IModelData data = this.currentData.get();
-
-		userPassCache.reset();
-
-		RenderPassInformation currentPass = object.preRenderCallback(subFrame,
-				userPassCache);
-
-		data.render(passCache.setRenderPassInformation(currentPass)
-				.setRenderer(Tessellator.getInstance().getWorldRenderer()));
+		data.render(currentPass);
 	}
 	/**
 	 * Selects an appropriate {@link GLHelper} from the known types.

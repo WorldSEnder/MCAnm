@@ -10,8 +10,8 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.util.ResourceLocation;
 
 import com.github.worldsender.mcanm.client.model.ModelAnimated;
+import com.github.worldsender.mcanm.client.model.ModelLoader;
 import com.github.worldsender.mcanm.client.model.mcanmmodel.ModelMCMD;
-import com.github.worldsender.mcanm.client.model.util.ModelLoader;
 
 public class RenderAnimatedModel extends RenderLiving {
 	private static final ResourceLocation ignored = TextureMap.locationBlocksTexture;
@@ -25,9 +25,9 @@ public class RenderAnimatedModel extends RenderLiving {
 	}
 
 	@Override
-	public void doRender(EntityLiving entity, double uk1, double uk2,
-			double uk3, float uk4, float size) {
-		super.doRender(entity, uk1, uk2, uk3, uk4, size);
+	public void doRender(EntityLiving entity, double x, double y, double z,
+			float yaw, float partialTicks) {
+		super.doRender(entity, x, y, z, yaw, partialTicks);
 	}
 
 	@Override

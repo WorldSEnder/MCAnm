@@ -1,7 +1,7 @@
 package com.github.worldsender.mcanm.client.model.mcanmmodel.data;
 
+import com.github.worldsender.mcanm.client.model.mcanmmodel.IRenderPass;
 import com.github.worldsender.mcanm.client.model.mcanmmodel.glcontext.GLHelper;
-import com.github.worldsender.mcanm.client.model.mcanmmodel.glcontext.IRenderPass;
 
 /**
  * Interface for ModelData used by {@link GLHelper} classes.

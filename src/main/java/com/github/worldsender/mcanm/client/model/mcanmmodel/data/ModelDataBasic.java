@@ -9,13 +9,14 @@ import java.util.List;
 import javax.vecmath.Vector4f;
 
 import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.WorldRenderer;
 
 import com.github.worldsender.mcanm.MCAnm;
+import com.github.worldsender.mcanm.client.model.mcanmmodel.IRenderPass;
 import com.github.worldsender.mcanm.client.model.mcanmmodel.animation.IAnimation;
 import com.github.worldsender.mcanm.client.model.mcanmmodel.data.parts.Bone;
 import com.github.worldsender.mcanm.client.model.mcanmmodel.data.parts.Part;
-import com.github.worldsender.mcanm.client.model.mcanmmodel.glcontext.IRenderPass;
 import com.google.common.base.Predicate;
 
 public class ModelDataBasic implements IModelData {
@@ -114,7 +115,8 @@ public class ModelDataBasic implements IModelData {
 
 	@Override
 	public void render(IRenderPass pass) {
-		WorldRenderer renderer = pass.getRenderer();
+		Tessellator tess = pass.getTesselator();
+		WorldRenderer renderer = tess.getWorldRenderer();
 		Predicate<String> filter = pass.getPartPredicate();
 
 		setup(pass.getAnimation(), pass.getFrame());
@@ -123,7 +125,7 @@ public class ModelDataBasic implements IModelData {
 			if (filter.apply(part.getName()))
 				part.render(renderer);
 		}
-		renderer.draw();
+		tess.draw();
 		if (MCAnm.isDebug) {
 			// glDisable(GL_TEXTURE_2D);
 			GlStateManager.func_179090_x();
@@ -135,7 +137,7 @@ public class ModelDataBasic implements IModelData {
 				renderer.addVertex(tail.x, tail.z, -tail.y);
 				renderer.addVertex(head.x, head.z, -head.y);
 			}
-			renderer.draw();
+			tess.draw();
 			// glEnable(GL_TEXTURE_2D);
 			GlStateManager.func_179090_x();
 		}

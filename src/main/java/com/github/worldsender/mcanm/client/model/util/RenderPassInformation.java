@@ -1,5 +1,6 @@
-package com.github.worldsender.mcanm.client.model.mcanmmodel.glcontext;
+package com.github.worldsender.mcanm.client.model.util;
 
+import com.github.worldsender.mcanm.client.model.IRenderPassInformation;
 import com.github.worldsender.mcanm.client.model.mcanmmodel.animation.IAnimation;
 import com.google.common.base.Optional;
 import com.google.common.base.Predicate;

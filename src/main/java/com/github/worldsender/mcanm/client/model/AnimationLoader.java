@@ -1,4 +1,4 @@
-package com.github.worldsender.mcanm.client.model.util;
+package com.github.worldsender.mcanm.client.model;
 
 import java.util.HashMap;
 import java.util.Map;

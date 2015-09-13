@@ -8,8 +8,8 @@ import net.minecraftforge.fml.client.registry.RenderingRegistry;
 
 import com.github.worldsender.mcanm.MCAnm;
 import com.github.worldsender.mcanm.Proxy;
-import com.github.worldsender.mcanm.client.model.util.AnimationLoader;
-import com.github.worldsender.mcanm.client.model.util.ModelLoader;
+import com.github.worldsender.mcanm.client.model.AnimationLoader;
+import com.github.worldsender.mcanm.client.model.ModelLoader;
 import com.github.worldsender.mcanm.client.renderer.entity.RenderAnimatedModel;
 import com.github.worldsender.mcanm.test.CubeEntity;
 

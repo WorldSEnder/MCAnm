@@ -1,14 +1,15 @@
 package com.github.worldsender.mcanm.client.model;
 
-import static org.lwjgl.opengl.GL11.glScalef;
-import static org.lwjgl.opengl.GL11.glTranslatef;
 import net.minecraft.client.model.ModelBase;
 import net.minecraft.client.model.ModelRenderer;
 import net.minecraft.client.model.TextureOffset;
 import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.entity.Entity;
 
 import com.github.worldsender.mcanm.client.model.mcanmmodel.ModelMCMD;
+import com.github.worldsender.mcanm.client.model.util.RenderPass;
+import com.github.worldsender.mcanm.client.model.util.RenderPassInformation;
 import com.github.worldsender.mcanm.client.renderer.IAnimatedObject;
 
 /**
@@ -25,8 +26,11 @@ public class ModelAnimated extends ModelBase {
 		return newPartialTick >= 0.0F && newPartialTick <= 1.0F;
 	}
 
-	protected ModelMCMD model;
+	private ModelMCMD model;
 	protected float partialTick;
+
+	private RenderPassInformation userPassCache = new RenderPassInformation();
+	private RenderPass passCache = new RenderPass(userPassCache, null);
 
 	/**
 	 * This constructor just puts the model into itself. Nothing is checked
@@ -57,11 +61,18 @@ public class ModelAnimated extends ModelBase {
 		GlStateManager.pushMatrix();
 
 		// Get our object into place
-		glScalef(-size * 16, -size * 16, size * 16);
-		glTranslatef(0, -13 / 8F, 0);
+		GlStateManager.scale(-size * 16, -size * 16, size * 16);
+		GlStateManager.translate(0, -13 / 8F, 0);
 		// Actually render it
 		IAnimatedObject animatedEntity = (IAnimatedObject) entity;
-		this.model.render(animatedEntity, this.getPartialTick());
+
+		Tessellator tess = Tessellator.getInstance();
+		userPassCache.reset();
+		RenderPassInformation currentPass = animatedEntity.preRenderCallback(
+				partialTick, userPassCache);
+		passCache.setRenderPassInformation(currentPass).setTesellator(tess);
+
+		getModel().render(passCache);
 
 		GlStateManager.popMatrix();
 	}
@@ -79,5 +90,14 @@ public class ModelAnimated extends ModelBase {
 	public void setPartialTick(float newPartialTick) {
 		if (checkValidPartial(newPartialTick))
 			this.partialTick = newPartialTick;
+	}
+	/**
+	 * The current model is accessed via this getter. If a subclass choses to
+	 * override this, the returned model will be rendered.
+	 *
+	 * @return
+	 */
+	protected ModelMCMD getModel() {
+		return this.model;
 	}
 }

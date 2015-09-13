@@ -11,11 +11,10 @@ import net.minecraftforge.client.model.TRSRTransformation;
 
 import com.github.worldsender.mcanm.MCAnm;
 import com.github.worldsender.mcanm.client.exceptions.ModelFormatException;
+import com.github.worldsender.mcanm.client.model.ModelLoader;
 import com.github.worldsender.mcanm.client.model.mcanmmodel.data.RawData;
 import com.github.worldsender.mcanm.client.model.mcanmmodel.glcontext.GLHelper;
 import com.github.worldsender.mcanm.client.model.mcanmmodel.loader.VersionizedModelLoader;
-import com.github.worldsender.mcanm.client.model.util.ModelLoader;
-import com.github.worldsender.mcanm.client.renderer.IAnimatedObject;
 import com.google.common.base.Optional;
 /**
  * Represents a model that is more abstract than boxes. The format also offers
@@ -195,11 +194,11 @@ public class ModelMCMD {
 	/**
 	 * Renders the given object in place (current OpenGL-transformation)
 	 *
-	 * @param object
-	 *            the object to render (get animations from there)
+	 * @param renderPass
+	 *            a description of the current render-pass
 	 */
-	public void render(IAnimatedObject object, float parTick) {
-		renderHelper.render(object, parTick);
+	public void render(IRenderPass renderPass) {
+		renderHelper.render(renderPass);
 	}
 	/**
 	 * @return the artist

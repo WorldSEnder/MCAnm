@@ -1,7 +1,11 @@
-package com.github.worldsender.mcanm.client.model.mcanmmodel.glcontext;
+package com.github.worldsender.mcanm.client.model.util;
 
-import net.minecraft.client.renderer.WorldRenderer;
+import java.util.Objects;
 
+import net.minecraft.client.renderer.Tessellator;
+
+import com.github.worldsender.mcanm.client.model.IRenderPassInformation;
+import com.github.worldsender.mcanm.client.model.mcanmmodel.IRenderPass;
 import com.github.worldsender.mcanm.client.model.mcanmmodel.animation.IAnimation;
 import com.google.common.base.Predicate;
 
@@ -13,11 +17,11 @@ import com.google.common.base.Predicate;
  */
 public class RenderPass implements IRenderPass {
 	private IRenderPassInformation userInfo;
-	private WorldRenderer renderer;
+	private Tessellator tesselator;
 
-	public RenderPass(IRenderPassInformation info, WorldRenderer renderer) {
-		this.userInfo = info;
-		this.renderer = renderer;
+	public RenderPass(IRenderPassInformation info, Tessellator tesselator) {
+		this.userInfo = Objects.requireNonNull(info);
+		this.tesselator = Objects.requireNonNull(tesselator);
 	}
 
 	@Override
@@ -36,17 +40,17 @@ public class RenderPass implements IRenderPass {
 	}
 
 	@Override
-	public WorldRenderer getRenderer() {
-		return renderer;
+	public Tessellator getTesselator() {
+		return tesselator;
 	}
 
-	public RenderPass setRenderer(WorldRenderer renderer) {
-		this.renderer = renderer;
+	public RenderPass setTesellator(Tessellator tesselator) {
+		this.tesselator = Objects.requireNonNull(tesselator);
 		return this;
 	}
 
 	public RenderPass setRenderPassInformation(IRenderPassInformation info) {
-		this.userInfo = info;
+		this.userInfo = Objects.requireNonNull(info);
 		return this;
 	}
 }

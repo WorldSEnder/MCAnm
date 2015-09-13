@@ -1,6 +1,8 @@
-package com.github.worldsender.mcanm.client.model.mcanmmodel.glcontext;
+package com.github.worldsender.mcanm.client.model.mcanmmodel;
 
-import net.minecraft.client.renderer.WorldRenderer;
+import com.github.worldsender.mcanm.client.model.IRenderPassInformation;
+
+import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.entity.RenderManager;
 /**
  * An extension of only the user supplied information. This adds engine-based
@@ -10,5 +12,5 @@ import net.minecraft.client.renderer.entity.RenderManager;
  *
  */
 public interface IRenderPass extends IRenderPassInformation {
-	WorldRenderer getRenderer();
+	Tessellator getTesselator();
 }

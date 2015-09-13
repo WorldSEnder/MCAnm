@@ -10,10 +10,9 @@ import net.minecraft.util.ResourceLocation;
 
 import com.github.worldsender.mcanm.MCAnm;
 import com.github.worldsender.mcanm.client.exceptions.ModelFormatException;
+import com.github.worldsender.mcanm.client.model.ModelLoader;
 import com.github.worldsender.mcanm.client.model.mcanmmodel.data.RawData;
 import com.github.worldsender.mcanm.client.model.mcanmmodel.loader.VersionizedModelLoader;
-import com.github.worldsender.mcanm.client.model.util.ModelLoader;
-
 import com.google.common.base.Optional;
 
 /**
