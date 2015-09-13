@@ -10,6 +10,8 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.util.ResourceLocation;
 
 import com.github.worldsender.mcanm.client.model.ModelAnimated;
+import com.github.worldsender.mcanm.client.model.mcanmmodel.ModelMCMD;
+import com.github.worldsender.mcanm.client.model.util.ModelLoader;
 
 public class RenderAnimatedModel extends RenderLiving {
 	private static final ResourceLocation ignored = TextureMap.locationBlocksTexture;
@@ -49,7 +51,10 @@ public class RenderAnimatedModel extends RenderLiving {
 	 */
 	public static RenderAnimatedModel fromResLocation(ResourceLocation resLoc,
 			float shadowSize) {
-		return new RenderAnimatedModel(Minecraft.getMinecraft()
-				.getRenderManager(), new ModelAnimated(resLoc), shadowSize);
+		ModelMCMD rawmodel = ModelLoader.loadFrom(resLoc);
+		RenderManager manager = Minecraft.getMinecraft().getRenderManager();
+		ModelAnimated mcmodel = new ModelAnimated(rawmodel);
+
+		return new RenderAnimatedModel(manager, mcmodel, shadowSize);
 	}
 }

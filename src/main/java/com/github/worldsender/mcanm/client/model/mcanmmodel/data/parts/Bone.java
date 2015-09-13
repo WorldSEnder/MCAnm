@@ -2,8 +2,10 @@ package com.github.worldsender.mcanm.client.model.mcanmmodel.data.parts;
 
 import java.util.Objects;
 
-import org.lwjgl.util.vector.Matrix4f;
-import org.lwjgl.util.vector.Vector4f;
+import javax.vecmath.Matrix4f;
+import javax.vecmath.Point4f;
+import javax.vecmath.Vector3f;
+import javax.vecmath.Vector4f;
 
 import com.github.worldsender.mcanm.client.model.mcanmmodel.Utils;
 import com.github.worldsender.mcanm.client.model.mcanmmodel.animation.IAnimation;
@@ -24,17 +26,17 @@ public class Bone {
 		}
 
 		@Override
-		protected Matrix4f globalToLocal(Matrix4f src, Matrix4f dest) {
+		protected void globalToLocal(Matrix4f src) {
 			// local <- parent <- global
-			dest = this.parent.globalToLocal(src, dest);
-			return super.globalToLocal(dest, dest);
+			this.parent.globalToLocal(src);
+			super.globalToLocal(src);
 		}
 
 		@Override
-		protected Matrix4f localToGlobal(Matrix4f src, Matrix4f dest) {
+		protected void localToGlobal(Matrix4f src) {
 			// world <- parent <- transformedLocal <- local
-			dest = super.localToGlobal(src, dest);
-			return this.parent.localToGlobal(dest, dest);
+			super.localToGlobal(src);
+			this.parent.localToGlobal(src);
 		}
 	}
 
@@ -47,8 +49,9 @@ public class Bone {
 	protected Matrix4f transformedGlobalToGlobalIT = new Matrix4f(); // normals
 
 	protected Bone(Matrix4f localMatrix, String name) {
-		this.localToParent = localMatrix;
-		this.parentToLocal = Matrix4f.invert(localMatrix, null);
+		this.localToParent = new Matrix4f(localMatrix);
+		this.parentToLocal = new Matrix4f(localMatrix);
+		this.parentToLocal.invert();
 		this.name = name;
 	}
 	/**
@@ -57,26 +60,33 @@ public class Bone {
 	 * @return the head of the bone
 	 */
 	public Vector4f getHead() {
-		Matrix4f localToGlobal = this.localToGlobal(identity, null);
+		Matrix4f localToGlobal = new Matrix4f(identity);
+		this.localToGlobal(localToGlobal);
+
 		Vector4f head = new Vector4f();
 		head.y = 1.0f;
 		head.w = 1.0f;
-		Matrix4f.transform(localToGlobal, head, head);
+		localToGlobal.transform(head);
 		return head;
 	}
-
+	/**
+	 * Debug!
+	 *
+	 * @return the tail of the bone
+	 */
 	public Vector4f getTail() {
-		Matrix4f localToGlobal = this.localToGlobal(identity, null);
-		Vector4f head = new Vector4f();
-		head.w = 1.0f;
-		Matrix4f.transform(localToGlobal, head, head);
-		return head;
-	}
+		Matrix4f localToGlobal = new Matrix4f(identity);
+		this.localToGlobal(localToGlobal);
 
-	private void resetTransform() {
-		Matrix4f.load(identity, transformed);
-		Matrix4f.load(identity, transformedGlobalToGlobal);
-		Matrix4f.load(identity, transformedGlobalToGlobalIT);
+		Vector4f tail = new Vector4f();
+		tail.w = 1.0f;
+		localToGlobal.transform(tail);
+		return tail;
+	}
+	public void resetTransform() {
+		transformed.set(identity);
+		transformedGlobalToGlobal.set(identity);
+		transformedGlobalToGlobalIT.set(identity);
 	}
 	/**
 	 * Sets up this bone for the following calls to {@link #getLocalToWorld()},
@@ -92,68 +102,58 @@ public class Bone {
 	public void setTransformation(IAnimation anim, float frame) {
 		BoneTransformation btr = anim
 				.getCurrentTransformation(this.name, frame);
-		if (btr.equals(identity)) {
-			resetTransform();
-			return;
-		}
-		Matrix4f worldToLocal = this.globalToLocal(identity, null);
-		Matrix4f.load(btr.asMatrix(), transformed);
-		Matrix4f transformedLocalToWorld = this.localToGlobal(identity, null);
-		Matrix4f.mul(transformedLocalToWorld, worldToLocal,
-				transformedGlobalToGlobal);
-		Matrix4f.load(transformedGlobalToGlobal, transformedGlobalToGlobalIT);
-		transformedGlobalToGlobalIT.invert().transpose();
+		transformed.set(btr.getMatrix());
+
+		transformedGlobalToGlobal.setIdentity();
+		this.globalToLocal(transformedGlobalToGlobal);
+		this.localToGlobal(transformedGlobalToGlobal);
+
+		transformedGlobalToGlobalIT.set(transformedGlobalToGlobal);
+		transformedGlobalToGlobalIT.invert();
+		transformedGlobalToGlobalIT.transpose();
 	}
 	/**
 	 * Transforms the source matrix into local space and stores the resulting
-	 * matrix in destination.<br>
-	 * If dest is <code>null</code> a new matrix with the result is returned
+	 * matrix back in the source.<br>
 	 *
 	 * @param src
 	 *            the matrix to transform
-	 * @param dest
-	 *            the matrix to store the result in
-	 * @return dest if dest is not <code>null</code>, a new matrix otherwise
 	 */
-	protected Matrix4f globalToLocal(Matrix4f src, Matrix4f dest) {
-		return Matrix4f.mul(parentToLocal, src, dest);
+	protected void globalToLocal(Matrix4f src) {
+		src.mul(parentToLocal, src);
 	}
 	/**
 	 * Transforms the source matrix from local into global space and stores the
-	 * resulting matrix in destination.<br>
+	 * resulting matrix back in the source.<br>
 	 * This method is - contrary to {@link #globalToLocal(Matrix4f, Matrix4f)}
 	 * sensitive to this bone's current transformation.<br>
-	 * If dest is <code>null</code> a new matrix with the result is returned.
 	 *
 	 * @param src
 	 *            the matrix to transform
-	 * @param dest
-	 *            the matrix to store the result in
-	 * @return dest if dest is not <code>null</code>, a new matrix otherwise
 	 */
-	protected Matrix4f localToGlobal(Matrix4f src, Matrix4f dest) {
-		dest = Matrix4f.mul(transformed, src, dest);
-		return Matrix4f.mul(localToParent, dest, dest);
+	protected void localToGlobal(Matrix4f src) {
+		src.mul(transformed, src);
+		src.mul(localToParent, src);
 	}
 	/**
-	 * Gets the transform previously applied with
-	 * {@link #setTransformation(IAnimation, int, float)} already transformed to
-	 * the global matrix.
+	 * Transforms the position given by the transformation currently acted out
+	 * by this bone.
 	 *
-	 * @return world to transformed world
+	 * @param position
+	 *            the position to transform
 	 */
-	public Matrix4f getTransformGlobal() {
-		return transformedGlobalToGlobal;
+	public void transform(Point4f position) {
+		transformedGlobalToGlobal.transform(position);
 	}
 	/**
-	 * Gets the inverse transposed transform previously applied with
-	 * {@link #setTransformation(IAnimation, int, float)} already transformed to
-	 * the global matrix. This matrix is suitable for usage with normals.
+	 * Transforms the normal given by the transformation currently acted out by
+	 * this bone.
 	 *
-	 * @return world to transformed world
+	 * @param position
+	 *            the position to transform
 	 */
-	public Matrix4f getTransformGlobalIT() {
-		return transformedGlobalToGlobalIT;
+	public void transform(Vector3f normal) {
+		transformedGlobalToGlobalIT.transform(normal);
 	}
 	/**
 	 * Returns a new bone from the data given. If the bone has a parent it is
@@ -167,8 +167,8 @@ public class Bone {
 	 * @return the new bone
 	 */
 	public static Bone fromData(RawDataV1.Bone data, Bone[] allBones) {
-		Matrix4f localToParent = Utils.fromRTS(data.rotation, data.offset,
-				1.0F);
+		Matrix4f localToParent = Utils
+				.fromRTS(data.rotation, data.offset, 1.0F);
 		if (data.parent != (byte) 0xFF)
 			return new ParentedBone(localToParent, data.name,
 					allBones[data.parent & 0xFF]);

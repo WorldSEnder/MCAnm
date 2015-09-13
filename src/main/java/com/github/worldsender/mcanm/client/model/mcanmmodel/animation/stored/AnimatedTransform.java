@@ -3,8 +3,8 @@ package com.github.worldsender.mcanm.client.model.mcanmmodel.animation.stored;
 import java.io.DataInputStream;
 import java.io.IOException;
 
-import org.lwjgl.util.vector.Quaternion;
-import org.lwjgl.util.vector.Vector3f;
+import javax.vecmath.Quat4f;
+import javax.vecmath.Vector3f;
 
 import com.github.worldsender.mcanm.client.exceptions.ModelFormatException;
 import com.github.worldsender.mcanm.client.model.mcanmmodel.animation.IAnimation.BoneTransformation;
@@ -54,10 +54,10 @@ public class AnimatedTransform {
 	public BoneTransformation getTransformAt(float frame) {
 		Vector3f translation = new Vector3f(loc_x.getValueAt(frame),
 				loc_y.getValueAt(frame), loc_z.getValueAt(frame));
-		Quaternion quaternion = new Quaternion(quat_x.getValueAt(frame),
+		Quat4f quaternion = new Quat4f(quat_x.getValueAt(frame),
 				quat_y.getValueAt(frame), quat_z.getValueAt(frame),
 				quat_w.getValueAt(frame));
-		quaternion = quaternion.normalise(quaternion);
+		quaternion.normalize();
 		Vector3f scale = new Vector3f(scale_x.getValueAt(frame),
 				scale_y.getValueAt(frame), scale_z.getValueAt(frame));
 		return new BoneTransformation(translation, quaternion, scale);

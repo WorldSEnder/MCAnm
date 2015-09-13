@@ -1,28 +1,26 @@
 package com.github.worldsender.mcanm.client.model.mcanmmodel.data.parts;
 
+import javax.vecmath.Point2f;
+import javax.vecmath.Point4f;
+import javax.vecmath.Tuple2f;
+import javax.vecmath.Tuple3f;
+import javax.vecmath.Tuple4f;
+import javax.vecmath.Vector3f;
+import javax.vecmath.Vector4f;
+
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.WorldRenderer;
 
-import org.lwjgl.util.vector.Vector2f;
-import org.lwjgl.util.vector.Vector3f;
-import org.lwjgl.util.vector.Vector4f;
-
 public class Vertex {
 
-	private Vector4f pos;
+	private Point4f pos;
 	private Vector3f norm;
-	private Vector2f uv;
+	private Point2f uv;
 
-	public Vertex(Vector4f pos, Vector3f norm, Vector2f uv) {
-		if (pos == null)
-			pos = new Vector4f();
-		if (norm == null)
-			norm = new Vector3f();
-		if (uv == null)
-			uv = new Vector2f();
-		this.pos = pos;
-		this.norm = norm;
-		this.uv = uv;
+	public Vertex(Tuple4f pos, Tuple3f norm, Tuple2f uv) {
+		this.pos = new Point4f(pos);
+		this.norm = new Vector3f(norm);
+		this.uv = new Point2f(uv);
 	}
 	/**
 	 * Uses the {@link Tessellator} to draw the model. Take care that the
@@ -39,8 +37,8 @@ public class Vertex {
 	 * @param vector
 	 *            the offset
 	 */
-	public void offset(Vector4f vector) {
-		this.pos = Vector4f.add(this.pos, vector, this.pos);
+	public void offset(Point4f point) {
+		this.pos.add(point);
 	}
 	/**
 	 * Adds the normal to this Vertex basically interpolating between the
@@ -51,7 +49,7 @@ public class Vertex {
 	 *            the normal to add
 	 */
 	public void addNormal(Vector3f normal) {
-		Vector3f.add(this.norm, normal, this.norm);
+		this.norm.add(normal);
 	}
 	/**
 	 * Sets the UV texture coordinates for this vertex
@@ -59,31 +57,28 @@ public class Vertex {
 	 * @param uv
 	 *            the new texture coordinates
 	 */
-	public void setUV(Vector2f uv) {
+	public void setUV(Tuple2f uv) {
 		this.uv.set(uv);
 	}
-	/**
-	 * This vertex's uv coordinates
-	 *
-	 * @return a copy of this vertex's uv
-	 */
-	public Vector2f getUV() {
-		return new Vector2f(this.uv);
+	public void copyUV(Vertex src) {
+		this.uv.set(src.uv);
 	}
 	/**
-	 * This vertex's normal
-	 *
-	 * @return a copy of this vertex's normal
+	 * Stores this vertex's uv coordinates in the target.
 	 */
-	public Vector3f getNormal() {
-		return new Vector3f(this.norm);
+	public void getUV(Tuple2f trgt) {
+		trgt.set(this.uv);
 	}
 	/**
-	 * This vertex's homogeneous position
-	 *
-	 * @return a copy of this vertex's position
+	 * Stores this vertex's normal in the target.
 	 */
-	public Vector4f getPosition() {
-		return new Vector4f(this.pos);
+	public void getNormal(Tuple3f trgt) {
+		trgt.set(this.norm);
+	}
+	/**
+	 * Stores this vertex's position in the target.
+	 */
+	public void getPosition(Tuple4f trgt) {
+		trgt.set(this.pos);
 	}
 }

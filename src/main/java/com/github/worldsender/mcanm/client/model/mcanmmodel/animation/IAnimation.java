@@ -1,8 +1,13 @@
 package com.github.worldsender.mcanm.client.model.mcanmmodel.animation;
 
-import org.lwjgl.util.vector.Matrix4f;
-import org.lwjgl.util.vector.Quaternion;
-import org.lwjgl.util.vector.Vector3f;
+import javax.vecmath.Matrix4f;
+import javax.vecmath.Quat4f;
+import javax.vecmath.Vector3f;
+import javax.vecmath.Vector4f;
+
+import net.minecraft.util.EnumFacing;
+import net.minecraft.util.Vec3i;
+import net.minecraftforge.client.model.ITransformation;
 
 import com.github.worldsender.mcanm.client.model.mcanmmodel.Utils;
 /**
@@ -19,43 +24,51 @@ public interface IAnimation {
 	 * @author WorldSEnder
 	 *
 	 */
-	public static class BoneTransformation {
+	public static class BoneTransformation implements ITransformation {
 		private static Vector3f identityScale() {
 			return new Vector3f(1.0F, 1.0F, 1.0F);
 		}
 
 		public static final BoneTransformation identity = new BoneTransformation();
 
-		private Quaternion rotationQuat;
-		private Vector3f translation;
-		private Vector3f scale;
+		private Matrix4f matrix;
 
 		public BoneTransformation() {
-			this(new Vector3f(), new Quaternion(), identityScale());
+			this(null, null, null);
 		}
 
-		public BoneTransformation(Vector3f translation, Quaternion quat) {
+		public BoneTransformation(Vector3f translation, Quat4f quat) {
 			this(translation, quat, identityScale());
 		}
 
-		public BoneTransformation(Vector3f translation, Quaternion quat,
+		public BoneTransformation(Vector3f translation, Quat4f quat,
 				Vector3f scale) {
 			if (quat == null)
-				quat = new Quaternion();
+				quat = new Quat4f();
 			if (translation == null)
 				translation = new Vector3f();
 			if (scale == null)
 				scale = identityScale();
-			this.rotationQuat = quat;
-			this.translation = translation;
-			this.scale = scale;
+			this.matrix = Utils.fromRTS(quat, translation, scale);
 		}
 
-		public Matrix4f asMatrix() {
-			Matrix4f mat = Utils.fromRTS(this.rotationQuat,
-					this.translation, 1.0F);
-			mat.scale(scale);
-			return mat;
+		@Override
+		public Matrix4f getMatrix() {
+			return (Matrix4f) matrix.clone();
+		}
+
+		@Override
+		public EnumFacing rotate(EnumFacing facing) {
+			Vec3i dir = facing.getDirectionVec();
+			Vector4f vec = new Vector4f(dir.getX(), dir.getY(), dir.getZ(), 0);
+			matrix.transform(vec);
+			return EnumFacing.func_176737_a(vec.x, vec.y, vec.z);
+		}
+
+		@Override
+		public int rotate(EnumFacing facing, int vertexIndex) {
+			// @see TRSRTransformation#rotate(EnumFacing, int)
+			return vertexIndex;
 		}
 	}
 	/**

@@ -39,16 +39,15 @@ import java.nio.charset.MalformedInputException;
 import java.nio.charset.UnmappableCharacterException;
 import java.util.Arrays;
 
-import javax.vecmath.Matrix3f;
+import javax.vecmath.Matrix4f;
 import javax.vecmath.Quat4f;
+import javax.vecmath.Vector2f;
+import javax.vecmath.Vector3f;
 
 import net.minecraft.client.renderer.GLAllocation;
 
 import org.lwjgl.opengl.GL20;
-import org.lwjgl.util.vector.Matrix4f;
 import org.lwjgl.util.vector.Quaternion;
-import org.lwjgl.util.vector.Vector2f;
-import org.lwjgl.util.vector.Vector3f;
 
 import sun.nio.cs.ArrayDecoder;
 
@@ -182,13 +181,13 @@ public class Utils {
 	 *             when some IOException occurs in the given
 	 *             {@link DataInputStream}
 	 */
-	public static Quaternion readQuat(DataInputStream dis) throws EOFException,
+	public static Quat4f readQuat(DataInputStream dis) throws EOFException,
 			IOException {
 		float x = dis.readFloat();
 		float y = dis.readFloat();
 		float z = dis.readFloat();
 		float w = dis.readFloat();
-		return new Quaternion(x, y, z, w);
+		return new Quat4f(x, y, z, w);
 	}
 	/**
 	 * Asks for a new directly backed ByteBuffer
@@ -355,6 +354,7 @@ public class Utils {
 			throw new IllegalStateException(error);
 		}
 	}
+
 	/**
 	 * Takes a {@link Quaternion} and a {@link Vector3f} as input and returns a
 	 * {@link Matrix4f} that represents the rotation-translation of the passed
@@ -366,27 +366,27 @@ public class Utils {
 	 *
 	 * @return
 	 */
-	public static Matrix4f fromRTS(Quaternion q, Vector3f off, float scale) {
-		Matrix4f mat = new Matrix4f();
-		if (q != null) {
-			Quat4f quat = new Quat4f(q.x, q.y, q.z, q.w);
-			Matrix3f rotMat = new Matrix3f();
-			rotMat.set(quat);
-			mat.m00 = rotMat.m00;
-			mat.m10 = rotMat.m01;
-			mat.m20 = rotMat.m02;
-			mat.m01 = rotMat.m10;
-			mat.m11 = rotMat.m11;
-			mat.m21 = rotMat.m12;
-			mat.m02 = rotMat.m20;
-			mat.m12 = rotMat.m21;
-			mat.m22 = rotMat.m22;
-		}
-		if (off != null) {
-			mat.m30 = off.x * scale;
-			mat.m31 = off.y * scale;
-			mat.m32 = off.z * scale;
-		}
+	public static Matrix4f fromRTS(Quat4f rotation, Vector3f offset,
+			Vector3f scale) {
+		Matrix4f scaleMat = new Matrix4f();
+		scaleMat.m00 = scale.x;
+		scaleMat.m11 = scale.y;
+		scaleMat.m22 = scale.z;
+		scaleMat.m33 = 1.0F;
+
+		Matrix4f mat = fromRTS(rotation, offset, 1.0f);
+		mat.mul(scaleMat);
+
 		return mat;
+	}
+	/**
+	 * Same as {@link #fromRTS(Quat4f, Vector3f, Vector3f)}, but with only one
+	 * scaling component that is the same for x, y and z
+	 *
+	 * @return
+	 * @see #fromRTS(Quat4f, Vector3f, Vector3f)
+	 */
+	public static Matrix4f fromRTS(Quat4f rotation, Vector3f offset, float scale) {
+		return new Matrix4f(rotation, offset, scale);
 	}
 }

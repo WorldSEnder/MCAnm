@@ -4,12 +4,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-import net.minecraft.client.renderer.WorldRenderer;
+import javax.vecmath.Point4f;
+import javax.vecmath.Vector2f;
+import javax.vecmath.Vector3f;
+import javax.vecmath.Vector4f;
 
-import org.lwjgl.util.vector.Matrix4f;
-import org.lwjgl.util.vector.Vector2f;
-import org.lwjgl.util.vector.Vector3f;
-import org.lwjgl.util.vector.Vector4f;
+import net.minecraft.client.renderer.WorldRenderer;
 
 import com.github.worldsender.mcanm.client.model.mcanmmodel.data.RawDataV1;
 import com.github.worldsender.mcanm.client.model.mcanmmodel.data.RawDataV1.TesselationPoint;
@@ -19,8 +19,8 @@ public class Point {
 		private static class Binding {
 			// Used as a buffer, doesn't requite to always create new
 			// temporaries. Prevents parallelization, though
-			private static Vector4f posBuff = new Vector4f();
-			private static Vector4f normBuff = new Vector4f();
+			private static Point4f posBuff = new Point4f();
+			private static Vector3f normBuff = new Vector3f();
 
 			private Bone bone;
 			private float strength;
@@ -42,29 +42,20 @@ public class Point {
 			 */
 			public Vertex addTransformed(Vertex base, Vertex trgt) {
 				Objects.requireNonNull(base);
-				Vector4f pos = base.getPosition();
-				Vector3f norm = base.getNormal();
 
-				posBuff.set(pos.x, pos.y, pos.z, 1.0F);
-				normBuff.set(norm.x, norm.y, norm.z, 0.0F);
-				// Transform matrix
-				Matrix4f globalTransform = this.bone.getTransformGlobal();
-				Matrix4f globalTransformIT = this.bone.getTransformGlobalIT();
+				base.getPosition(posBuff);
+				base.getNormal(normBuff);
 				// Transform points with matrix
-				Matrix4f.transform(globalTransform, posBuff, posBuff);
-				// Transform normal
-				Matrix4f.transform(globalTransformIT, normBuff, normBuff);
-				// Final result
-				Vector4f position = new Vector4f(posBuff);
-				Vector3f normal = new Vector3f(normBuff.x, normBuff.y,
-						normBuff.z);
-				position.scale(this.strength);
-				normal.scale(this.strength);
+				this.bone.transform(posBuff);
+				this.bone.transform(normBuff);
+
+				posBuff.scale(this.strength);
+				normBuff.scale(this.strength);
 				if (trgt == null) {
-					trgt = new Vertex(position, normal, null);
+					trgt = new Vertex(posBuff, normBuff, new Vector2f());
 				} else {
-					trgt.offset(position);
-					trgt.addNormal(normal);
+					trgt.offset(posBuff);
+					trgt.addNormal(normBuff);
 				}
 				return trgt;
 			}
@@ -100,7 +91,7 @@ public class Point {
 			for (Binding bind : this.binds) {
 				transformed = bind.addTransformed(base, transformed);
 			}
-			transformed.setUV(this.vert.getUV());
+			transformed.copyUV(this.vert);
 			transformed.render(renderer);
 		}
 	}

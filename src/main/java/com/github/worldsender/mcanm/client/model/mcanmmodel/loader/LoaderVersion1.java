@@ -7,9 +7,9 @@ import java.util.Arrays;
 import java.util.Set;
 import java.util.TreeSet;
 
-import org.lwjgl.util.vector.Quaternion;
-import org.lwjgl.util.vector.Vector2f;
-import org.lwjgl.util.vector.Vector3f;
+import javax.vecmath.Quat4f;
+import javax.vecmath.Vector2f;
+import javax.vecmath.Vector3f;
 
 import com.github.worldsender.mcanm.client.exceptions.ModelFormatException;
 import com.github.worldsender.mcanm.client.model.mcanmmodel.Utils;
@@ -102,7 +102,7 @@ public class LoaderVersion1 extends VersionizedModelLoader {
 		// Read name
 		String name = Utils.readString(di);
 		// Read quaternion
-		Quaternion quat = Utils.readQuat(di);
+		Quat4f quat = Utils.readQuat(di);
 		// Read offset
 		Vector3f offset = Utils.readVector3f(di);
 		// Apply attributes
@@ -187,10 +187,11 @@ public class LoaderVersion1 extends VersionizedModelLoader {
 						"Can't bind to non-existant bone.");
 			// Read strength of binding
 			float bindingValue = di.readFloat();
-			if (Math.abs(bindingValue) > 100.0F)
-				throw new ModelFormatException(String.format(
-						"Value for binding seems out of range: %f",
-						bindingValue));
+			if (Math.abs(bindingValue) > 100.0F || bindingValue < 0)
+				throw new ModelFormatException(
+						String.format(
+								"Value for binding seems out of range: %f (expected to be in [0, 100]",
+								bindingValue));
 			// Apply attributes
 			binding.boneIndex = (byte) bindIndex;
 			binding.bindingValue = bindingValue;

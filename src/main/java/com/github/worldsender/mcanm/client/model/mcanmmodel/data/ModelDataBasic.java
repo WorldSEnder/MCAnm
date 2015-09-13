@@ -1,18 +1,15 @@
 package com.github.worldsender.mcanm.client.model.mcanmmodel.data;
 
 import static org.lwjgl.opengl.GL11.GL_LINES;
-import static org.lwjgl.opengl.GL11.GL_TEXTURE_2D;
 import static org.lwjgl.opengl.GL11.GL_TRIANGLES;
-import static org.lwjgl.opengl.GL11.glColor4f;
-import static org.lwjgl.opengl.GL11.glDisable;
-import static org.lwjgl.opengl.GL11.glEnable;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import net.minecraft.client.renderer.WorldRenderer;
+import javax.vecmath.Vector4f;
 
-import org.lwjgl.util.vector.Vector4f;
+import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.client.renderer.WorldRenderer;
 
 import com.github.worldsender.mcanm.MCAnm;
 import com.github.worldsender.mcanm.client.model.mcanmmodel.animation.IAnimation;
@@ -128,9 +125,10 @@ public class ModelDataBasic implements IModelData {
 		}
 		renderer.draw();
 		if (MCAnm.isDebug) {
-			glDisable(GL_TEXTURE_2D);
+			// glDisable(GL_TEXTURE_2D);
+			GlStateManager.func_179090_x();
 			renderer.startDrawing(GL_LINES);
-			glColor4f(1, 1, 1, 1);
+			GlStateManager.color(0f, 0f, 0f, 1f);
 			for (Bone bone : bones) {
 				Vector4f tail = bone.getTail();
 				Vector4f head = bone.getHead();
@@ -138,7 +136,8 @@ public class ModelDataBasic implements IModelData {
 				renderer.addVertex(head.x, head.z, -head.y);
 			}
 			renderer.draw();
-			glEnable(GL_TEXTURE_2D);
+			// glEnable(GL_TEXTURE_2D);
+			GlStateManager.func_179090_x();
 		}
 	}
 }
