@@ -1,7 +1,9 @@
 import bmesh
+import bpy
 import re
+import os
 
-from .utils import *
+from .utils import Reporter, write_string, write_packed, asset_to_dir, openw_save
 from contextlib import ExitStack
 from collections import defaultdict
 
@@ -11,7 +13,7 @@ class Bone(object):
 		bone Bone: can't be None, the bone this is initialized from
 		"""
 		if bone is None:
-			fatal("(Bone) bone is None")
+			Reporter.fatal("(Bone) bone is None")
 		self.name = bone.name
 		mat = bone.matrix_local
 		if bone.parent is not None:
@@ -37,7 +39,7 @@ class Point(object):
 							  arm.bones[i]'s vertex group in object
 		"""
 		if loop is None:
-			fatal("(Point) Loop is None")
+			Reporter.fatal("(Point) Loop is None")
 		vtx = loop.vert
 		self.coords = vtx.co
 		self.normal = vtx.normal
@@ -51,7 +53,7 @@ class Point(object):
 			bind tuple: Can't be None, (idx, value) of binding
 			"""
 			if bind is None:
-				fatal("(Point) Inserted tupple is None")
+				Reporter.fatal("(Point) Inserted tupple is None")
 			self.bindings.append(bind)
 		# iterate over all bones (as indices)
 		for idx, vgroup_idx in enumerate(arm_vgroup_idxs):
@@ -107,7 +109,7 @@ class Part(object):
 			img = group.image
 		else:
 			self.name = group.name
-			warning("Group {name} has an invalid image ({img}) assigned. Defaulted to {default}",
+			Reporter.warning("Group {name} has an invalid image ({img}) assigned. Defaulted to {default}",
 					name=self.name, img=group.image, default=options.def_image)
 			img = options.def_image.name
 		self.image = bpy.data.images[img]
@@ -152,10 +154,10 @@ class Part(object):
 		idxs = self.indices
 		idxs_len = len(idxs)
 		if idxs_len % 3:
-			fatal("(Part) number of indices not divisible by 3")
+			Reporter.fatal("(Part) number of indices not divisible by 3")
 		tris = idxs_len//3
 		if tris >= 2**16:
-			error("(Part) too many tris in part {name}", name=self.name)
+			Reporter.error("(Part) too many tris in part {name}", name=self.name)
 		write_packed(">2H", file_h, p_len, tris)
 		write_string(self.name, file_h)
 		write_string(self.img_location, file_h)
@@ -181,7 +183,7 @@ class Animation(object):
 			write_packed(">2f", file_h, co[0] - self.offset, co[1])
 		anim_len = len(points)
 		if anim_len > 2**16 - 1:
-			error("Too many keyframes in fcurve to export")
+			Reporter.error("Too many keyframes in fcurve to export")
 		# animation length
 		write_packed(">H", file_h, anim_len)
 		if anim_len == 0:
@@ -193,22 +195,16 @@ class Animation(object):
 		for left, right in zip(points[:], points[1:]):
 			write_point(right.co)
 			raw_mode = right.interpolation
-			try:
-				write_packed(">B", file_h, interpolations[raw_mode])
-				if raw_mode == 'BEZIER':
-					write_point(left.handle_right)
-					write_point(right.handle_left)
-			except KeyError:
-				warning("[MCAnmExporter] Unknown interpolation mode {mode}, assuming linear", mode=raw_mode)
-				write_packed(">B", file_h, interpolations['LINEAR'])
+			interpolation_code = extract_safe(interpolations, raw_mode, "Unknown interpolation mode {item}")
+			write_packed(">B", file_h, interpolation_code)
+			if raw_mode == 'BEZIER':
+				write_point(left.handle_right)
+				write_point(right.handle_left)
 		# TUNE OUT
-		try:
-			write_packed(">B", file_h, extrapolations[self.extrapolation_mode])
-			if self.extrapolation_mode == 'LINEAR':
-				write_point(points[-1].handle_right)
-		except KeyError:
-			warning("[MCAnmExporter] Unknown extrapolation mode {mode}, assuming constant", mode=self.extrapolation_mode)
-			write_packed(">B", file_h, extrapolations['CONSTANT'])
+		extrapolation_code = extract_safe(extrapolations, self.extrapolation_mode, "Unknown extrapolation mode {item}")
+		write_packed(">B", file_h, extrapolation_code)
+		if self.extrapolation_mode == 'LINEAR':
+			write_point(points[-1].handle_right)
 
 class BoneAction(object):
 	def __init__(self, name, curves, offset):
@@ -300,11 +296,11 @@ def export_mesh_v1(context, options, file_h):
 				part_dict.update({group: Part(group, options)})
 			part_dict[group].append_face(face, uv_layer, deform_layer, arm_vgroup_idxs)
 		if len(part_dict) > 255:
-			error("Too many parts")
+			Reporter.error("Too many parts")
 		bones = ([] if arm is None else
 				 [Bone(bone) for bone in arm.bones])
 		if len(bones) > 255:
-			error("Too many bones")
+			Reporter.error("Too many bones")
 		bone_parents = ([] if arm is None else
 						[arm.bones.find(b.parent.name) & 0xFF if b.parent is not None else 255 for b in arm.bones])
 
@@ -328,11 +324,12 @@ def export_mesh_v1(context, options, file_h):
 								options.dirpath,
 								asset_to_dir(path))
 				img.save_render(bpy.path.abspath(ext_path), scene=context.scene)
-
-	return 'Exported with ({numparts} parts, {numbones} bones)'.format(
-			numparts=len(part_dict),
-			numbones=len(bones)
-		)
+	
+	summary = 'Exported with ({numparts} parts, {numbones} bones)'.format(
+				numparts=len(part_dict),
+				numbones=len(bones)
+			)
+	Reporter.info(summary)
 
 # exporters also have to write their version number
 known_exporters = {"V1": export_mesh_v1}
@@ -358,17 +355,14 @@ def export_mesh(context, options):
 				uuid_vec[3] & bitmask)
 		write_string(options.artist, file_h)
 		try:
-			message = known_exporters[options.version](context, options, file_h)
-			if message is not None:
-				warning.active_op.report({'INFO'}, message)
+			known_exporters[options.version](context, options, file_h)
 		except (KeyError, NotImplementedError) as ex:
-			fatal("Version {v} is not implemented yet", v=options.version)
-	return {'FINISHED'}
-
+			Reporter.fatal("Version {v} is not implemented yet", v=options.version)
 def export_action(filepath, action, offset, artist, armature):
 	bone_data_re = re.compile("pose\.bones\[\"(.*)\"\]\.(rotation_quaternion|location|scale)")
 	bone_dict = defaultdict(lambda: ([None]*3, [None]*4, [None]*3))
 	armBones = armature.bones
+	curves = 0
 	for curve in action.fcurves:
 		match = bone_data_re.match(curve.data_path)
 		if match is None:
@@ -378,17 +372,24 @@ def export_action(filepath, action, offset, artist, armature):
 			continue
 		if key == 'location' and not armBones[bone].use_connect:
 			bone_dict[bone][0][curve.array_index] = curve
+			curves += 1
 		elif key == 'rotation_quaternion':
 			bone_dict[bone][1][curve.array_index] = curve
+			curves += 1
 		elif key == 'scale':
 			bone_dict[bone][2][curve.array_index] = curve
+			curves += 1
 	bone_count = len(bone_dict)
 	if bone_count > 255:
-		error("Too many bones to export")
+		Reporter.error("Too many bones to export")
 	with open(filepath, 'wb') as file_h:
 		file_h.write(b'MHFC ANM')
 		write_string(artist, file_h)
 		write_packed(">B", file_h, bone_count)
 		for bone in bone_dict:
 			BoneAction(bone, bone_dict[bone], offset).to_file(file_h)
-	return {'FINISHED'}
+	summary = 'Exported {bones} bones with {curves} animated values'.format(
+			bones=bone_count,
+			curves=curves
+		)
+	Reporter.info(summary)
