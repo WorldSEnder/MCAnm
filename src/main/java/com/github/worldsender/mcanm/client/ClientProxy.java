@@ -10,6 +10,7 @@ import com.github.worldsender.mcanm.MCAnm;
 import com.github.worldsender.mcanm.Proxy;
 import com.github.worldsender.mcanm.client.model.AnimationLoader;
 import com.github.worldsender.mcanm.client.model.ModelLoader;
+import com.github.worldsender.mcanm.client.renderer.IAnimatedObject;
 import com.github.worldsender.mcanm.client.renderer.entity.RenderAnimatedModel;
 import com.github.worldsender.mcanm.test.CubeEntity;
 
@@ -32,9 +33,11 @@ public class ClientProxy implements Proxy {
 	@Override
 	public void init() {
 		if (MCAnm.isDebug) {
+			RenderAnimatedModel renderer = RenderAnimatedModel.fromResLocation(
+					IAnimatedObject.animator, new ResourceLocation(
+							"mcanm:models/Cube/Cube.mcmd"), 1.0f);
 			RenderingRegistry.registerEntityRenderingHandler(CubeEntity.class,
-					RenderAnimatedModel.fromResLocation(new ResourceLocation(
-							"mcanm:models/Cube/Cube.mcmd"), 1.0f));
+					renderer);
 		}
 	}
 }

@@ -9,6 +9,7 @@ import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.util.ResourceLocation;
 
+import com.github.worldsender.mcanm.client.model.IAnimator;
 import com.github.worldsender.mcanm.client.model.ModelAnimated;
 import com.github.worldsender.mcanm.client.model.ModelLoader;
 import com.github.worldsender.mcanm.client.model.mcanmmodel.ModelMCMD;
@@ -45,15 +46,20 @@ public class RenderAnimatedModel extends RenderLiving {
 	 * is instanciated from the {@link ResourceLocation} given (using the normal
 	 * constructor).
 	 *
+	 * @param animator
+	 *            the animator for the entity
 	 * @param resLoc
+	 *            the resource location to load the entity from
 	 * @param shadowSize
-	 * @return
+	 *            the shadow size...
+	 * @return the constructed {@link RenderAnimatedModel}
+	 * @see IAnimator
 	 */
-	public static RenderAnimatedModel fromResLocation(ResourceLocation resLoc,
-			float shadowSize) {
+	public static RenderAnimatedModel fromResLocation(IAnimator animator,
+			ResourceLocation resLoc, float shadowSize) {
 		ModelMCMD rawmodel = ModelLoader.loadFrom(resLoc);
 		RenderManager manager = Minecraft.getMinecraft().getRenderManager();
-		ModelAnimated mcmodel = new ModelAnimated(rawmodel);
+		ModelAnimated mcmodel = new ModelAnimated(rawmodel, animator);
 
 		return new RenderAnimatedModel(manager, mcmodel, shadowSize);
 	}
