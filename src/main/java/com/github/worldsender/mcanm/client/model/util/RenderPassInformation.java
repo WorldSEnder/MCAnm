@@ -1,7 +1,11 @@
 package com.github.worldsender.mcanm.client.model.util;
 
+import net.minecraft.util.ResourceLocation;
+
 import com.github.worldsender.mcanm.client.model.IRenderPassInformation;
 import com.github.worldsender.mcanm.client.model.mcanmmodel.animation.IAnimation;
+import com.google.common.base.Function;
+import com.google.common.base.Functions;
 import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 /**
@@ -53,19 +57,28 @@ public class RenderPassInformation implements IRenderPassInformation {
 			return BoneTransformation.identity;
 		};
 	};
+	/**
+	 * This is the default texture rebinding, it just returns the given
+	 * resource-location and as such does not change the bound texture.
+	 */
+	public static final Function<ResourceLocation, ResourceLocation> IDENTITY = Functions
+			.identity();
 
 	private float frame;
 	private IAnimation animation;
 	private Predicate<String> partPredicate;
+	private Function<ResourceLocation, ResourceLocation> textureRemap;
 
 	public RenderPassInformation() {
 		this.reset();
 	}
 
 	public RenderPassInformation(float frame, Optional<IAnimation> animation,
-			Optional<Predicate<String>> partPredicate) {
+			Optional<Predicate<String>> partPredicate,
+			Optional<Function<ResourceLocation, ResourceLocation>> resourceRemap) {
 		this.setFrame(frame).setAnimation(animation)
-				.setPartPredicate(partPredicate);
+				.setPartPredicate(partPredicate)
+				.setTextureTransform(resourceRemap);
 	}
 	/**
 	 * Resets this information to be reused.
@@ -86,14 +99,6 @@ public class RenderPassInformation implements IRenderPassInformation {
 		return frame;
 	}
 	/**
-	 * @param frame
-	 *            the frame to set
-	 */
-	public RenderPassInformation setFrame(float frame) {
-		this.frame = frame;
-		return this;
-	}
-	/**
 	 * Gets the animation to play. If you return null here the model will be
 	 * displayed in bind pose.
 	 *
@@ -102,6 +107,14 @@ public class RenderPassInformation implements IRenderPassInformation {
 	@Override
 	public IAnimation getAnimation() {
 		return animation;
+	}
+	@Override
+	public boolean shouldRenderPart(String part) {
+		return this.partPredicate.apply(part);
+	}
+	@Override
+	public ResourceLocation getActualResourceLocation(ResourceLocation in) {
+		return this.textureRemap.apply(in);
 	}
 	/**
 	 * @param animation
@@ -112,14 +125,12 @@ public class RenderPassInformation implements IRenderPassInformation {
 		return this;
 	}
 	/**
-	 * Returns for the current animation a predicate that get applied all
-	 * model-parts to test if they should be rendered.
-	 *
-	 * @return a predicate to match parts against that may be rendered
+	 * @param frame
+	 *            the frame to set
 	 */
-	@Override
-	public Predicate<String> getPartPredicate() {
-		return partPredicate;
+	public RenderPassInformation setFrame(float frame) {
+		this.frame = frame;
+		return this;
 	}
 	/**
 	 * @param partPredicate
@@ -131,4 +142,9 @@ public class RenderPassInformation implements IRenderPassInformation {
 		return this;
 	}
 
+	public RenderPassInformation setTextureTransform(
+			Optional<Function<ResourceLocation, ResourceLocation>> textureRemap) {
+		this.textureRemap = textureRemap.or(IDENTITY);
+		return this;
+	}
 }

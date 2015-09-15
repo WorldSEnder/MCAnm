@@ -3,11 +3,12 @@ package com.github.worldsender.mcanm.client.model.util;
 import java.util.Objects;
 
 import net.minecraft.client.renderer.Tessellator;
+import net.minecraft.util.ResourceLocation;
 
+import com.github.worldsender.mcanm.client.model.IRender;
 import com.github.worldsender.mcanm.client.model.IRenderPassInformation;
 import com.github.worldsender.mcanm.client.model.mcanmmodel.IRenderPass;
 import com.github.worldsender.mcanm.client.model.mcanmmodel.animation.IAnimation;
-import com.google.common.base.Predicate;
 
 /**
  * A collection of information neccessary to render the model.
@@ -19,9 +20,10 @@ public class RenderPass implements IRenderPass {
 	private IRenderPassInformation userInfo;
 	private Tessellator tesselator;
 
-	public RenderPass(IRenderPassInformation info, Tessellator tesselator) {
+	public RenderPass(IRenderPassInformation info, Tessellator tesselator,
+			IRender renderer) {
 		this.userInfo = Objects.requireNonNull(info);
-		this.tesselator = Objects.requireNonNull(tesselator);
+		this.tesselator = tesselator;
 	}
 
 	@Override
@@ -35,13 +37,18 @@ public class RenderPass implements IRenderPass {
 	}
 
 	@Override
-	public Predicate<String> getPartPredicate() {
-		return userInfo.getPartPredicate();
+	public boolean shouldRenderPart(String part) {
+		return userInfo.shouldRenderPart(part);
+	}
+
+	@Override
+	public ResourceLocation getActualResourceLocation(ResourceLocation in) {
+		return userInfo.getActualResourceLocation(in);
 	}
 
 	@Override
 	public Tessellator getTesselator() {
-		return tesselator;
+		return Objects.requireNonNull(tesselator);
 	}
 
 	public RenderPass setTesellator(Tessellator tesselator) {

@@ -25,10 +25,10 @@ public class ModelAnimated extends ModelBase {
 
 	private ModelMCMD model;
 	private float partialTick;
-	private IAnimator animator;
+	private IRender renderer; // The renderer, used to bind textures
 
 	private RenderPassInformation userPassCache = new RenderPassInformation();
-	private RenderPass passCache = new RenderPass(userPassCache, null);
+	private RenderPass passCache = new RenderPass(userPassCache, null, null);
 
 	/**
 	 * This constructor just puts the model into itself. Nothing is checked
@@ -36,9 +36,8 @@ public class ModelAnimated extends ModelBase {
 	 * @param model
 	 *            the model to render
 	 */
-	public ModelAnimated(ModelMCMD model, IAnimator animator) {
+	public ModelAnimated(ModelMCMD model) {
 		this.model = model; // No null-checks, getters could be overridden
-		this.animator = animator;
 		// Useless piece of .... sklsdalsafhkjasd
 		// So we don't get problems with arrows in our entity.
 		// I want to kill the programmer who thought it would be a good idea
@@ -60,9 +59,11 @@ public class ModelAnimated extends ModelBase {
 		GlStateManager.translate(0, -13 / 8F, 0);
 
 		userPassCache.reset();
-		IRenderPassInformation currentPass = getAnimator().preRenderCallback(
-				entity, userPassCache, getPartialTick(), uLimbSwing,
-				interpolatedSwing, uRotfloat, headYaw, interpolatedPitch);
+		IRender currentRender = getRender();
+		IRenderPassInformation currentPass = currentRender.getAnimator()
+				.preRenderCallback(entity, userPassCache, getPartialTick(),
+						uLimbSwing, interpolatedSwing, uRotfloat, headYaw,
+						interpolatedPitch);
 		passCache.setRenderPassInformation(currentPass).setTesellator(
 				Tessellator.getInstance());
 
@@ -86,7 +87,7 @@ public class ModelAnimated extends ModelBase {
 			this.partialTick = newPartialTick;
 	}
 	/**
-	 * The current model is accessed via this getter. If a subclass choses to
+	 * The current model is accessed via this getter. If a subclass chooses to
 	 * override this, the returned model will be rendered.
 	 *
 	 * @return
@@ -95,10 +96,9 @@ public class ModelAnimated extends ModelBase {
 		return this.model;
 	}
 	/**
-	 * Returns the animator for this model. Can be overriden by subclasses to
-	 * return their own animator.
+	 * Returns the currently used renderer. Here to be overridden by subclasses
 	 */
-	protected IAnimator getAnimator() {
-		return this.animator;
+	protected IRender getRender() {
+		return this.renderer;
 	}
 }

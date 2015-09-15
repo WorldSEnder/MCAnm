@@ -17,7 +17,6 @@ import com.github.worldsender.mcanm.client.model.mcanmmodel.IRenderPass;
 import com.github.worldsender.mcanm.client.model.mcanmmodel.animation.IAnimation;
 import com.github.worldsender.mcanm.client.model.mcanmmodel.data.parts.Bone;
 import com.github.worldsender.mcanm.client.model.mcanmmodel.data.parts.Part;
-import com.google.common.base.Predicate;
 
 public class ModelDataBasic implements IModelData {
 
@@ -114,16 +113,15 @@ public class ModelDataBasic implements IModelData {
 	}
 
 	@Override
-	public void render(IRenderPass pass) {
-		Tessellator tess = pass.getTesselator();
+	public void render(IRenderPass currentPass) {
+		Tessellator tess = currentPass.getTesselator();
 		WorldRenderer renderer = tess.getWorldRenderer();
-		Predicate<String> filter = pass.getPartPredicate();
 
-		setup(pass.getAnimation(), pass.getFrame());
+		setup(currentPass.getAnimation(), currentPass.getFrame());
 		renderer.startDrawing(GL_TRIANGLES);
 		for (Part part : this.parts) {
-			if (filter.apply(part.getName()))
-				part.render(renderer);
+			if (currentPass.shouldRenderPart(part.getName()))
+				part.render(currentPass);
 		}
 		tess.draw();
 		if (MCAnm.isDebug) {

@@ -10,19 +10,22 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.util.ResourceLocation;
 
 import com.github.worldsender.mcanm.client.model.IAnimator;
+import com.github.worldsender.mcanm.client.model.IRender;
 import com.github.worldsender.mcanm.client.model.ModelAnimated;
 import com.github.worldsender.mcanm.client.model.ModelLoader;
 import com.github.worldsender.mcanm.client.model.mcanmmodel.ModelMCMD;
 
-public class RenderAnimatedModel extends RenderLiving {
+public class RenderAnimatedModel extends RenderLiving implements IRender {
 	private static final ResourceLocation ignored = TextureMap.locationBlocksTexture;
 
 	protected ModelAnimated model;
+	private IAnimator animator;
 
 	public RenderAnimatedModel(RenderManager manager, ModelAnimated model,
-			float shadowSize) {
+			IAnimator animator, float shadowSize) {
 		super(manager, model, shadowSize);
 		this.model = model;
+		this.animator = animator;
 	}
 
 	@Override
@@ -59,8 +62,13 @@ public class RenderAnimatedModel extends RenderLiving {
 			ResourceLocation resLoc, float shadowSize) {
 		ModelMCMD rawmodel = ModelLoader.loadFrom(resLoc);
 		RenderManager manager = Minecraft.getMinecraft().getRenderManager();
-		ModelAnimated mcmodel = new ModelAnimated(rawmodel, animator);
+		ModelAnimated mcmodel = new ModelAnimated(rawmodel);
 
-		return new RenderAnimatedModel(manager, mcmodel, shadowSize);
+		return new RenderAnimatedModel(manager, mcmodel, animator, shadowSize);
+	}
+
+	@Override
+	public IAnimator getAnimator() {
+		return this.animator;
 	}
 }
