@@ -68,6 +68,7 @@ class Reporter(object):
 
 	_warnings = None
 	_infos = None
+	_debug = None
 	_error = (None, None, None)
 	_passexceptions = None
 	_engaged = None
@@ -80,6 +81,7 @@ class Reporter(object):
 		"""
 		self._warnings = []
 		self._infos = []
+		self._debug = []
 		self._passexceptions = not catchexceptions
 		self._error = (None, None, None)
 		self._engaged = False
@@ -116,15 +118,22 @@ class Reporter(object):
 			self._engaged = False
 			assert(Reporter._stack.pop() is self)
 
+	@classmethod
+	def _get_reporter(cls, proposed):
+		if proposed is not None:
+			return proposed
+		if cls._stack:
+			return cls._stack[-1]
+		return None
+
 	@static_access
 	def warning(self, message, *args, **wargs):
 		"""When something happened that can be recovered from but isn't
 		conformant never-the-less
 		"""
+		self = Reporter._get_reporter(self)
 		if self is None:
-			if not Reporter._stack:
-				return #Swallow it
-			self = Reporter._stack[-1]
+			return
 		formatted = message.format(*args, **wargs)
 		self._warnings.append(formatted)
 
@@ -132,12 +141,21 @@ class Reporter(object):
 	def info(self, message, *args, **wargs):
 		"""A useful information for the user
 		"""
+		self = Reporter._get_reporter(self)
 		if self is None:
-			if not Reporter._stack:
-				return #Swallow it
-			self = Reporter._stack[-1]
+			return
 		formatted = message.format(*args, **wargs)
 		self._infos.append(formatted)
+
+	@static_access
+	def debug(self, message, *args, **wargs):
+		"""Debug output, only output during debug mode
+		"""
+		self = Reporter._get_reporter(self)
+		if self is None:
+			return
+		formatted = message.format(*args, **wargs)
+		self._debug.append(formatted)
 
 	@static_access
 	def error(self, message, *args, cause=None, **wargs):
@@ -173,6 +191,8 @@ class Reporter(object):
 		# Print the things
 		for info in self._infos:
 			op.report({'INFO'}, str(info))
+		for debug in self._debug:
+			op.report({'DEBUG'}, str(debug))
 		for warning in self._warnings:
 			op.report({'WARNING'}, str(warning))
 		if not self.was_success():

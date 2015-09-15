@@ -3,7 +3,7 @@ import bpy
 import re
 import os
 
-from .utils import Reporter, write_string, write_packed, asset_to_dir, openw_save
+from .utils import Reporter, write_string, write_packed, asset_to_dir, openw_save, extract_safe
 from contextlib import ExitStack
 from collections import defaultdict
 

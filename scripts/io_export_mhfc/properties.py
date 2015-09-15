@@ -70,7 +70,6 @@ class UniqueNameElement(object):
 			# don't want to handle
 			super().__setattr__(attr, value)
 			return
-		print("Setting name")
 		self_name = getattr(self, _NAME)
 		if value == self_name:
 			# check for assignement of current value
