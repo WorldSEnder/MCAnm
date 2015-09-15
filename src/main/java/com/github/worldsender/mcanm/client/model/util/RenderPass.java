@@ -19,6 +19,7 @@ import com.github.worldsender.mcanm.client.model.mcanmmodel.animation.IAnimation
 public class RenderPass implements IRenderPass {
 	private IRenderPassInformation userInfo;
 	private Tessellator tesselator;
+	private IRender render;
 
 	public RenderPass(IRenderPassInformation info, Tessellator tesselator,
 			IRender renderer) {
@@ -47,6 +48,11 @@ public class RenderPass implements IRenderPass {
 	}
 
 	@Override
+	public void bindTexture(ResourceLocation resLoc) {
+		this.render.bindTexture(resLoc);
+	}
+
+	@Override
 	public Tessellator getTesselator() {
 		return Objects.requireNonNull(tesselator);
 	}
@@ -58,6 +64,11 @@ public class RenderPass implements IRenderPass {
 
 	public RenderPass setRenderPassInformation(IRenderPassInformation info) {
 		this.userInfo = Objects.requireNonNull(info);
+		return this;
+	}
+
+	public RenderPass setRender(IRender render) {
+		this.render = Objects.requireNonNull(render);
 		return this;
 	}
 }

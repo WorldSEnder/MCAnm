@@ -2,14 +2,12 @@ package com.github.worldsender.mcanm.client.model.mcanmmodel.data.parts;
 
 import java.util.Arrays;
 
-import net.minecraft.client.Minecraft;
 import net.minecraft.util.ResourceLocation;
 
 import com.github.worldsender.mcanm.client.model.mcanmmodel.IRenderPass;
 import com.github.worldsender.mcanm.client.model.mcanmmodel.data.RawDataV1;
 
 public class Part {
-	protected static Minecraft mc = Minecraft.getMinecraft();
 
 	private final Point[] pointsList;
 	private final ResourceLocation resLocation;
@@ -31,7 +29,7 @@ public class Part {
 	public void render(IRenderPass currentPass) {
 		ResourceLocation texture = currentPass
 				.getActualResourceLocation(resLocation);
-		Minecraft.getMinecraft().renderEngine.bindTexture(texture);
+		currentPass.bindTexture(texture);
 		for (short idx : this.indices) {
 			this.pointsList[idx & 0xFFFF].render(currentPass.getTesselator()
 					.getWorldRenderer());

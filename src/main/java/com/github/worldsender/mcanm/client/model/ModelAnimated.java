@@ -1,5 +1,7 @@
 package com.github.worldsender.mcanm.client.model;
 
+import java.util.Objects;
+
 import net.minecraft.client.model.ModelBase;
 import net.minecraft.client.model.ModelRenderer;
 import net.minecraft.client.model.TextureOffset;
@@ -64,8 +66,9 @@ public class ModelAnimated extends ModelBase {
 				.preRenderCallback(entity, userPassCache, getPartialTick(),
 						uLimbSwing, interpolatedSwing, uRotfloat, headYaw,
 						interpolatedPitch);
-		passCache.setRenderPassInformation(currentPass).setTesellator(
-				Tessellator.getInstance());
+		passCache.setRenderPassInformation(currentPass)
+				.setTesellator(Tessellator.getInstance())
+				.setRender(currentRender);
 
 		getModel().render(passCache);
 
@@ -100,5 +103,18 @@ public class ModelAnimated extends ModelBase {
 	 */
 	protected IRender getRender() {
 		return this.renderer;
+	}
+	/**
+	 * Sets the given {@link IRender} as the current Render. Users should not
+	 * use this, only if they are the coding the render.<br>
+	 * The Render however should always call this at least once before rendering
+	 * the model, as the render is used to bind the textures of the model.
+	 *
+	 * @param newRender
+	 * @return this, to make this method builder-pattern-like
+	 */
+	public ModelAnimated setRender(IRender newRender) {
+		this.renderer = Objects.requireNonNull(newRender);
+		return this;
 	}
 }

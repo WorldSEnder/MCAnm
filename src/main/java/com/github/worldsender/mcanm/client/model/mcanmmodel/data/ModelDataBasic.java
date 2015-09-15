@@ -137,7 +137,7 @@ public class ModelDataBasic implements IModelData {
 			}
 			tess.draw();
 			// glEnable(GL_TEXTURE_2D);
-			GlStateManager.func_179090_x();
+			GlStateManager.func_179098_w();
 		}
 	}
 }

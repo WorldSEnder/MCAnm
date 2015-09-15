@@ -24,7 +24,7 @@ public class RenderAnimatedModel extends RenderLiving implements IRender {
 	public RenderAnimatedModel(RenderManager manager, ModelAnimated model,
 			IAnimator animator, float shadowSize) {
 		super(manager, model, shadowSize);
-		this.model = model;
+		this.model = model.setRender(this);
 		this.animator = animator;
 	}
 
@@ -36,7 +36,7 @@ public class RenderAnimatedModel extends RenderLiving implements IRender {
 
 	@Override
 	protected ResourceLocation getEntityTexture(Entity entity) {
-		// Ignored anyway, so we load any resource location
+		// Ignored anyway, there is not only one texture, probably
 		return ignored;
 	}
 

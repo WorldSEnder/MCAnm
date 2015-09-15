@@ -85,7 +85,8 @@ public class RenderPassInformation implements IRenderPassInformation {
 	 */
 	public void reset() {
 		this.setFrame(0F).setAnimation(Optional.of(BIND_POSE))
-				.setPartPredicate(Optional.of(RENDER_ALL));
+				.setPartPredicate(Optional.of(RENDER_ALL))
+				.setTextureTransform(Optional.of(IDENTITY));
 	}
 	/**
 	 * Returns the current Frame in the animation. This is not inside the
