@@ -101,7 +101,8 @@ public class Bone {
 	 */
 	public void setTransformation(IAnimation anim, float frame) {
 		BoneTransformation btr = anim
-				.getCurrentTransformation(this.name, frame);
+				.getCurrentTransformation(this.name, frame).or(
+						BoneTransformation.identity);
 		transformed.set(btr.getMatrix());
 
 		transformedGlobalToGlobal.setIdentity();

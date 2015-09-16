@@ -13,6 +13,7 @@ import net.minecraft.util.ResourceLocation;
 import com.github.worldsender.mcanm.client.exceptions.ModelFormatException;
 import com.github.worldsender.mcanm.client.model.mcanmmodel.Utils;
 import com.github.worldsender.mcanm.client.model.mcanmmodel.animation.IAnimation;
+import com.google.common.base.Optional;
 
 public class StoredAnimation implements IAnimation {
 	public static final long MAGIC_NUMBER = 0x4d48464320414e4dL;
@@ -132,11 +133,13 @@ public class StoredAnimation implements IAnimation {
 	}
 
 	@Override
-	public BoneTransformation getCurrentTransformation(String bone, float frame) {
+	public Optional<BoneTransformation> getCurrentTransformation(String bone,
+			float frame) {
 		AnimatedTransform anim = this.animations.get(bone);
-		if (anim == null)
-			return BoneTransformation.identity;
-		return anim.getTransformAt(frame);
+		if (anim == null) {
+			Optional.absent();
+		}
+		return Optional.of(anim.getTransformAt(frame));
 	}
 	/**
 	 * @return the origin

@@ -46,15 +46,14 @@ public class RenderPassInformation implements IRenderPassInformation {
 		}
 	};
 	/**
-	 * This is a default animation that always returns the binding pose for each
-	 * bone it is asked for. Actually it returns <code>null</code> which is to
-	 * be interpreted as the binding-pose.
+	 * This is a default animation that never returns a pose for any bone it is
+	 * asked for.
 	 */
 	public static final IAnimation BIND_POSE = new IAnimation() {
 		@Override
-		public BoneTransformation getCurrentTransformation(String bone,
-				float frame) {
-			return BoneTransformation.identity;
+		public Optional<BoneTransformation> getCurrentTransformation(
+				String bone, float frame) {
+			return Optional.absent();
 		};
 	};
 	/**

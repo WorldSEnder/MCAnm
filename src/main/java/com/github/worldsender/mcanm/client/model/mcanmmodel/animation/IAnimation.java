@@ -10,6 +10,7 @@ import net.minecraft.util.Vec3i;
 import net.minecraftforge.client.model.ITransformation;
 
 import com.github.worldsender.mcanm.client.model.mcanmmodel.Utils;
+import com.google.common.base.Optional;
 /**
  * An animation to transform the model.
  *
@@ -25,11 +26,11 @@ public interface IAnimation {
 	 *
 	 */
 	public static class BoneTransformation implements ITransformation {
+		public static final BoneTransformation identity = new BoneTransformation();
+
 		private static Vector3f identityScale() {
 			return new Vector3f(1.0F, 1.0F, 1.0F);
 		}
-
-		public static final BoneTransformation identity = new BoneTransformation();
 
 		private Matrix4f matrix;
 
@@ -71,19 +72,21 @@ public interface IAnimation {
 			return vertexIndex;
 		}
 	}
-	/**
+
+/**
 	 * Returns the bone's current {@link BoneTransformation} (identified by
 	 * name). <br>
-	 * If the requested bone is not known to the animation it may throw or
-	 * simply return {@link BoneTransformation#identity}. It may never return
-	 * <code>null</code>.
+	 * If the requested bone is not known to the animation it should return
+	 * an {@link Optional#absent()). This means (for the model) that the bone
+	 * is placed at it's identity position and not transformed at all, but
+	 * it also gives other animations the chance to supply their Transformation
 	 *
 	 * @param bone
 	 *            the name of the bone the matrix is requested
 	 * @param frame
 	 *            the current frame in the animation
-	 * @return the actual, present state of the requested bone, never
-	 *         <code>null</code>
+	 * @return the present position of the bone.
 	 */
-	public BoneTransformation getCurrentTransformation(String bone, float frame);
+	public Optional<BoneTransformation> getCurrentTransformation(String bone,
+			float frame);
 }
