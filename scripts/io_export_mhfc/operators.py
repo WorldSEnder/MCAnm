@@ -2,10 +2,11 @@ import bpy
 import bmesh
 
 from .export import export_mesh, export_action, MeshExportOptions
+from ._import import import_tabula
 from .utils import Reporter, extract_safe
 from bpy.props import BoolProperty, CollectionProperty, EnumProperty, IntProperty,\
 		IntVectorProperty, PointerProperty, StringProperty
-from bpy_extras.io_utils import ExportHelper
+from bpy_extras.io_utils import ImportHelper
 from bpy.types import Operator
 from contextlib import ExitStack
 
@@ -241,6 +242,38 @@ class ArmAnimationExporter(Operator):
 		self.offset = props.offset
 		context.window_manager.fileselect_add(self)
 		return {'RUNNING_MODAL'}
+
+class TabulaImporter(Operator, ImportHelper):
+	bl_idname = "tabula.load"
+	bl_label = "Import Tabula model (.tbl)"
+
+	filename_ext = ".tbl"
+	filter_glob = StringProperty(default="*.tbl", options={'HIDDEN'})
+	filepath = StringProperty(name="File Path", default="")
+
+	only_poses = EnumProperty(items=[("poses", "Animations", "Import the contained animations"),
+									 ("model", "Model", "Import the model from the file")],
+							  name="Import strategy",
+							  default={"poses", "model"},
+							  options={'ENUM_FLAG'})
+	scene = StringProperty(name="Scene to import into", default="", options={'HIDDEN'})
+
+	def draw(self, context):
+		layout = self.layout
+		layout.prop(self, 'only_poses')
+		layout.prop_search(self, 'scene', bpy.data, 'scenes', icon="SCENE")
+
+	def execute(self, context):
+		with Reporter() as reporter:
+			sce = extract_safe(bpy.data.scenes, self.scene, 'Scene {item} not found')
+			import_tabula(filepath, sce, only_poses)
+			reporter.info("Successfully imported the Tabula model from {path}", path=self.filepath)
+		reporter.print_report(self)
+		return {'FINISHED'} if reporter.was_success() else {'CANCELLED'}
+
+	def invoke(self, context, event):
+		self.scene = context.scene.name
+		return context.window_manager.fileselect_add(self)
 
 class ArmatureUpdater(Operator):
 	bl_idname = "object.mc_update_arms"

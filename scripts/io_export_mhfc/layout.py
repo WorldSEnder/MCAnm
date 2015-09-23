@@ -229,11 +229,11 @@ class AnimationExportPanel(Panel):
 		else:
 			row.enabled = False
 
-def menu_func(self, context):
+def import_func(self, context):
 	self.layout.operator(ObjectExporter.bl_idname, text="Export Minecraft model (.mcmd)")
 
 def register():
-	bpy.types.INFO_MT_file_export.append(menu_func)
+	bpy.types.INFO_MT_file_export.append(import_func)
 
 def unregister():
-	bpy.types.INFO_MT_file_export.remove(menu_func)
+	bpy.types.INFO_MT_file_export.remove(import_func)

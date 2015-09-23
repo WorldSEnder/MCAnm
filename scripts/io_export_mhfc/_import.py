@@ -9,7 +9,7 @@ from mathutils import Matrix, Vector, Quaternion, Euler
 from math import radians
 from contextlib import ExitStack
 
-def import_tabula4(model):
+def import_tabula4(model, animations_only):
 	tex_width, tex_height = model['textureWidth'], model['textureHeight']
 	with ExitStack() as stack:
 		bm = bmesh.new()
@@ -59,21 +59,17 @@ def import_tabula4(model):
 		for animation in model['anims']:
 			make_animation(animation, model_transform)
 
-
-
-
-
 import_fns = {
 	4: import_tabula4
 }
 
-def import_tabula(filepath, scene):
+def import_tabula(filepath, scene, animations_only):
 	with ZipFile(filepath, 'b') as tabula:
 		modelstr = tabula.read('model.json').decode()
 	model = json.loads(modelstr)
 	# Successfully loaded the model json, now convert it
 	version = model['projVersion']
 	try:
-		import_fns[version](model)
+		import_fns[version](model, animations_only)
 	except (KeyError, NotImplementedError) as e:
 		Reporter.fatal("tabula version {v} is not (yet) supported".format(version))

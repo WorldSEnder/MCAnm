@@ -201,16 +201,28 @@ class Reporter(object):
 	def was_success(self):
 		return self._error[1] is None
 
-def extract_safe(collection, item, mess_on_fail, *args, on_fail = Reporter.error, **wargs):
+def extract_safe(collection, key, mess_on_fail, *args, on_fail = Reporter.error, **wargs):
 	"""Ensures that the item is in the collection by reporting an error with
 	the specified message if not.
 	Calls on_fail when it fails to extract the element with the formatted message and
 	the keyword argument 'cause' set to the KeyError that caused it to fail
+
+	@param collection: the collection to search in
+	@param key: the key to search for
+	@param mess_on_fail: a message that will get formatted and handed to on_fail
+	@param on_fail: called when the key is not found in the collection as on_fail(formatted_message, cause=e)
+	where e is the KeyError thrown by the collection. The result of this function is returned instead
+	@param args: formatting arguments
+	@param wargs: additional formatting keyword-arguments. Can not be 'coll' or 'item', those will be
+	provided by default as the collection and the searched key
+
+	@returns the item in the collection for the specified key or the result of on_fail if a KeyError is
+	raised by collection[key]
 	"""
 	try:
-		return collection[item]
+		return collection[key]
 	except KeyError as e:
-		on_fail(mess_on_fail.format(*args, coll=collection, item=item, **wargs), cause = e)
+		return on_fail(mess_on_fail.format(*args, coll=collection, item=key, **wargs), cause = e)
 
 def write_string(string, file_h):
 	"""Writes a String to a file
