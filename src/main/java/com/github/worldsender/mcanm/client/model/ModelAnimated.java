@@ -57,8 +57,8 @@ public class ModelAnimated extends ModelBase {
 		GlStateManager.pushMatrix();
 
 		// Get our object into place
-		GlStateManager.scale(-size * 16, -size * 16, size * 16);
-		GlStateManager.translate(0, -13 / 8F, 0);
+		GlStateManager.scale(-1 * size * 16, -1 * size * 16, size * 16);
+		GlStateManager.translate(0, -1.5f - 1.5f * size, 0);
 
 		userPassCache.reset();
 		IRender currentRender = getRender();
