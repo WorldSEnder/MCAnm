@@ -9,6 +9,8 @@ import net.minecraft.util.EnumFacing;
 import net.minecraft.util.Vec3i;
 import net.minecraftforge.client.model.ITransformation;
 
+import org.apache.commons.lang3.tuple.Triple;
+
 import com.github.worldsender.mcanm.client.model.mcanmmodel.Utils;
 import com.google.common.base.Optional;
 /**
@@ -32,7 +34,9 @@ public interface IAnimation {
 			return new Vector3f(1.0F, 1.0F, 1.0F);
 		}
 
-		private Matrix4f matrix;
+		private final Matrix4f matrix;
+		private final Vector3f t, s;
+		private final Quat4f r;
 
 		public BoneTransformation() {
 			this(null, null, null);
@@ -50,6 +54,9 @@ public interface IAnimation {
 				translation = new Vector3f();
 			if (scale == null)
 				scale = identityScale();
+			this.t = translation;
+			this.r = quat;
+			this.s = scale;
 			this.matrix = Utils.fromRTS(quat, translation, scale);
 		}
 
@@ -64,6 +71,10 @@ public interface IAnimation {
 			Vector4f vec = new Vector4f(dir.getX(), dir.getY(), dir.getZ(), 0);
 			matrix.transform(vec);
 			return EnumFacing.func_176737_a(vec.x, vec.y, vec.z);
+		}
+
+		public Triple<Vector3f, Quat4f, Vector3f> asTRS() {
+			return Triple.of(t, r, s);
 		}
 
 		@Override

@@ -69,7 +69,7 @@ public class BSplineInterpolation extends Spline {
 	 *            the frame to evaluate
 	 * @return
 	 */
-	private static double findZero(float x1, float x2, float x3, float x4,
+	public static double findZero(float x1, float x2, float x3, float x4,
 			float x) {
 		double result, b, c, p;
 
@@ -174,7 +174,7 @@ public class BSplineInterpolation extends Spline {
 	 *            t on the curve in [0..1]
 	 * @return the value on the curve
 	 */
-	private static float calcValue(float y1, float y2, float y3, float y4,
+	public static float calcValue(float y1, float y2, float y3, float y4,
 			double t) {
 
 		float c1 = 3.0f * (y2 - y1);
