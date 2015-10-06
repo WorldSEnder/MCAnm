@@ -231,13 +231,13 @@ class ArmAnimationExporter(Operator):
 
 	def invoke(self, context, event):
 		if context.object.type != 'ARMATURE':
-			self.report({'ERROR'}, "Active object {obj} is not an armature", obj=context.object.name)
+			self.report({'ERROR'}, "Active object {obj} is not an armature".format(obj=context.object.name))
 			return {'CANCELLED'}
 		self.armature = context.object.data.name
 		try:
 			self.arm_action, props = ArmAnimationExporter.guess_action(context.object)
 		except ValueError as ex:
-			self.report({'ERROR'}, "Guessing action from active armature failed: {err}", err=ex.value)
+			self.report({'ERROR'}, "Guessing action from active armature failed: {err}".format(err=ex.value))
 			return {'CANCELLED'}
 		self.offset = props.offset
 		context.window_manager.fileselect_add(self)
@@ -290,8 +290,7 @@ class ArmatureUpdater(Operator):
 		for mod in obj.modifiers:
 			if mod.type != 'ARMATURE' or mod.object is None:
 				continue
-			item = armlist.add()
-			item.name = mod.object.name
+			armlist.add().name = mod.object.data.name
 		return {'FINISHED'}
 
 class AddRenderGroup(Operator):
