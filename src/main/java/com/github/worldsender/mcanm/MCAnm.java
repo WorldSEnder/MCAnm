@@ -1,8 +1,5 @@
 package com.github.worldsender.mcanm;
 
-import net.minecraftforge.common.config.Configuration;
-import net.minecraftforge.common.config.Property;
-
 import org.apache.logging.log4j.Logger;
 
 import com.github.worldsender.mcanm.test.CubeEntity;
@@ -15,6 +12,8 @@ import cpw.mods.fml.common.event.FMLInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.registry.EntityRegistry;
+import net.minecraftforge.common.config.Configuration;
+import net.minecraftforge.common.config.Property;
 
 @Mod(
 		modid = Reference.core_modid,
@@ -32,7 +31,8 @@ public class MCAnm {
 
 	public static Logger logger;
 
-	@SidedProxy(modId = Reference.core_modid,
+	@SidedProxy(
+			modId = Reference.core_modid,
 			clientSide = "com.github.worldsender.mcanm.client.ClientProxy",
 			serverSide = "com.github.worldsender.mcanm.server.ServerProxy")
 	public static Proxy proxy;
@@ -45,9 +45,8 @@ public class MCAnm {
 		logger = pre.getModLog();
 		config = new Configuration(pre.getSuggestedConfigurationFile());
 		config.load();
-		enableReload = config.get(Configuration.CATEGORY_GENERAL,
-				Reference.config_reload_enabled, true).setLanguageKey(
-				Reference.gui_config_reload_enabled);
+		enableReload = config.get(Configuration.CATEGORY_GENERAL, Reference.config_reload_enabled, true)
+				.setLanguageKey(Reference.gui_config_reload_enabled);
 		config.save();
 		proxy.register();
 		FMLCommonHandler.instance().bus().register(this);
@@ -59,8 +58,7 @@ public class MCAnm {
 		if (!isDebug)
 			return;
 		int id = 0;
-		EntityRegistry.registerModEntity(CubeEntity.class, "Cube", id, this,
-				80, 1, true);
+		EntityRegistry.registerModEntity(CubeEntity.class, "Cube", id, this, 80, 1, true);
 	}
 
 	@SubscribeEvent
