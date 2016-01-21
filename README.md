@@ -18,7 +18,7 @@ Any violators shall be pursuit with demands of law.
 
 This project makes heavy use of the third party program [Blender](http://www.blender.org) during the modeling and animation phase although it is not bound to that. Blender is a "free and open source 3D animation suite" without any fees or costs. You can get the latest version of the softare [here](http://www.blender.org/download/).
 
-Depending on your use of this mod you might have to install several plugins that are part of the workflow. You can get those on gist.github.com/WorldSEnder, more precisely [here](https://gist.github.com/WorldSEnder/706b866da82b12ec64e8) and [here](https://gist.github.com/WorldSEnder/fc47f56f03415fc61d0c).
+Depending on your use of this mod you might have to install several plugins that are part of the workflow. You can get those with this repository [at the download section](https://github.com/WorldSEnder/MCAnm/releases).
 
 ### How to use
 
