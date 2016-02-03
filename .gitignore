@@ -10,6 +10,7 @@
 !build.gradle
 !build.properties
 !.gitignore
+!.travis.yml
 
 *.class
 __pycache__/
