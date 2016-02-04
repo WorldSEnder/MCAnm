@@ -18,6 +18,7 @@ buildscript {
 }
 
 apply plugin: 'forge'
+apply plugin: 'maven'
 apply from: 'build.properties'
 
 sourceCompatibility = 1.8
@@ -62,10 +63,16 @@ processResources
     }
 }
 
+repositories {
+    mavenLocal()
+}
+
 artifacts {
+    archives jar
     archives deobfJar
     archives sourceJar
-    archives jar
 }
+
+install.dependsOn build
 
 dependencies {}
