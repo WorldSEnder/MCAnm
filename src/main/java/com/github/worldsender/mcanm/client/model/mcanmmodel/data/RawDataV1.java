@@ -28,8 +28,7 @@ public class RawDataV1 extends RawData {
 		/** All available {@link TesselationPoint}s in this part of the model */
 		public TesselationPoint[] points;
 		/**
-		 * The array to store the order of the {@link TesselationPoint}s. To be
-		 * interpreted as unsigned.
+		 * The array to store the order of the {@link TesselationPoint}s. To be interpreted as unsigned.
 		 */
 		public short[] indices;
 		/** The material this part of the model uses */
@@ -54,6 +53,7 @@ public class RawDataV1 extends RawData {
 		 */
 		public int nbrBones;
 	}
+
 	// Header as is is automatically part of the model
 	// public Header header;
 	/**

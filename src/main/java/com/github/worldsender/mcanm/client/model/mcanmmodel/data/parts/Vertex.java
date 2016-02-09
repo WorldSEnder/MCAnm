@@ -22,15 +22,16 @@ public class Vertex {
 		this.norm = new Vector3f(norm);
 		this.uv = new Point2f(uv);
 	}
+
 	/**
-	 * Uses the {@link Tessellator} to draw the model. Take care that the
-	 * Tessellator is already drawing.
+	 * Uses the {@link Tessellator} to draw the model. Take care that the Tessellator is already drawing.
 	 */
 	public void render(WorldRenderer renderer) {
 		renderer.func_178980_d(norm.x, norm.z, -norm.y);
 		renderer.setTextureUV(uv.x, uv.y);
 		renderer.addVertex(pos.x / pos.w, pos.z / pos.w, -pos.y / pos.w);
 	}
+
 	/**
 	 * Offsets this Vertex by the {@link Vector4f} given.
 	 *
@@ -40,10 +41,10 @@ public class Vertex {
 	public void offset(Point4f point) {
 		this.pos.add(point);
 	}
+
 	/**
-	 * Adds the normal to this Vertex basically interpolating between the
-	 * current normal and the given one (by their scale). No normalization is
-	 * done as this is taken care of by OpenGL during rendering.
+	 * Adds the normal to this Vertex basically interpolating between the current normal and the given one (by their
+	 * scale). No normalization is done as this is taken care of by OpenGL during rendering.
 	 *
 	 * @param normal
 	 *            the normal to add
@@ -51,6 +52,7 @@ public class Vertex {
 	public void addNormal(Vector3f normal) {
 		this.norm.add(normal);
 	}
+
 	/**
 	 * Sets the UV texture coordinates for this vertex
 	 *
@@ -60,21 +62,25 @@ public class Vertex {
 	public void setUV(Tuple2f uv) {
 		this.uv.set(uv);
 	}
+
 	public void copyUV(Vertex src) {
 		this.uv.set(src.uv);
 	}
+
 	/**
 	 * Stores this vertex's uv coordinates in the target.
 	 */
 	public void getUV(Tuple2f trgt) {
 		trgt.set(this.uv);
 	}
+
 	/**
 	 * Stores this vertex's normal in the target.
 	 */
 	public void getNormal(Tuple3f trgt) {
 		trgt.set(this.norm);
 	}
+
 	/**
 	 * Stores this vertex's position in the target.
 	 */

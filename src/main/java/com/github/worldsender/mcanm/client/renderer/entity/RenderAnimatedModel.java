@@ -21,16 +21,14 @@ public class RenderAnimatedModel extends RenderLiving implements IRender {
 	protected ModelAnimated model;
 	private IAnimator animator;
 
-	public RenderAnimatedModel(RenderManager manager, ModelAnimated model,
-			IAnimator animator, float shadowSize) {
+	public RenderAnimatedModel(RenderManager manager, ModelAnimated model, IAnimator animator, float shadowSize) {
 		super(manager, model, shadowSize);
 		this.model = model.setRender(this);
 		this.animator = animator;
 	}
 
 	@Override
-	public void doRender(EntityLiving entity, double x, double y, double z,
-			float yaw, float partialTicks) {
+	public void doRender(EntityLiving entity, double x, double y, double z, float yaw, float partialTicks) {
 		super.doRender(entity, x, y, z, yaw, partialTicks);
 	}
 
@@ -44,10 +42,10 @@ public class RenderAnimatedModel extends RenderLiving implements IRender {
 	protected void preRenderCallback(EntityLivingBase entity, float partialRick) {
 		this.model.setPartialTick(partialRick);
 	}
+
 	/**
-	 * Convenience alternative to the constructor. A new {@link ModelAnimated}
-	 * is instanciated from the {@link ResourceLocation} given (using the normal
-	 * constructor).
+	 * Convenience alternative to the constructor. A new {@link ModelAnimated} is instanciated from the
+	 * {@link ResourceLocation} given (using the normal constructor).
 	 *
 	 * @param animator
 	 *            the animator for the entity
@@ -58,8 +56,7 @@ public class RenderAnimatedModel extends RenderLiving implements IRender {
 	 * @return the constructed {@link RenderAnimatedModel}
 	 * @see IAnimator
 	 */
-	public static RenderAnimatedModel fromResLocation(IAnimator animator,
-			ResourceLocation resLoc, float shadowSize) {
+	public static RenderAnimatedModel fromResLocation(IAnimator animator, ResourceLocation resLoc, float shadowSize) {
 		ModelMCMD rawmodel = ModelLoader.loadFrom(resLoc);
 		RenderManager manager = Minecraft.getMinecraft().getRenderManager();
 		ModelAnimated mcmodel = new ModelAnimated(rawmodel);

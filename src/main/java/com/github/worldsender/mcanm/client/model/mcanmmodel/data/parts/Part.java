@@ -27,14 +27,13 @@ public class Part {
 	}
 
 	public void render(IRenderPass currentPass) {
-		ResourceLocation texture = currentPass
-				.getActualResourceLocation(resLocation);
+		ResourceLocation texture = currentPass.getActualResourceLocation(resLocation);
 		currentPass.bindTexture(texture);
 		for (short idx : this.indices) {
-			this.pointsList[idx & 0xFFFF].render(currentPass.getTesselator()
-					.getWorldRenderer());
+			this.pointsList[idx & 0xFFFF].render(currentPass.getTesselator().getWorldRenderer());
 		}
 	}
+
 	public String getName() {
 		return this.name;
 	}

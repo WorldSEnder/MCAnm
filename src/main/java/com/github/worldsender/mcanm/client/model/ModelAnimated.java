@@ -14,8 +14,8 @@ import com.github.worldsender.mcanm.client.model.util.RenderPass;
 import com.github.worldsender.mcanm.client.model.util.RenderPassInformation;
 
 /**
- * A general purpose model that should fulfill most of your needs. It is
- * possible to use an {@link IAnimator} to determine the rendered
+ * A general purpose model that should fulfill most of your needs. It is possible to use an {@link IAnimator} to
+ * determine the rendered
  *
  * @author WorldSEnder
  *
@@ -47,13 +47,19 @@ public class ModelAnimated extends ModelBase {
 		ModelRenderer argggghhhh = new ModelRenderer(this, 0, 0);
 		argggghhhh.addBox(0, 0, 0, 1, 1, 1);
 	}
+
 	/**
 	 * Renders the underlying model.
 	 */
 	@Override
-	public void render(Entity entity, float uLimbSwing,
-			float interpolatedSwing, float uRotfloat, float headYaw,
-			float interpolatedPitch, float size) {
+	public void render(
+			Entity entity,
+			float uLimbSwing,
+			float interpolatedSwing,
+			float uRotfloat,
+			float headYaw,
+			float interpolatedPitch,
+			float size) {
 		GlStateManager.pushMatrix();
 
 		// Get our object into place
@@ -62,12 +68,16 @@ public class ModelAnimated extends ModelBase {
 
 		userPassCache.reset();
 		IRender currentRender = getRender();
-		IRenderPassInformation currentPass = currentRender.getAnimator()
-				.preRenderCallback(entity, userPassCache, getPartialTick(),
-						uLimbSwing, interpolatedSwing, uRotfloat, headYaw,
-						interpolatedPitch);
-		passCache.setRenderPassInformation(currentPass)
-				.setTesellator(Tessellator.getInstance())
+		IRenderPassInformation currentPass = currentRender.getAnimator().preRenderCallback(
+				entity,
+				userPassCache,
+				getPartialTick(),
+				uLimbSwing,
+				interpolatedSwing,
+				uRotfloat,
+				headYaw,
+				interpolatedPitch);
+		passCache.setRenderPassInformation(currentPass).setTesellator(Tessellator.getInstance())
 				.setRender(currentRender);
 
 		getModel().render(passCache);
@@ -89,26 +99,29 @@ public class ModelAnimated extends ModelBase {
 		if (checkValidPartial(newPartialTick))
 			this.partialTick = newPartialTick;
 	}
+
 	/**
-	 * The current model is accessed via this getter. If a subclass chooses to
-	 * override this, the returned model will be rendered.
+	 * The current model is accessed via this getter. If a subclass chooses to override this, the returned model will be
+	 * rendered.
 	 *
 	 * @return
 	 */
 	protected ModelMCMD getModel() {
 		return this.model;
 	}
+
 	/**
 	 * Returns the currently used renderer. Here to be overridden by subclasses
 	 */
 	protected IRender getRender() {
 		return this.renderer;
 	}
+
 	/**
-	 * Sets the given {@link IRender} as the current Render. Users should not
-	 * use this, only if they are the coding the render.<br>
-	 * The Render however should always call this at least once before rendering
-	 * the model, as the render is used to bind the textures of the model.
+	 * Sets the given {@link IRender} as the current Render. Users should not use this, only if they are the coding the
+	 * render.<br>
+	 * The Render however should always call this at least once before rendering the model, as the render is used to
+	 * bind the textures of the model.
 	 *
 	 * @param newRender
 	 * @return this, to make this method builder-pattern-like

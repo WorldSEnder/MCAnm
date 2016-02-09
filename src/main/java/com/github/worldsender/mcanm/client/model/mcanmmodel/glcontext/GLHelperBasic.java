@@ -10,7 +10,7 @@ import com.google.common.base.Optional;
 public class GLHelperBasic extends GLHelper {
 	@Override
 	public Optional<IModelData> preBakeV1(RawDataV1 datav1, VertexFormat format) {
-		return Optional.<IModelData> of(new ModelDataBasic(datav1));
+		return Optional.<IModelData>of(new ModelDataBasic(datav1));
 	}
 
 }

@@ -9,6 +9,7 @@ public interface IRender {
 	 * @return
 	 */
 	IAnimator getAnimator();
+
 	/**
 	 * Binds a texture
 	 */

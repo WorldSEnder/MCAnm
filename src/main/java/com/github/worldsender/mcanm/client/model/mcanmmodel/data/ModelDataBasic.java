@@ -22,8 +22,12 @@ public class ModelDataBasic implements IModelData {
 
 	private final Part[] parts; // May have Random order
 	private final Bone[] bones; // Breadth-first
-	private static int handleBone(RawDataV1.Bone bones[], int index,
-			List<List<Integer>> layers, List<Integer> handled) {
+
+	private static int handleBone(
+			RawDataV1.Bone bones[],
+			int index,
+			List<List<Integer>> layers,
+			List<Integer> handled) {
 		if (index == 0xFF)
 			return -1;
 		// Determine parent
@@ -43,9 +47,9 @@ public class ModelDataBasic implements IModelData {
 		layer.add(index);
 		return layerNbr;
 	}
+
 	/**
-	 * Orders the bones in a breadth first order. This trusts in the bones
-	 * having a tree-like structure.
+	 * Orders the bones in a breadth first order. This trusts in the bones having a tree-like structure.
 	 *
 	 * @param src
 	 *            the bone
@@ -89,11 +93,10 @@ public class ModelDataBasic implements IModelData {
 		this.bones = breadthFirst;
 		this.parts = parts;
 	}
+
 	/**
-	 * Sets up all bones for the following draw call. It is assumed that the
-	 * bones are present in a breadth-first order so that applying a
-	 * transformation to a bone can already access the transformed parent of
-	 * this bone
+	 * Sets up all bones for the following draw call. It is assumed that the bones are present in a breadth-first order
+	 * so that applying a transformation to a bone can already access the transformed parent of this bone
 	 *
 	 * @param anim
 	 *            the animation currently executed

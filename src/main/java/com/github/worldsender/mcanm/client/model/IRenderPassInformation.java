@@ -12,10 +12,9 @@ public interface IRenderPassInformation {
 	boolean shouldRenderPart(String part);
 
 	/**
-	 * Offers the {@link IRenderPassInformation} a possibility to transform the
-	 * {@link ResourceLocation} used to bind the texture of the model to any
-	 * other location. Useful if the texture is to be decided based on some
-	 * state of the entity.
+	 * Offers the {@link IRenderPassInformation} a possibility to transform the {@link ResourceLocation} used to bind
+	 * the texture of the model to any other location. Useful if the texture is to be decided based on some state of the
+	 * entity.
 	 *
 	 * @return
 	 */

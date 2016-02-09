@@ -21,8 +21,7 @@ public class RenderPass implements IRenderPass {
 	private Tessellator tesselator;
 	private IRender render;
 
-	public RenderPass(IRenderPassInformation info, Tessellator tesselator,
-			IRender renderer) {
+	public RenderPass(IRenderPassInformation info, Tessellator tesselator, IRender renderer) {
 		this.userInfo = Objects.requireNonNull(info);
 		this.tesselator = tesselator;
 	}

@@ -20,9 +20,7 @@ public class Bone {
 
 		protected ParentedBone(Matrix4f localToParent, String name, Bone parent) {
 			super(localToParent, name);
-			this.parent = Objects
-					.requireNonNull(parent, String.format(
-							"Parent of bone %s can't be null", this.name));
+			this.parent = Objects.requireNonNull(parent, String.format("Parent of bone %s can't be null", this.name));
 		}
 
 		@Override
@@ -54,6 +52,7 @@ public class Bone {
 		this.parentToLocal.invert();
 		this.name = name;
 	}
+
 	/**
 	 * Debug!
 	 *
@@ -69,6 +68,7 @@ public class Bone {
 		localToGlobal.transform(head);
 		return head;
 	}
+
 	/**
 	 * Debug!
 	 *
@@ -83,14 +83,16 @@ public class Bone {
 		localToGlobal.transform(tail);
 		return tail;
 	}
+
 	public void resetTransform() {
 		transformed.set(identity);
 		transformedGlobalToGlobal.set(identity);
 		transformedGlobalToGlobalIT.set(identity);
 	}
+
 	/**
-	 * Sets up this bone for the following calls to {@link #getLocalToWorld()},
-	 * {@link #getTransformGlobal()} and {@link #getTransformITGlobal()}.
+	 * Sets up this bone for the following calls to {@link #getLocalToWorld()}, {@link #getTransformGlobal()} and
+	 * {@link #getTransformITGlobal()}.
 	 *
 	 * @param anim
 	 *            the animation being executed
@@ -100,9 +102,7 @@ public class Bone {
 	 *            the subframe
 	 */
 	public void setTransformation(IAnimation anim, float frame) {
-		BoneTransformation btr = anim
-				.getCurrentTransformation(this.name, frame).or(
-						BoneTransformation.identity);
+		BoneTransformation btr = anim.getCurrentTransformation(this.name, frame).or(BoneTransformation.identity);
 		transformed.set(btr.getMatrix());
 
 		transformedGlobalToGlobal.setIdentity();
@@ -113,9 +113,9 @@ public class Bone {
 		transformedGlobalToGlobalIT.invert();
 		transformedGlobalToGlobalIT.transpose();
 	}
+
 	/**
-	 * Transforms the source matrix into local space and stores the resulting
-	 * matrix back in the source.<br>
+	 * Transforms the source matrix into local space and stores the resulting matrix back in the source.<br>
 	 *
 	 * @param src
 	 *            the matrix to transform
@@ -123,11 +123,11 @@ public class Bone {
 	protected void globalToLocal(Matrix4f src) {
 		src.mul(parentToLocal, src);
 	}
+
 	/**
-	 * Transforms the source matrix from local into global space and stores the
-	 * resulting matrix back in the source.<br>
-	 * This method is - contrary to {@link #globalToLocal(Matrix4f, Matrix4f)}
-	 * sensitive to this bone's current transformation.<br>
+	 * Transforms the source matrix from local into global space and stores the resulting matrix back in the source.<br>
+	 * This method is - contrary to {@link #globalToLocal(Matrix4f, Matrix4f)} sensitive to this bone's current
+	 * transformation.<br>
 	 *
 	 * @param src
 	 *            the matrix to transform
@@ -136,9 +136,9 @@ public class Bone {
 		src.mul(transformed, src);
 		src.mul(localToParent, src);
 	}
+
 	/**
-	 * Transforms the position given by the transformation currently acted out
-	 * by this bone.
+	 * Transforms the position given by the transformation currently acted out by this bone.
 	 *
 	 * @param position
 	 *            the position to transform
@@ -146,9 +146,9 @@ public class Bone {
 	public void transform(Point4f position) {
 		transformedGlobalToGlobal.transform(position);
 	}
+
 	/**
-	 * Transforms the normal given by the transformation currently acted out by
-	 * this bone.
+	 * Transforms the normal given by the transformation currently acted out by this bone.
 	 *
 	 * @param position
 	 *            the position to transform
@@ -156,10 +156,10 @@ public class Bone {
 	public void transform(Vector3f normal) {
 		transformedGlobalToGlobalIT.transform(normal);
 	}
+
 	/**
-	 * Returns a new bone from the data given. If the bone has a parent it is
-	 * fetched from allBones thus it is expected that allBones is breadth-first
-	 * (meaning that the parent is already handled).
+	 * Returns a new bone from the data given. If the bone has a parent it is fetched from allBones thus it is expected
+	 * that allBones is breadth-first (meaning that the parent is already handled).
 	 *
 	 * @param data
 	 *            the raw data
@@ -168,11 +168,9 @@ public class Bone {
 	 * @return the new bone
 	 */
 	public static Bone fromData(RawDataV1.Bone data, Bone[] allBones) {
-		Matrix4f localToParent = Utils
-				.fromRTS(data.rotation, data.offset, 1.0F);
+		Matrix4f localToParent = Utils.fromRTS(data.rotation, data.offset, 1.0F);
 		if (data.parent != (byte) 0xFF)
-			return new ParentedBone(localToParent, data.name,
-					allBones[data.parent & 0xFF]);
+			return new ParentedBone(localToParent, data.name, allBones[data.parent & 0xFF]);
 		return new Bone(localToParent, data.name);
 	}
 }

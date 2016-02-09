@@ -13,6 +13,7 @@ import org.apache.commons.lang3.tuple.Triple;
 
 import com.github.worldsender.mcanm.client.model.mcanmmodel.Utils;
 import com.google.common.base.Optional;
+
 /**
  * An animation to transform the model.
  *
@@ -21,8 +22,7 @@ import com.google.common.base.Optional;
  */
 public interface IAnimation {
 	/**
-	 * Describes a BoneTransformation, including rotation, translation and
-	 * scaling.
+	 * Describes a BoneTransformation, including rotation, translation and scaling.
 	 *
 	 * @author WorldSEnder
 	 *
@@ -46,8 +46,7 @@ public interface IAnimation {
 			this(translation, quat, identityScale());
 		}
 
-		public BoneTransformation(Vector3f translation, Quat4f quat,
-				Vector3f scale) {
+		public BoneTransformation(Vector3f translation, Quat4f quat, Vector3f scale) {
 			if (quat == null)
 				quat = new Quat4f();
 			if (translation == null)
@@ -84,13 +83,11 @@ public interface IAnimation {
 		}
 	}
 
-/**
-	 * Returns the bone's current {@link BoneTransformation} (identified by
-	 * name). <br>
-	 * If the requested bone is not known to the animation it should return
-	 * an {@link Optional#absent()). This means (for the model) that the bone
-	 * is placed at it's identity position and not transformed at all, but
-	 * it also gives other animations the chance to supply their Transformation
+	/**
+	 * Returns the bone's current {@link BoneTransformation} (identified by name). <br>
+	 * If the requested bone is not known to the animation it should return an {@link Optional#absent()). This means
+	 * (for the model) that the bone is placed at it's identity position and not transformed at all, but it also gives
+	 * other animations the chance to supply their Transformation
 	 *
 	 * @param bone
 	 *            the name of the bone the matrix is requested
@@ -98,6 +95,5 @@ public interface IAnimation {
 	 *            the current frame in the animation
 	 * @return the present position of the bone.
 	 */
-	public Optional<BoneTransformation> getCurrentTransformation(String bone,
-			float frame);
+	public Optional<BoneTransformation> getCurrentTransformation(String bone, float frame);
 }
