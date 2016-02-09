@@ -28,8 +28,6 @@ public class MCAnm {
 	@Mod.Instance(Reference.core_modid)
 	public static MCAnm instance;
 
-	public static Logger logger;
-
 	@SidedProxy(
 			modId = Reference.core_modid,
 			clientSide = "com.github.worldsender.mcanm.client.ClientProxy",
@@ -37,6 +35,7 @@ public class MCAnm {
 	public static Proxy proxy;
 
 	private MCAnmConfiguration config;
+	private Logger logger;
 
 	@Mod.EventHandler
 	public void preInit(FMLPreInitializationEvent pre) {
@@ -69,5 +68,13 @@ public class MCAnm {
 
 	public MCAnmConfiguration getConfiguration() {
 		return this.config;
+	}
+
+	public static Logger logger() {
+		return instance.getLogger();
+	}
+
+	public Logger getLogger() {
+		return this.logger;
 	}
 }

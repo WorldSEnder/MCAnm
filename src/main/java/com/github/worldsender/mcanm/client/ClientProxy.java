@@ -22,9 +22,9 @@ public class ClientProxy implements Proxy {
 			IReloadableResourceManager registry = (IReloadableResourceManager) resManager;
 			registry.registerReloadListener(AnimationLoader.instance);
 			registry.registerReloadListener(ModelLoader.instance);
-			MCAnm.logger.info("Registered Reload Managers.");
+			MCAnm.logger().info("Registered Reload Managers.");
 		} else {
-			MCAnm.logger
+			MCAnm.logger()
 					.warn("Couldn't register reload managers. Models will not be reloaded on switching resource pack");
 		}
 	}

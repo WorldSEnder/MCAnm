@@ -3,8 +3,6 @@ package com.github.worldsender.mcanm.client.model;
 import java.util.HashMap;
 import java.util.Map.Entry;
 
-import org.apache.logging.log4j.Logger;
-
 import com.github.worldsender.mcanm.MCAnm;
 import com.github.worldsender.mcanm.client.model.mcanmmodel.MCMDModelLoader;
 import com.github.worldsender.mcanm.client.model.mcanmmodel.ModelMCMD;
@@ -26,7 +24,6 @@ import net.minecraft.util.ResourceLocation;
  */
 public class ModelLoader implements IResourceManagerReloadListener {
 	public static final ModelLoader instance = new ModelLoader();
-	private static final Logger logger = MCAnm.logger;
 
 	/**
 	 * Loads a model from the {@link ResourceLocation}.
@@ -97,13 +94,13 @@ public class ModelLoader implements IResourceManagerReloadListener {
 	public ModelMCMD loadModelFrom(ResourceLocation resLocation) {
 		ModelMCMD model = this.cachedModels.get(resLocation);
 		if (model == null) {
-			logger.trace(String.format("[ModelLoader] Loading new model from %s", resLocation));
+			MCAnm.logger().trace(String.format("[ModelLoader] Loading new model from %s", resLocation));
 			// Not registered
 			model = MCMDModelLoader.instance.loadInstance(resLocation, this.currentManager, false);
 			boolean registered = this.registerModel(model);
 			assert registered == true;
 		} else {
-			logger.trace(String.format("[ModelLoader] Loading cached model from %s", resLocation));
+			MCAnm.logger().trace(String.format("[ModelLoader] Loading cached model from %s", resLocation));
 		}
 		return model;
 	}

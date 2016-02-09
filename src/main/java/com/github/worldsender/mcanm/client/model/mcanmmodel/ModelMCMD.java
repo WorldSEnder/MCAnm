@@ -2,13 +2,6 @@ package com.github.worldsender.mcanm.client.model.mcanmmodel;
 
 import java.util.UUID;
 
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.resources.IResourceManager;
-import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.client.model.IModelPart;
-import net.minecraftforge.client.model.IModelState;
-import net.minecraftforge.client.model.TRSRTransformation;
-
 import com.github.worldsender.mcanm.MCAnm;
 import com.github.worldsender.mcanm.client.exceptions.ModelFormatException;
 import com.github.worldsender.mcanm.client.model.ModelLoader;
@@ -16,6 +9,13 @@ import com.github.worldsender.mcanm.client.model.mcanmmodel.data.RawData;
 import com.github.worldsender.mcanm.client.model.mcanmmodel.glcontext.GLHelper;
 import com.github.worldsender.mcanm.client.model.mcanmmodel.loader.VersionizedModelLoader;
 import com.google.common.base.Optional;
+
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.resources.IResourceManager;
+import net.minecraft.util.ResourceLocation;
+import net.minecraftforge.client.model.IModelPart;
+import net.minecraftforge.client.model.IModelState;
+import net.minecraftforge.client.model.TRSRTransformation;
 
 /**
  * Represents a model that is more abstract than boxes. The format also offers animating the model through bones and a
@@ -50,7 +50,7 @@ public class ModelMCMD {
 		try {
 			return Optional.of(VersionizedModelLoader.loadVersionized(resource, resManager));
 		} catch (ModelFormatException mfe) {
-			MCAnm.logger.error(String.format("Error loading model from %s.", resource), mfe);
+			MCAnm.logger().error(String.format("Error loading model from %s.", resource), mfe);
 		}
 		return Optional.absent();
 	}
@@ -89,7 +89,7 @@ public class ModelMCMD {
 	public ModelMCMD(ResourceLocation resource, IResourceManager resManager) {
 		// This line could throw
 		this(loadDataChecked(resource, resManager));
-		MCAnm.logger.trace(String.format("[Model] Loading model from resource: %s", resource));
+		MCAnm.logger().trace(String.format("[Model] Loading model from resource: %s", resource));
 	}
 
 	/**

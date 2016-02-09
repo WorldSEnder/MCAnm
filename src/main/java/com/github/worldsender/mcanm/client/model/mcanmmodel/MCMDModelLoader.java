@@ -3,17 +3,17 @@ package com.github.worldsender.mcanm.client.model.mcanmmodel;
 import java.io.DataInputStream;
 import java.io.IOError;
 
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.resources.IResourceManager;
-import net.minecraft.client.resources.IResourceManagerReloadListener;
-import net.minecraft.util.ResourceLocation;
-
 import com.github.worldsender.mcanm.MCAnm;
 import com.github.worldsender.mcanm.client.exceptions.ModelFormatException;
 import com.github.worldsender.mcanm.client.model.ModelLoader;
 import com.github.worldsender.mcanm.client.model.mcanmmodel.data.RawData;
 import com.github.worldsender.mcanm.client.model.mcanmmodel.loader.VersionizedModelLoader;
 import com.google.common.base.Optional;
+
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.resources.IResourceManager;
+import net.minecraft.client.resources.IResourceManagerReloadListener;
+import net.minecraft.util.ResourceLocation;
 
 /**
  * This class can be used to load a model without registering it automatically in the {@link ModelLoader}. This can be
@@ -102,7 +102,7 @@ public class MCMDModelLoader implements IResourceManagerReloadListener {
 	 */
 	public ModelMCMD loadUnchecked(ResourceLocation resLocation, IResourceManager resManager)
 			throws ModelFormatException {
-		MCAnm.logger.trace(String.format("[Model] Attempting to load model from resource: %s", resLocation));
+		MCAnm.logger().trace(String.format("[Model] Attempting to load model from resource: %s", resLocation));
 		RawData loadedData = VersionizedModelLoader.loadVersionized(resLocation, resManager);
 		return new ModelMCMD(Optional.of(loadedData));
 	}
@@ -121,7 +121,7 @@ public class MCMDModelLoader implements IResourceManagerReloadListener {
 	 * @return the loaded model, never null
 	 */
 	public ModelMCMD loadFromStream(DataInputStream dis, String filename) throws ModelFormatException {
-		MCAnm.logger.trace(String.format("[Model] Attempting to load model from stream: %s", filename));
+		MCAnm.logger().trace(String.format("[Model] Attempting to load model from stream: %s", filename));
 		RawData loadedData = VersionizedModelLoader.loadVersionized(dis, filename);
 		ModelMCMD model = new ModelMCMD(Optional.of(loadedData));
 		model.preBake();

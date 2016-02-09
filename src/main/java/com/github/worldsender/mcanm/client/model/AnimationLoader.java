@@ -66,7 +66,7 @@ public class AnimationLoader implements IResourceManagerReloadListener {
 			registry.put(resLoc, newAnim);
 			return newAnim;
 		} catch (ModelFormatException mfe) {
-			MCAnm.logger.error(String.format("Error loading animation %s", resLoc), mfe);
+			MCAnm.logger().error(String.format("Error loading animation %s", resLoc), mfe);
 		}
 		return null;
 	}
