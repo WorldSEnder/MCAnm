@@ -13,7 +13,7 @@ buildscript {
         }
     }
     dependencies {
-        classpath 'net.minecraftforge.gradle:ForgeGradle:1.2-SNAPSHOT'
+        classpath 'net.minecraftforge.gradle:ForgeGradle:1.2.0.777'
     }
 }
 
@@ -49,12 +49,7 @@ processResources
 {
     from(sourceSets.main.resources.srcDirs) {
         include 'mcmod.info'
-
-        filter(ReplaceTokens, tokens:
-                [VERSION: project.version,
-                 MCVERSION: project.minecraft.version,
-                 MODID: project.archivesBaseName,
-                 MODNAME: project.longname])
+        expand project.properties
     }
 
     from(sourceSets.main.resources.srcDirs) {
