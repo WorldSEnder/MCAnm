@@ -102,7 +102,7 @@ public class Bone {
 	 *            the subframe
 	 */
 	public void setTransformation(IAnimation anim, float frame) {
-		BoneTransformation btr = anim.getCurrentTransformation(this.name, frame).or(BoneTransformation.identity);
+		BoneTransformation btr = anim.getCurrentTransformation(this.name, frame).orElse(BoneTransformation.identity);
 		transformed.set(btr.getMatrix());
 
 		transformedGlobalToGlobal.setIdentity();

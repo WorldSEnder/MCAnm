@@ -1,5 +1,7 @@
 package com.github.worldsender.mcanm.client.model.mcanmmodel.animation;
 
+import java.util.Optional;
+
 import javax.vecmath.Matrix4f;
 import javax.vecmath.Quat4f;
 import javax.vecmath.Vector3f;
@@ -7,7 +9,6 @@ import javax.vecmath.Vector3f;
 import org.apache.commons.lang3.tuple.Triple;
 
 import com.github.worldsender.mcanm.client.model.mcanmmodel.Utils;
-import com.google.common.base.Optional;
 
 /**
  * An animation to transform the model.

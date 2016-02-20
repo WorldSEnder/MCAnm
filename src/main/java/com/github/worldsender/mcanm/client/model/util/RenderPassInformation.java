@@ -1,13 +1,13 @@
 package com.github.worldsender.mcanm.client.model.util;
 
-import net.minecraft.util.ResourceLocation;
+import java.util.Optional;
+import java.util.function.Function;
+import java.util.function.Predicate;
 
 import com.github.worldsender.mcanm.client.model.IRenderPassInformation;
 import com.github.worldsender.mcanm.client.model.mcanmmodel.animation.IAnimation;
-import com.google.common.base.Function;
-import com.google.common.base.Functions;
-import com.google.common.base.Optional;
-import com.google.common.base.Predicate;
+
+import net.minecraft.util.ResourceLocation;
 
 /**
  * Used to simplify the pre-render callback process. This class is an aggregate of all needed information for one render
@@ -24,36 +24,26 @@ public class RenderPassInformation implements IRenderPassInformation {
 	 * A suitable {@link Predicate} to return in {@link #getPartPredicate(float)} to render all parts without exception.
 	 * Note that this will not test if the currently executed animation wants to display the part.
 	 */
-	public static final Predicate<String> RENDER_ALL = new Predicate<String>() {
-		@Override
-		public boolean apply(String input) {
-			return true;
-		}
-	};
+	public static final Predicate<String> RENDER_ALL = g -> true;
 	/**
 	 * A suitable {@link Predicate} to return in {@link #getPartPredicate(float)} to render no parts without exception.
 	 * Note that this will not test if the currently executed animation wants to display the part.
 	 */
-	public static final Predicate<String> RENDER_NONE = new Predicate<String>() {
-		@Override
-		public boolean apply(String input) {
-			return false;
-		}
-	};
+	public static final Predicate<String> RENDER_NONE = g -> false;
 	/**
 	 * This is a default animation that never returns a pose for any bone it is asked for.
 	 */
 	public static final IAnimation BIND_POSE = new IAnimation() {
 		@Override
 		public Optional<BoneTransformation> getCurrentTransformation(String bone, float frame) {
-			return Optional.absent();
+			return Optional.empty();
 		};
 	};
 	/**
 	 * This is the default texture rebinding, it just returns the given resource-location and as such does not change
 	 * the bound texture.
 	 */
-	public static final Function<ResourceLocation, ResourceLocation> IDENTITY = Functions.identity();
+	public static final Function<ResourceLocation, ResourceLocation> IDENTITY = Function.identity();
 
 	private float frame;
 	private IAnimation animation;
@@ -103,7 +93,7 @@ public class RenderPassInformation implements IRenderPassInformation {
 
 	@Override
 	public boolean shouldRenderPart(String part) {
-		return this.partPredicate.apply(part);
+		return this.partPredicate.test(part);
 	}
 
 	@Override
@@ -116,7 +106,7 @@ public class RenderPassInformation implements IRenderPassInformation {
 	 *            the animation to set, never null
 	 */
 	public RenderPassInformation setAnimation(Optional<IAnimation> animation) {
-		this.animation = animation.or(BIND_POSE);
+		this.animation = animation.orElse(BIND_POSE);
 		return this;
 	}
 
@@ -134,13 +124,13 @@ public class RenderPassInformation implements IRenderPassInformation {
 	 *            the partPredicate to set, never null
 	 */
 	public RenderPassInformation setPartPredicate(Optional<Predicate<String>> partPredicate) {
-		this.partPredicate = partPredicate.or(RENDER_ALL);
+		this.partPredicate = partPredicate.orElse(RENDER_ALL);
 		return this;
 	}
 
 	public RenderPassInformation setTextureTransform(
 			Optional<Function<ResourceLocation, ResourceLocation>> textureRemap) {
-		this.textureRemap = textureRemap.or(IDENTITY);
+		this.textureRemap = textureRemap.orElse(IDENTITY);
 		return this;
 	}
 }

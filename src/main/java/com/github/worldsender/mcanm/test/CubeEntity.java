@@ -1,10 +1,11 @@
 package com.github.worldsender.mcanm.test;
 
+import java.util.Optional;
+
 import com.github.worldsender.mcanm.client.model.mcanmmodel.animation.IAnimation;
 import com.github.worldsender.mcanm.client.model.util.AnimationLoader;
 import com.github.worldsender.mcanm.client.model.util.RenderPassInformation;
 import com.github.worldsender.mcanm.client.renderer.IAnimatedObject;
-import com.google.common.base.Optional;
 
 import net.minecraft.entity.passive.EntityPig;
 import net.minecraft.world.World;

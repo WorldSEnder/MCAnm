@@ -1,5 +1,6 @@
 package com.github.worldsender.mcanm.client.model.mcanmmodel;
 
+import java.util.Optional;
 import java.util.UUID;
 
 import com.github.worldsender.mcanm.MCAnm;
@@ -8,7 +9,6 @@ import com.github.worldsender.mcanm.client.model.mcanmmodel.data.RawData;
 import com.github.worldsender.mcanm.client.model.mcanmmodel.glcontext.GLHelper;
 import com.github.worldsender.mcanm.client.model.mcanmmodel.loader.VersionizedModelLoader;
 import com.github.worldsender.mcanm.client.model.util.ModelLoader;
-import com.google.common.base.Optional;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.IResourceManager;
@@ -44,7 +44,7 @@ public class ModelMCMD {
 		} catch (ModelFormatException mfe) {
 			MCAnm.logger().error(String.format("Error loading model from %s.", resource), mfe);
 		}
-		return Optional.absent();
+		return Optional.empty();
 	}
 
 	private GLHelper renderHelper;
@@ -107,7 +107,7 @@ public class ModelMCMD {
 			RawData data = VersionizedModelLoader.loadVersionized(this.reloadLocation.get(), newManager);
 			this.putData(Optional.of(data));
 		} catch (ModelFormatException mfe) {
-			this.putData(Optional.<RawData>absent());
+			this.putData(Optional.empty());
 		}
 	}
 
@@ -128,7 +128,7 @@ public class ModelMCMD {
 			RawData data = loaded.get();
 			this.artist = data.artist;
 			this.modelUUID = data.modelUUID;
-			this.reloadLocation = Optional.fromNullable(data.srcLocation);
+			this.reloadLocation = Optional.ofNullable(data.srcLocation);
 		} else {
 			this.artist = "UNKOWN_ARTIST";
 			this.modelUUID = new UUID(0, 0);

@@ -1,12 +1,13 @@
 package com.github.worldsender.mcanm.client.model.mcanmmodel.glcontext;
 
+import java.util.Optional;
+
 import com.github.worldsender.mcanm.client.model.mcanmmodel.IRenderPass;
 import com.github.worldsender.mcanm.client.model.mcanmmodel.ModelMCMD.MCMDState;
 import com.github.worldsender.mcanm.client.model.mcanmmodel.data.IModelData;
 import com.github.worldsender.mcanm.client.model.mcanmmodel.data.RawData;
 import com.github.worldsender.mcanm.client.model.mcanmmodel.data.RawDataV1;
 import com.github.worldsender.mcanm.client.model.mcanmmodel.loader.VersionizedModelLoader;
-import com.google.common.base.Optional;
 
 /**
  * Represents an GLHelper. That is a glHelper for the correct OpenGL- version present on this computer.
@@ -26,9 +27,9 @@ public abstract class GLHelper {
 	 * @return data that can be understood by this {@link GLHelper}
 	 */
 	public final Optional<IModelData> preBake(MCMDState state) {
-		RawData amd = state.getData().orNull();
+		RawData amd = state.getData().orElse(null);
 		if (amd == null)
-			return currentData = Optional.<IModelData>absent();
+			return currentData = Optional.empty();
 		if (amd instanceof RawDataV1)
 			return currentData = this.preBakeV1((RawDataV1) amd);
 		throw new IllegalArgumentException("Unrecognized data format");

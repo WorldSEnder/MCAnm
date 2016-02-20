@@ -2,13 +2,13 @@ package com.github.worldsender.mcanm.client.model.mcanmmodel;
 
 import java.io.DataInputStream;
 import java.io.IOError;
+import java.util.Optional;
 
 import com.github.worldsender.mcanm.MCAnm;
 import com.github.worldsender.mcanm.client.exceptions.ModelFormatException;
 import com.github.worldsender.mcanm.client.model.mcanmmodel.data.RawData;
 import com.github.worldsender.mcanm.client.model.mcanmmodel.loader.VersionizedModelLoader;
 import com.github.worldsender.mcanm.client.model.util.ModelLoader;
-import com.google.common.base.Optional;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.IResourceManager;

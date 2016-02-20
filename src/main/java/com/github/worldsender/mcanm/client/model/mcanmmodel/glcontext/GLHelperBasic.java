@@ -1,9 +1,10 @@
 package com.github.worldsender.mcanm.client.model.mcanmmodel.glcontext;
 
+import java.util.Optional;
+
 import com.github.worldsender.mcanm.client.model.mcanmmodel.data.IModelData;
 import com.github.worldsender.mcanm.client.model.mcanmmodel.data.ModelDataBasic;
 import com.github.worldsender.mcanm.client.model.mcanmmodel.data.RawDataV1;
-import com.google.common.base.Optional;
 
 public class GLHelperBasic extends GLHelper {
 	@Override

@@ -2,6 +2,7 @@ package com.github.worldsender.mcanm.client.model.util;
 
 import java.util.Arrays;
 import java.util.Objects;
+import java.util.Optional;
 
 import javax.vecmath.Quat4f;
 import javax.vecmath.Vector3f;
@@ -11,7 +12,6 @@ import org.apache.commons.lang3.tuple.Triple;
 import com.github.worldsender.mcanm.client.model.mcanmmodel.animation.IAnimation;
 import com.github.worldsender.mcanm.client.model.mcanmmodel.animation.IAnimation.BoneTransformation;
 import com.github.worldsender.mcanm.client.model.mcanmmodel.animation.stored.BSplineInterpolation;
-import com.google.common.base.Optional;
 
 public class Animations {
 	/**
@@ -40,11 +40,11 @@ public class Animations {
 		return new IAnimation() {
 			@Override
 			public Optional<BoneTransformation> getCurrentTransformation(String bone, float frame) {
-				Optional<BoneTransformation> value = Optional.absent();
+				Optional<BoneTransformation> value = Optional.empty();
 				for (IAnimation other : choices) {
 					value = other.getCurrentTransformation(bone, frame);
-					if (!value.isPresent())
-						continue;
+					if (value.isPresent())
+						break;
 				}
 				return value;
 			}

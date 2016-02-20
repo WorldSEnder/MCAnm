@@ -2,13 +2,13 @@ package com.github.worldsender.mcanm.client.model.util;
 
 import java.util.HashMap;
 import java.util.Map.Entry;
+import java.util.Optional;
 
 import org.apache.logging.log4j.Logger;
 
 import com.github.worldsender.mcanm.MCAnm;
 import com.github.worldsender.mcanm.client.model.mcanmmodel.MCMDModelLoader;
 import com.github.worldsender.mcanm.client.model.mcanmmodel.ModelMCMD;
-import com.google.common.base.Optional;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.IResourceManager;
