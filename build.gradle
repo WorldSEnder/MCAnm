@@ -13,7 +13,7 @@ buildscript {
         }
     }
     dependencies {
-        classpath 'net.minecraftforge.gradle:ForgeGradle:1.2-SNAPSHOT'
+        classpath 'net.minecraftforge.gradle:ForgeGradle:1.2.0.777'
     }
 }
 
@@ -21,13 +21,13 @@ apply plugin: 'forge'
 apply plugin: 'maven'
 apply from: 'build.properties'
 
-sourceCompatibility = 1.8
-targetCompatibility = 1.8
-
 minecraft {
-    version = "1.7.10-10.13.3.1380-1.7.10"
     runDir = "eclipse/"
+}
 
+project.version = getVersion()
+
+minecraft {	
     replaceIn "Reference.java"
     replace "@VERSION@", project.version
     replace "@MODID@", project.archivesBaseName
@@ -50,12 +50,7 @@ processResources
 {
     from(sourceSets.main.resources.srcDirs) {
         include 'mcmod.info'
-
-        filter(ReplaceTokens, tokens:
-                [VERSION: project.version,
-                 MCVERSION: project.minecraft.version,
-                 MODID: project.archivesBaseName,
-                 MODNAME: project.longname])
+        expand project.properties
     }
 
     from(sourceSets.main.resources.srcDirs) {
@@ -76,3 +71,22 @@ artifacts {
 install.dependsOn build
 
 dependencies {}
+
+def getVersion() {
+    def stdout = new ByteArrayOutputStream()
+    exec {
+        executable "git"
+        args "rev-list", "--count", "HEAD"
+        standardOutput = stdout
+    }
+    project.ext.revision = stdout.toString().trim()
+    stdout.reset()
+    exec {
+        executable "git"
+        args "rev-parse", "--abbrev-ref", "HEAD"
+        standardOutput = stdout
+    }
+    project.ext.branch = stdout.toString().trim()
+    return "${major}.${minor}.${patch}.${revision}${branch == 'master' ? '' : '-' + branch}-${minecraft.version}"
+}
+

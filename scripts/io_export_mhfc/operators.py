@@ -2,10 +2,11 @@ import bpy
 import bmesh
 
 from .export import export_mesh, export_action, MeshExportOptions
-from .utils import *
+from ._import import import_tabula
+from .utils import Reporter, extract_safe
 from bpy.props import BoolProperty, CollectionProperty, EnumProperty, IntProperty,\
 		IntVectorProperty, PointerProperty, StringProperty
-from bpy_extras.io_utils import ExportHelper
+from bpy_extras.io_utils import ImportHelper
 from bpy.types import Operator
 from contextlib import ExitStack
 
@@ -91,43 +92,44 @@ class ObjectExporter(Operator):
 		layout.prop(self, "tex_path")
 
 	def execute(self, context):
-		warning.active_op = self
-		opt = MeshExportOptions()
+		with Reporter() as reporter:
+			opt = MeshExportOptions()
 
-		opt.mod_id = self.mod_id
-		opt.dirpath = self.filepath
-		opt.modelpath = self.model_path
-		opt.texpath = self.tex_path
+			opt.mod_id = self.mod_id
+			opt.dirpath = self.filepath
+			opt.modelpath = self.model_path
+			opt.texpath = self.tex_path
 
-		opt.obj = extract_safe(bpy.data.objects, self.object, "Object {item} not in bpy.data.objects!")
-		# Note: we have to export an object, because vertex-groups are on the object, not the mesh
-		if opt.obj.type != 'MESH':
-			error("Active Object not a Mesh")
-		if self.armature:
-			opt.arm = extract_safe(bpy.data.armatures, self.armature, "Armature {item} not in bpy.data.armatures")
-			if opt.arm not in [mod.object.data for mod in opt.obj.modifiers if mod.type == 'ARMATURE' and mod.object is not None]:
-				warning("Armature {arm} is not active on object {obj}", arm=self.armature, obj=self.object)
-		else:
-			opt.arm = None
-		opt.uv_layer = extract_safe(opt.obj.data.uv_layers, self.uv_layer, "Invalid UV-Layer {item}")
+			opt.obj = extract_safe(bpy.data.objects, self.object, "Object {item} not in bpy.data.objects!")
+			# Note: we have to export an object, because vertex-groups are on the object, not the mesh
+			if opt.obj.type != 'MESH':
+				Reporter.error("Active Object not a Mesh")
+			if self.armature:
+				opt.arm = extract_safe(bpy.data.armatures, self.armature, "Armature {item} not in bpy.data.armatures")
+				if opt.arm not in [mod.object.data for mod in opt.obj.modifiers if mod.type == 'ARMATURE' and mod.object is not None]:
+					Reporter.warning("Armature {arm} is not active on object {obj}", arm=self.armature, obj=self.object)
+			else:
+				opt.arm = None
+			opt.uv_layer = extract_safe(opt.obj.data.uv_layers, self.uv_layer, "Invalid UV-Layer {item}")
 
-		opt.version = self.version
-		opt.artist = self.artist
-		opt.modelname = self.model_name
-		opt.def_group_name = self.default_group_name
-		if opt.def_group_name in opt.obj.data.mcprops.render_groups:
-			error("Default groupname can't duplicate group name")
-		opt.def_image = extract_safe(bpy.data.images, self.default_img, "Default image {item} not in bpy.data.images").name
-		opt.export_tex = self.export_tex
+			opt.version = self.version
+			opt.artist = self.artist
+			opt.modelname = self.model_name
+			opt.def_group_name = self.default_group_name
+			if opt.def_group_name in opt.obj.data.mcprops.render_groups:
+				Reporter.error("Default groupname can't duplicate group name")
+			opt.def_image = extract_safe(bpy.data.images, self.default_img, "Default image {item} not in bpy.data.images").name
+			opt.export_tex = self.export_tex
 
-		context.scene.mcprops.export_tex = False
-		return export_mesh(context, opt)
+			context.scene.mcprops.export_tex = False
+			export_mesh(context, opt)
+		reporter.print_report(self)
+		return {'FINISHED'} if reporter.was_success() else {'CANCELLED'}
 
 	def invoke(self, context, event):
-		warning.active_op = self
 		if context.object is None or context.object.type != 'MESH':
-			error("Active object must be a mesh")
-
+			self.report({'ERROR'}, "Active object must be a mesh")
+			return {'CANCELLED'}
 		prefs = context.user_preferences.addons[__package__].preferences
 		props = context.object.data.mcprops
 		sceprops = context.scene.mcprops
@@ -220,23 +222,58 @@ class ArmAnimationExporter(Operator):
 		layout.prop(self, "offset")
 
 	def execute(self, context):
-		warning.active_op = self
-		armature = extract_safe(bpy.data.armatures, self.armature, "Invalid armature: {item}, not in bpy.data.armatures")
-		action = extract_safe(bpy.data.actions, self.arm_action, "Invalid action: {item}, not in bpy.data.actions")
-		return export_action(self.filepath, action, self.offset, self.artist, armature)
+		with Reporter() as reporter:
+			armature = extract_safe(bpy.data.armatures, self.armature, "Invalid armature: {item}, not in bpy.data.armatures")
+			action = extract_safe(bpy.data.actions, self.arm_action, "Invalid action: {item}, not in bpy.data.actions")
+			export_action(self.filepath, action, self.offset, self.artist, armature)
+		reporter.print_report(self)
+		return {'FINISHED'} if reporter.was_success() else {'CANCELLED'}
 
 	def invoke(self, context, event):
-		warning.active_op = self
 		if context.object.type != 'ARMATURE':
-			error("Active object {obj} is not an armature", obj=context.object.name)
+			self.report({'ERROR'}, "Active object {obj} is not an armature".format(obj=context.object.name))
+			return {'CANCELLED'}
 		self.armature = context.object.data.name
 		try:
 			self.arm_action, props = ArmAnimationExporter.guess_action(context.object)
 		except ValueError as ex:
-			error("Guessing action from active armature failed: {err}", err=ex.value)
+			self.report({'ERROR'}, "Guessing action from active armature failed: {err}".format(err=ex.value))
+			return {'CANCELLED'}
 		self.offset = props.offset
 		context.window_manager.fileselect_add(self)
 		return {'RUNNING_MODAL'}
+
+class TabulaImporter(Operator, ImportHelper):
+	bl_idname = "tabula.load"
+	bl_label = "Import Tabula model (.tbl)"
+
+	filename_ext = ".tbl"
+	filter_glob = StringProperty(default="*.tbl", options={'HIDDEN'})
+	filepath = StringProperty(name="File Path", default="")
+
+	only_poses = EnumProperty(items=[("poses", "Animations", "Import the contained animations"),
+									 ("model", "Model", "Import the model from the file")],
+							  name="Import strategy",
+							  default={"poses", "model"},
+							  options={'ENUM_FLAG'})
+	scene = StringProperty(name="Scene to import into", default="", options={'HIDDEN'})
+
+	def draw(self, context):
+		layout = self.layout
+		layout.prop(self, 'only_poses')
+		layout.prop_search(self, 'scene', bpy.data, 'scenes', icon="SCENE")
+
+	def execute(self, context):
+		with Reporter() as reporter:
+			sce = extract_safe(bpy.data.scenes, self.scene, 'Scene {item} not found')
+			import_tabula(filepath, sce, only_poses)
+			reporter.info("Successfully imported the Tabula model from {path}", path=self.filepath)
+		reporter.print_report(self)
+		return {'FINISHED'} if reporter.was_success() else {'CANCELLED'}
+
+	def invoke(self, context, event):
+		self.scene = context.scene.name
+		return context.window_manager.fileselect_add(self)
 
 class ArmatureUpdater(Operator):
 	bl_idname = "object.mc_update_arms"
@@ -253,8 +290,7 @@ class ArmatureUpdater(Operator):
 		for mod in obj.modifiers:
 			if mod.type != 'ARMATURE' or mod.object is None:
 				continue
-			item = armlist.add()
-			item.name = mod.object.name
+			armlist.add().name = mod.object.data.name
 		return {'FINISHED'}
 
 class AddRenderGroup(Operator):

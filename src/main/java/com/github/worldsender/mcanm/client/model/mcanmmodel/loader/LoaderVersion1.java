@@ -7,12 +7,11 @@ import java.util.Arrays;
 import java.util.Set;
 import java.util.TreeSet;
 
-import net.minecraftforge.client.model.ModelFormatException;
+import javax.vecmath.Quat4f;
+import javax.vecmath.Vector2f;
+import javax.vecmath.Vector3f;
 
-import org.lwjgl.util.vector.Quaternion;
-import org.lwjgl.util.vector.Vector2f;
-import org.lwjgl.util.vector.Vector3f;
-
+import com.github.worldsender.mcanm.client.exceptions.ModelFormatException;
 import com.github.worldsender.mcanm.client.model.mcanmmodel.Utils;
 import com.github.worldsender.mcanm.client.model.mcanmmodel.data.RawData;
 import com.github.worldsender.mcanm.client.model.mcanmmodel.data.RawDataV1;
@@ -24,8 +23,8 @@ import com.github.worldsender.mcanm.client.model.mcanmmodel.data.RawDataV1.Model
 import com.github.worldsender.mcanm.client.model.mcanmmodel.data.RawDataV1.TesselationPoint;
 
 /**
- * Loads a file with version signature 1. This implementation follows the all or
- * nothing principle, so no corrupt data will ever be accessible.<br>
+ * Loads a file with version signature 1. This implementation follows the all or nothing principle, so no corrupt data
+ * will ever be accessible.<br>
  * To find a full specification of the file format please visit<br>
  *
  * @author WorldSEnder
@@ -35,8 +34,7 @@ public class LoaderVersion1 extends VersionizedModelLoader {
 	public static final LoaderVersion1 instance = new LoaderVersion1();
 
 	@Override
-	public RawDataV1 loadFromInputStream(RawData meta, int version,
-			DataInputStream di) throws IOException {
+	public RawDataV1 loadFromInputStream(RawData meta, int version, DataInputStream di) throws IOException {
 		// Read the header
 		Header header = new Header();
 		int nbrParts = di.readUnsignedByte();
@@ -49,8 +47,7 @@ public class LoaderVersion1 extends VersionizedModelLoader {
 		for (int i = 0; i < nbrParts;) {
 			ModelPart newPart = readPartFrom(di, header);
 			if (!partsNameSet.add(newPart.name))
-				throw new ModelFormatException("Two parts with same name "
-						+ newPart.name);
+				throw new ModelFormatException("Two parts with same name " + newPart.name);
 			parts[i++] = newPart;
 		}
 		// Read bones
@@ -59,8 +56,7 @@ public class LoaderVersion1 extends VersionizedModelLoader {
 		for (int i = 0; i < nbrBones;) {
 			Bone newBone = readBoneFrom(di, header);
 			if (!boneNameSet.add(newBone.name))
-				throw new ModelFormatException("Two bones with same name "
-						+ newBone.name);
+				throw new ModelFormatException("Two bones with same name " + newBone.name);
 			bones[i++] = newBone;
 		}
 		// Read parents
@@ -68,9 +64,10 @@ public class LoaderVersion1 extends VersionizedModelLoader {
 		// Apply data
 		return new RawDataV1(meta, parts, bones);
 	}
+
 	/**
-	 * This method has to check for a tree-like structure of the bones. No bone
-	 * can be parent of his parent or his parent's parent, etc.
+	 * This method has to check for a tree-like structure of the bones. No bone can be parent of his parent or his
+	 * parent's parent, etc.
 	 *
 	 * @param di
 	 *            The {@link DataInputStream} to read indices from
@@ -81,29 +78,25 @@ public class LoaderVersion1 extends VersionizedModelLoader {
 	 * @throws IOException
 	 *             if an IOException occurs on the {@link DataInputStream}
 	 */
-	protected void readBoneParents(DataInputStream di, Bone[] bones)
-			throws EOFException, IOException {
+	protected void readBoneParents(DataInputStream di, Bone[] bones) throws EOFException, IOException {
 		// TODO: check for treeish structure
 		int nbrBones = bones.length;
 		for (Bone bone : bones) {
 			int parentIndex = di.readUnsignedByte();
 			if (parentIndex != 255 && parentIndex >= nbrBones) {
 				throw new ModelFormatException(
-						String.format(
-								"ParentIndex (%d) has to be smaller than nbrBones (%d).",
-								parentIndex, nbrBones));
+						String.format("ParentIndex (%d) has to be smaller than nbrBones (%d).", parentIndex, nbrBones));
 			}
 			bone.parent = (byte) parentIndex;
 		}
 	}
 
-	protected Bone readBoneFrom(DataInputStream di, Header header)
-			throws EOFException, IOException {
+	protected Bone readBoneFrom(DataInputStream di, Header header) throws EOFException, IOException {
 		Bone bone = new Bone();
 		// Read name
 		String name = Utils.readString(di);
 		// Read quaternion
-		Quaternion quat = Utils.readQuat(di);
+		Quat4f quat = Utils.readQuat(di);
 		// Read offset
 		Vector3f offset = Utils.readVector3f(di);
 		// Apply attributes
@@ -113,8 +106,7 @@ public class LoaderVersion1 extends VersionizedModelLoader {
 		return bone;
 	}
 
-	protected ModelPart readPartFrom(DataInputStream di, Header header)
-			throws EOFException, IOException {
+	protected ModelPart readPartFrom(DataInputStream di, Header header) throws EOFException, IOException {
 		ModelPart mp = new ModelPart();
 		// Read "header"
 		int nbrPoints = di.readUnsignedShort();
@@ -125,17 +117,15 @@ public class LoaderVersion1 extends VersionizedModelLoader {
 		Material material = this.readMaterialFrom(di, header);
 		// Read points
 		TesselationPoint[] vertexArray = new TesselationPoint[nbrPoints];
-		for (int i = 0; i < nbrPoints; vertexArray[i++] = readPointFrom(di,
-				header));
+		for (int i = 0; i < nbrPoints; vertexArray[i++] = readPointFrom(di, header))
+			;
 		// Read indices
 		short[] indexArray = new short[nbrIndices];
 		for (int i = 0; i < nbrIndices; ++i) {
 			int candidate = di.readUnsignedShort();
 			if (candidate >= nbrPoints)
 				throw new ModelFormatException(
-						String.format(
-								"Vertexindex (%d) has to be smaller than nbrPoints (%d).",
-								candidate, nbrPoints));
+						String.format("Vertexindex (%d) has to be smaller than nbrPoints (%d).", candidate, nbrPoints));
 			indexArray[i] = (short) candidate;
 		}
 		// Apply attributes
@@ -146,23 +136,20 @@ public class LoaderVersion1 extends VersionizedModelLoader {
 		return mp;
 	}
 
-	protected Material readMaterialFrom(DataInputStream di, Header header)
-			throws EOFException, IOException {
+	protected Material readMaterialFrom(DataInputStream di, Header header) throws EOFException, IOException {
 		Material tex = new Material();
 		tex.resLocationRaw = Utils.readString(di);
 		return tex;
 	}
 
-	protected TesselationPoint readPointFrom(DataInputStream di, Header header)
-			throws EOFException, IOException {
+	protected TesselationPoint readPointFrom(DataInputStream di, Header header) throws EOFException, IOException {
 		TesselationPoint tessP = new TesselationPoint();
 		// Read coords
 		Vector3f coords = Utils.readVector3f(di);
 		// Read normal
 		Vector3f normal = Utils.readVector3f(di);
 		if (normal.length() == 0)
-			throw new ModelFormatException(
-					"Normal vector can't have zerolength.");
+			throw new ModelFormatException("Normal vector can't have zerolength.");
 		// Read material coordinates
 		Vector2f texCoords = Utils.readVector2f(di);
 		// Read bindings
@@ -175,23 +162,21 @@ public class LoaderVersion1 extends VersionizedModelLoader {
 		return tessP;
 	}
 
-	protected BoneBinding[] readBoneBindingsFrom(DataInputStream di,
-			Header header) throws EOFException, IOException {
+	protected BoneBinding[] readBoneBindingsFrom(DataInputStream di, Header header) throws EOFException, IOException {
 		BoneBinding[] bindings = new BoneBinding[RawDataV1.MAX_NBR_BONEBINDINGS];
 		int bindIndex;
 		int i = 0;
-		while (i < RawDataV1.MAX_NBR_BONEBINDINGS
-				&& (bindIndex = di.readUnsignedByte()) != 0xFF) {
+		while (i < RawDataV1.MAX_NBR_BONEBINDINGS && (bindIndex = di.readUnsignedByte()) != 0xFF) {
 			BoneBinding binding = new BoneBinding();
 			if (bindIndex >= header.nbrBones)
-				throw new ModelFormatException(
-						"Can't bind to non-existant bone.");
+				throw new ModelFormatException("Can't bind to non-existant bone.");
 			// Read strength of binding
 			float bindingValue = di.readFloat();
-			if (Math.abs(bindingValue) > 100.0F)
-				throw new ModelFormatException(String.format(
-						"Value for binding seems out of range: %f",
-						bindingValue));
+			if (Math.abs(bindingValue) > 100.0F || bindingValue < 0)
+				throw new ModelFormatException(
+						String.format(
+								"Value for binding seems out of range: %f (expected to be in [0, 100]",
+								bindingValue));
 			// Apply attributes
 			binding.boneIndex = (byte) bindIndex;
 			binding.bindingValue = bindingValue;

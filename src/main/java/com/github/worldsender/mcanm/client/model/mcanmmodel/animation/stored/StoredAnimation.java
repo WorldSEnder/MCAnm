@@ -6,19 +6,20 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.github.worldsender.mcanm.client.model.mcanmmodel.Utils;
-import com.github.worldsender.mcanm.client.model.mcanmmodel.animation.IAnimation;
-
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.IResourceManager;
 import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.client.model.ModelFormatException;
+
+import com.github.worldsender.mcanm.client.exceptions.ModelFormatException;
+import com.github.worldsender.mcanm.client.model.mcanmmodel.Utils;
+import com.github.worldsender.mcanm.client.model.mcanmmodel.animation.IAnimation;
+import com.google.common.base.Optional;
 
 public class StoredAnimation implements IAnimation {
 	public static final long MAGIC_NUMBER = 0x4d48464320414e4dL;
+
 	/**
-	 * Gets the {@link DataInputStream} from the {@link ResourceLocation},
-	 * throwing exceptions where appropriate
+	 * Gets the {@link DataInputStream} from the {@link ResourceLocation}, throwing exceptions where appropriate
 	 *
 	 * @param resLoc
 	 *            the resource location to read from
@@ -27,23 +28,22 @@ public class StoredAnimation implements IAnimation {
 	 * @return a {@link DataInputStream} to read from
 	 * @throws ModelFormatException
 	 */
-	private static DataInputStream getStream(ResourceLocation resLoc,
-			IResourceManager manager) throws ModelFormatException {
+	private static DataInputStream getStream(ResourceLocation resLoc, IResourceManager manager)
+			throws ModelFormatException {
 		if (manager == null)
 			throw new IllegalArgumentException("Manager can't be null");
 		try {
-			return new DataInputStream(manager.getResource(resLoc)
-					.getInputStream());
+			return new DataInputStream(manager.getResource(resLoc).getInputStream());
 		} catch (IOException ioe) {
-			throw new ModelFormatException(String.format(
-					"Can't read from resource %s.", resLoc), ioe);
+			throw new ModelFormatException(String.format("Can't read from resource %s.", resLoc), ioe);
 		}
 	}
+
 	private final ResourceLocation origin;
 	private final Map<String, AnimatedTransform> animations;
+
 	/**
-	 * Reads an Animation from the given {@link ResourceLocation}. Exceptions in
-	 * the file-format will be thrown.
+	 * Reads an Animation from the given {@link ResourceLocation}. Exceptions in the file-format will be thrown.
 	 *
 	 * @param file
 	 *            the file to load from
@@ -53,16 +53,17 @@ public class StoredAnimation implements IAnimation {
 	public StoredAnimation(ResourceLocation file) throws ModelFormatException {
 		this(file, Minecraft.getMinecraft().getResourceManager());
 	}
+
 	/**
 	 *
 	 * @param file
 	 * @param resManager
 	 * @throws ModelFormatException
 	 */
-	public StoredAnimation(ResourceLocation file, IResourceManager resManager)
-			throws ModelFormatException {
+	public StoredAnimation(ResourceLocation file, IResourceManager resManager) throws ModelFormatException {
 		this(getStream(file, resManager), file);
 	}
+
 	/**
 	 *
 	 * @param dis
@@ -71,18 +72,19 @@ public class StoredAnimation implements IAnimation {
 	public StoredAnimation(DataInputStream dis) throws ModelFormatException {
 		this(dis, null);
 	}
+
 	/**
 	 *
 	 * @param dis
 	 * @param src
 	 * @throws ModelFormatException
 	 */
-	private StoredAnimation(DataInputStream dataIn, ResourceLocation src)
-			throws ModelFormatException {
+	private StoredAnimation(DataInputStream dataIn, ResourceLocation src) throws ModelFormatException {
 		this.origin = src;
 		this.animations = new HashMap<>();
 		loadFrom(dataIn, String.valueOf(src));
 	}
+
 	/**
 	 * Actually loads the model, used in constructor and on reload
 	 *
@@ -93,8 +95,7 @@ public class StoredAnimation implements IAnimation {
 	 * @throws ModelFormatException
 	 *             any error
 	 */
-	private void loadFrom(DataInputStream dataIn, String origin)
-			throws ModelFormatException {
+	private void loadFrom(DataInputStream dataIn, String origin) throws ModelFormatException {
 		try (DataInputStream dis = dataIn) {
 			long magic = dis.readLong();
 			if (magic != MAGIC_NUMBER)
@@ -110,17 +111,15 @@ public class StoredAnimation implements IAnimation {
 		} catch (EOFException eof) {
 			throw new ModelFormatException("Unexpected end of stream.", eof);
 		} catch (IOException ioe) {
-			throw new ModelFormatException(String.format(
-					"Error handling resource %s.", origin), ioe);
+			throw new ModelFormatException(String.format("Error handling resource %s.", origin), ioe);
 		} catch (ModelFormatException mfe) {
-			throw new ModelFormatException(String.format(
-					"Model format error in resource %s.", origin), mfe);
+			throw new ModelFormatException(String.format("Model format error in resource %s.", origin), mfe);
 		}
 	}
+
 	/**
-	 * Reloads the model using the given {@link IResourceManager}. It is an
-	 * error to reload an animation that was not loaded from a
-	 * {@link ResourceLocation} although this method silently ignores this.
+	 * Reloads the model using the given {@link IResourceManager}. It is an error to reload an animation that was not
+	 * loaded from a {@link ResourceLocation} although this method silently ignores this.
 	 *
 	 * @param resManager
 	 *            the {@link IResourceManager} to use to reload the animation
@@ -132,12 +131,14 @@ public class StoredAnimation implements IAnimation {
 	}
 
 	@Override
-	public BoneTransformation getCurrentTransformation(String bone, float frame) {
+	public Optional<BoneTransformation> getCurrentTransformation(String bone, float frame) {
 		AnimatedTransform anim = this.animations.get(bone);
-		if (anim == null)
-			return null;
-		return anim.getTransformAt(frame);
+		if (anim == null) {
+			Optional.absent();
+		}
+		return Optional.of(anim.getTransformAt(frame));
 	}
+
 	/**
 	 * @return the origin
 	 */

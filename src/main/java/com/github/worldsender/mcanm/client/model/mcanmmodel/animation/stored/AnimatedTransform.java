@@ -3,12 +3,12 @@ package com.github.worldsender.mcanm.client.model.mcanmmodel.animation.stored;
 import java.io.DataInputStream;
 import java.io.IOException;
 
-import net.minecraftforge.client.model.ModelFormatException;
+import javax.vecmath.Quat4f;
+import javax.vecmath.Vector3f;
 
-import org.lwjgl.util.vector.Quaternion;
-import org.lwjgl.util.vector.Vector3f;
-
+import com.github.worldsender.mcanm.client.exceptions.ModelFormatException;
 import com.github.worldsender.mcanm.client.model.mcanmmodel.animation.IAnimation.BoneTransformation;
+
 /**
  * Represents the animation of one bone from the {@link StoredAnimation}.
  *
@@ -25,13 +25,13 @@ public class AnimatedTransform {
 	private AnimatedValue scale_x;
 	private AnimatedValue scale_y;
 	private AnimatedValue scale_z;
+
 	/**
 	 * Reads a {@link AnimatedTransform} from the {@link DataInputStream} given.
 	 *
 	 * @param dis
 	 */
-	public AnimatedTransform(DataInputStream dis) throws ModelFormatException,
-			IOException {
+	public AnimatedTransform(DataInputStream dis) throws ModelFormatException, IOException {
 		this.loc_x = new AnimatedValue(0.0F, dis);
 		this.loc_y = new AnimatedValue(0.0F, dis);
 		this.loc_z = new AnimatedValue(0.0F, dis);
@@ -43,24 +43,24 @@ public class AnimatedTransform {
 		this.scale_y = new AnimatedValue(1.0F, dis);
 		this.scale_z = new AnimatedValue(1.0F, dis);
 	}
+
 	/**
-	 * Gets the transformation of the bone at a specific point in the animation.
-	 * This method interpolates between the nearest two key-frames using the
-	 * correct interpolation mode.
+	 * Gets the transformation of the bone at a specific point in the animation. This method interpolates between the
+	 * nearest two key-frames using the correct interpolation mode.
 	 *
 	 * @param frame
 	 * @param subFrame
 	 * @return
 	 */
 	public BoneTransformation getTransformAt(float frame) {
-		Vector3f translation = new Vector3f(loc_x.getValueAt(frame),
-				loc_y.getValueAt(frame), loc_z.getValueAt(frame));
-		Quaternion quaternion = new Quaternion(quat_x.getValueAt(frame),
-				quat_y.getValueAt(frame), quat_z.getValueAt(frame),
+		Vector3f translation = new Vector3f(loc_x.getValueAt(frame), loc_y.getValueAt(frame), loc_z.getValueAt(frame));
+		Quat4f quaternion = new Quat4f(
+				quat_x.getValueAt(frame),
+				quat_y.getValueAt(frame),
+				quat_z.getValueAt(frame),
 				quat_w.getValueAt(frame));
-		quaternion = quaternion.normalise(quaternion);
-		Vector3f scale = new Vector3f(scale_x.getValueAt(frame),
-				scale_y.getValueAt(frame), scale_z.getValueAt(frame));
+		quaternion.normalize();
+		Vector3f scale = new Vector3f(scale_x.getValueAt(frame), scale_y.getValueAt(frame), scale_z.getValueAt(frame));
 		return new BoneTransformation(translation, quaternion, scale);
 	}
 }

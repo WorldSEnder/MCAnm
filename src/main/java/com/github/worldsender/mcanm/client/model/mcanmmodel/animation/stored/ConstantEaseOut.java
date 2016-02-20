@@ -8,8 +8,7 @@ import org.lwjgl.util.vector.Vector2f;
 public class ConstantEaseOut extends Spline {
 	public static final IEaseOutSplineFactory factory = new IEaseOutSplineFactory() {
 		@Override
-		public Spline newSpline(Vector2f left, DataInputStream additionalData)
-				throws IOException {
+		public Spline newSpline(Vector2f left, DataInputStream additionalData) throws IOException {
 			return new ConstantEaseOut(left);
 		}
 	};

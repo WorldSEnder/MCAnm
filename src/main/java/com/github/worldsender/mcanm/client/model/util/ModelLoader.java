@@ -8,6 +8,7 @@ import org.apache.logging.log4j.Logger;
 import com.github.worldsender.mcanm.MCAnm;
 import com.github.worldsender.mcanm.client.model.mcanmmodel.MCMDModelLoader;
 import com.github.worldsender.mcanm.client.model.mcanmmodel.ModelMCMD;
+import com.google.common.base.Optional;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.IResourceManager;
@@ -24,7 +25,7 @@ import net.minecraft.util.ResourceLocation;
  */
 public class ModelLoader {
 	public static final ModelLoader instance = new ModelLoader();
-	private static final Logger logger = MCAnm.logger;
+	private static final Logger logger = MCAnm.instance.getLogger();
 
 	/**
 	 * Loads a model from the {@link ResourceLocation}.
@@ -48,7 +49,7 @@ public class ModelLoader {
 	private IResourceManager currentManager = Minecraft.getMinecraft().getResourceManager();
 
 	public void onResourceManagerReload(IResourceManager reloadManager) {
-		if (!MCAnm.enableReload.getBoolean())
+		if (!MCAnm.configuration().isReloadEnabled())
 			return;
 		this.currentManager = reloadManager;
 		for (Entry<ResourceLocation, ModelMCMD> entry : this.cachedModels.entrySet()) {
@@ -72,13 +73,13 @@ public class ModelLoader {
 	public boolean registerModel(ModelMCMD model) {
 		if (model == null)
 			throw new IllegalArgumentException("Model can't be null");
-		ResourceLocation resLoc = model.getResourceLocation();
-		if (resLoc == null)
+		Optional<ResourceLocation> resLoc = model.getResourceLocation();
+		if (!resLoc.isPresent())
 			throw new IllegalArgumentException(
 					"The model you are trying to register has not been loaded from a valid ResourceLocation.");
-		if (this.cachedModels.containsKey(resLoc))
+		if (this.cachedModels.containsKey(resLoc.get()))
 			return false;
-		this.cachedModels.put(resLoc, model);
+		this.cachedModels.put(resLoc.get(), model);
 		return true;
 	}
 

@@ -8,12 +8,10 @@ import org.lwjgl.util.vector.Vector2f;
 public class BSplineInterpolation extends Spline {
 	public static final IInterpolationSplineFactory factory = new IInterpolationSplineFactory() {
 		@Override
-		public Spline newSpline(Vector2f left, Vector2f right,
-				DataInputStream additionalData) throws IOException {
+		public Spline newSpline(Vector2f left, Vector2f right, DataInputStream additionalData) throws IOException {
 			Vector2f leftHandle = Spline.readPoint(additionalData);
 			Vector2f rightHandle = Spline.readPoint(additionalData);
-			return new BSplineInterpolation(left, leftHandle, rightHandle,
-					right);
+			return new BSplineInterpolation(left, leftHandle, rightHandle, right);
 		}
 	};
 
@@ -22,8 +20,7 @@ public class BSplineInterpolation extends Spline {
 	private Vector2f rightHandle;
 	private Vector2f right;
 
-	public BSplineInterpolation(Vector2f left, Vector2f leftHandle,
-			Vector2f rightHandle, Vector2f right) {
+	public BSplineInterpolation(Vector2f left, Vector2f leftHandle, Vector2f rightHandle, Vector2f right) {
 		this.left = left;
 		this.leftHandle = leftHandle;
 		this.rightHandle = rightHandle;
@@ -41,15 +38,13 @@ public class BSplineInterpolation extends Spline {
 			return this.left.y;
 		if (frame == this.right.x)
 			return this.right.y;
-		double t = findZero(this.left.x, this.leftHandle.x, this.rightHandle.x,
-				this.right.x, frame);
-		return calcValue(this.left.y, this.leftHandle.y, this.rightHandle.y,
-				this.right.y, t);
+		double t = findZero(this.left.x, this.leftHandle.x, this.rightHandle.x, this.right.x, frame);
+		return calcValue(this.left.y, this.leftHandle.y, this.rightHandle.y, this.right.y, t);
 	}
+
 	/**
 	 * Finds a <code>t</code> for the input points in the range ]0..1[.<br>
-	 * This <code>t</code> is suitable to be used for the exact value
-	 * calcuation.<br>
+	 * This <code>t</code> is suitable to be used for the exact value calcuation.<br>
 	 * For this to work
 	 * <ul>
 	 * <li>x<SUB>1</SUB> <= x<SUB>2</SUB> <= x<SUB>4</SUB> and
@@ -69,8 +64,7 @@ public class BSplineInterpolation extends Spline {
 	 *            the frame to evaluate
 	 * @return
 	 */
-	private static double findZero(float x1, float x2, float x3, float x4,
-			float x) {
+	public static double findZero(float x1, float x2, float x3, float x4, float x) {
 		double result, b, c, p;
 
 		double c0 = x1 - x;
@@ -158,6 +152,7 @@ public class BSplineInterpolation extends Spline {
 		}
 		return failedCalculation();
 	}
+
 	/**
 	 * Calculates the actual value for a parameter t previously found with
 	 * {@link #findZero(float, float, float, float, float)}
@@ -174,8 +169,7 @@ public class BSplineInterpolation extends Spline {
 	 *            t on the curve in [0..1]
 	 * @return the value on the curve
 	 */
-	private static float calcValue(float y1, float y2, float y3, float y4,
-			double t) {
+	public static float calcValue(float y1, float y2, float y3, float y4, double t) {
 
 		float c1 = 3.0f * (y2 - y1);
 		float c2 = 3.0f * (y1 - 2.0f * y2 + y3);
@@ -190,10 +184,12 @@ public class BSplineInterpolation extends Spline {
 		value += tPot * c3; // t * t * t * c3
 		return value;
 	}
+
 	// Convenience methods -------------------------
 	private static float failedCalculation() {
 		return 0.0F;
 	}
+
 	/***/
 	private static boolean rangeCheck(double result) {
 		double SMALL = -1.0e-10;

@@ -2,6 +2,7 @@ package com.github.worldsender.mcanm;
 
 import org.apache.logging.log4j.Logger;
 
+import com.github.worldsender.mcanm.client.config.MCAnmConfiguration;
 import com.github.worldsender.mcanm.test.CubeEntity;
 
 import cpw.mods.fml.client.event.ConfigChangedEvent.OnConfigChangedEvent;
@@ -12,8 +13,6 @@ import cpw.mods.fml.common.event.FMLInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.registry.EntityRegistry;
-import net.minecraftforge.common.config.Configuration;
-import net.minecraftforge.common.config.Property;
 
 @Mod(
 		modid = Reference.core_modid,
@@ -24,12 +23,10 @@ public class MCAnm {
 	/**
 	 * Enables various visual outputs, e.g. the bones of models are rendered.
 	 */
-	public static final boolean isDebug = false;
+	public static final boolean isDebug = true;
 
 	@Mod.Instance(Reference.core_modid)
 	public static MCAnm instance;
-
-	public static Logger logger;
 
 	@SidedProxy(
 			modId = Reference.core_modid,
@@ -37,18 +34,14 @@ public class MCAnm {
 			serverSide = "com.github.worldsender.mcanm.server.ServerProxy")
 	public static Proxy proxy;
 
-	private Configuration config;
-	public static Property enableReload;
+	private MCAnmConfiguration config;
+	private Logger logger;
 
 	@Mod.EventHandler
 	public void preInit(FMLPreInitializationEvent pre) {
 		logger = pre.getModLog();
-		config = new Configuration(pre.getSuggestedConfigurationFile());
-		config.load();
-		enableReload = config.get(Configuration.CATEGORY_GENERAL, Reference.config_reload_enabled, true)
-				.setLanguageKey(Reference.gui_config_reload_enabled);
-		config.save();
-		proxy.register();
+		config = new MCAnmConfiguration(pre.getSuggestedConfigurationFile());
+		proxy.preInit();
 		FMLCommonHandler.instance().bus().register(this);
 		logger.info("Successfully loaded MC Animations");
 	}
@@ -59,13 +52,29 @@ public class MCAnm {
 			return;
 		int id = 0;
 		EntityRegistry.registerModEntity(CubeEntity.class, "Cube", id, this, 80, 1, true);
+		proxy.init();
 	}
 
 	@SubscribeEvent
 	public void onConfigChange(OnConfigChangedEvent occe) {
 		if (!occe.modID.equals(Reference.core_modid))
 			return;
-		if (config.hasChanged())
-			config.save();
+		config.onConfigChange(occe);
+	}
+
+	public static MCAnmConfiguration configuration() {
+		return instance.getConfiguration();
+	}
+
+	public MCAnmConfiguration getConfiguration() {
+		return this.config;
+	}
+
+	public static Logger logger() {
+		return instance.getLogger();
+	}
+
+	public Logger getLogger() {
+		return this.logger;
 	}
 }

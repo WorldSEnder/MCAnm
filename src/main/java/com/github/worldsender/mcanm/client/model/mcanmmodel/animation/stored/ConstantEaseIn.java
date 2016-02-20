@@ -3,9 +3,10 @@ package com.github.worldsender.mcanm.client.model.mcanmmodel.animation.stored;
 import java.io.DataInputStream;
 
 import org.lwjgl.util.vector.Vector2f;
+
 /**
- * Constant ease describes a horizontal line that has the value of it's right
- * end point and also ends there, something about this:<br>
+ * Constant ease describes a horizontal line that has the value of it's right end point and also ends there, something
+ * about this:<br>
  * ------------------------- <br>
  *
  * @author WorldSEnder

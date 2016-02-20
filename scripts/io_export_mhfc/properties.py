@@ -70,7 +70,6 @@ class UniqueNameElement(object):
 			# don't want to handle
 			super().__setattr__(attr, value)
 			return
-		print("Setting name")
 		self_name = getattr(self, _NAME)
 		if value == self_name:
 			# check for assignement of current value
@@ -110,19 +109,19 @@ class Preferences(AddonPreferences):
 			update=update_default_ifnot('mod_id', "minecraft"),
 			options={'HIDDEN'})
 	directory = StringProperty(
-			name="Dir name",
-			description="The folder to export to",
+			name="Resource Folder",
+			description="The resource folder of your mod, most likely 'C:\path\to\mod\src\main\resources\'",
 			subtype='DIR_PATH',
 			options={'HIDDEN'})
 	model_path = StringProperty(
 			name="Modelpath",
-			description="A formatstring to the path of you model. You may use {modid} and {modelname}.",
+			description="Advanced: A formatstring to the path of you model. You may use {modid} and {modelname}.",
 			default="{modid}:models/{modelname}/{modelname}.mcmd",
 			update=update_default_ifnot('model_path', "{modid}:models/{modelname}/{modelname}.mcmd"),
 			options={'HIDDEN'})
 	tex_path = StringProperty(
 			name="Texpath",
-			description="A formatstring to the textures. You may use {modid}, {modelname} and {texname}.",
+			description="Advanced: A formatstring to the textures. You may use {modid}, {modelname} and {texname}.",
 			default="{modid}:textures/models/{modelname}/{texname}.png",
 			update=update_default_ifnot('tex_path', "{modid}:textures/models/{modelname}/{texname}.png"),
 			options={'HIDDEN'})

@@ -1,8 +1,8 @@
 package com.github.worldsender.mcanm.client.model.mcanmmodel.data;
 
-import org.lwjgl.util.vector.Quaternion;
-import org.lwjgl.util.vector.Vector2f;
-import org.lwjgl.util.vector.Vector3f;
+import javax.vecmath.Quat4f;
+import javax.vecmath.Vector2f;
+import javax.vecmath.Vector3f;
 
 public class RawDataV1 extends RawData {
 
@@ -28,8 +28,7 @@ public class RawDataV1 extends RawData {
 		/** All available {@link TesselationPoint}s in this part of the model */
 		public TesselationPoint[] points;
 		/**
-		 * The array to store the order of the {@link TesselationPoint}s. To be
-		 * interpreted as unsigned.
+		 * The array to store the order of the {@link TesselationPoint}s. To be interpreted as unsigned.
 		 */
 		public short[] indices;
 		/** The material this part of the model uses */
@@ -38,7 +37,7 @@ public class RawDataV1 extends RawData {
 
 	public static class Bone {
 		public String name;
-		public Quaternion rotation;
+		public Quat4f rotation;
 		public Vector3f offset;
 		/** Parent of this bone as array index. A value of 0xFF means no parent */
 		public byte parent;
@@ -54,6 +53,7 @@ public class RawDataV1 extends RawData {
 		 */
 		public int nbrBones;
 	}
+
 	// Header as is is automatically part of the model
 	// public Header header;
 	/**

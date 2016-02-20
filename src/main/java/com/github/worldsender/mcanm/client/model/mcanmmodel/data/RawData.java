@@ -7,12 +7,10 @@ import com.github.worldsender.mcanm.client.model.mcanmmodel.glcontext.GLHelper;
 import net.minecraft.util.ResourceLocation;
 
 /**
- * Represents the model data right after being loaded. No optimizations or
- * offset has happened yet. This is the raw data return from the appropriate
- * loader. <br>
- * This data will then be translated into an {@link IModelData} by the
- * appropriate {@link GLHelper} to be used to render the model. This is a marker
- * interface.
+ * Represents the model data right after being loaded. No optimizations or offset has happened yet. This is the raw data
+ * return from the appropriate loader. <br>
+ * This data will then be translated into an {@link IModelData} by the appropriate {@link GLHelper} to be used to render
+ * the model. This is a marker interface.
  *
  * @author WorldSEnder
  *
@@ -21,10 +19,10 @@ public class RawData {
 	public final UUID modelUUID;
 	public final String artist;
 	public final ResourceLocation srcLocation;
+
 	/**
-	 * This constructor is used as an initiator and called by the loader. This
-	 * loads meta-data and hands this {@link RawData} object over to the correct
-	 * version loader. This version loader then instantiates a new RawData
+	 * This constructor is used as an initiator and called by the loader. This loads meta-data and hands this
+	 * {@link RawData} object over to the correct version loader. This version loader then instantiates a new RawData
 	 * through {@link #RawData(RawData)} to copy the meta information.
 	 *
 	 * @param uuid
@@ -36,6 +34,7 @@ public class RawData {
 		this.artist = artist;
 		this.srcLocation = srcLocation;
 	}
+
 	/**
 	 * Copy constructor.
 	 *

@@ -5,17 +5,16 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import net.minecraftforge.client.model.ModelFormatException;
-
 import org.lwjgl.util.vector.Vector2f;
+
+import com.github.worldsender.mcanm.client.exceptions.ModelFormatException;
 
 public class AnimatedValue {
 	/** The splines making up the full curve. */
 	private List<Spline> splines;
 	/**
-	 * Reads the animated value from the {@link DataInputStream} given using
-	 * keyframes. That are time, value pairs. Each pair forms a keyframe.
-	 * Between successive two keyframes is a spline that can be the graph of any
+	 * Reads the animated value from the {@link DataInputStream} given using keyframes. That are time, value pairs. Each
+	 * pair forms a keyframe. Between successive two keyframes is a spline that can be the graph of any
 	 * real-value-function.<br>
 	 *
 	 * @param defaultValue
@@ -23,8 +22,8 @@ public class AnimatedValue {
 	 * @param is
 	 */
 	private float defaultValue;
-	public AnimatedValue(float defaultValue, DataInputStream dis)
-			throws ModelFormatException, IOException {
+
+	public AnimatedValue(float defaultValue, DataInputStream dis) throws ModelFormatException, IOException {
 		this.defaultValue = defaultValue;
 		splines = new ArrayList<>();
 		int nbrFrames = dis.readUnsignedShort();
@@ -41,13 +40,13 @@ public class AnimatedValue {
 				left = right;
 				right = Spline.readPoint(dis);
 				byte interpolation = dis.readByte();
-				splines.add(Spline.interpolating(interpolation, left, right,
-						dis));
+				splines.add(Spline.interpolating(interpolation, left, right, dis));
 			}
 			byte easeOut = dis.readByte();
 			splines.add(Spline.easeOut(easeOut, right, dis));
 		}
 	}
+
 	/**
 	 * Gets the y-value that corresponds to the time (x-value) given.
 	 *

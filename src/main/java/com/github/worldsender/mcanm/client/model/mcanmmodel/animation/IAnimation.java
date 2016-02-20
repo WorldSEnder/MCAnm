@@ -1,10 +1,14 @@
 package com.github.worldsender.mcanm.client.model.mcanmmodel.animation;
 
-import org.lwjgl.util.vector.Matrix4f;
-import org.lwjgl.util.vector.Quaternion;
-import org.lwjgl.util.vector.Vector3f;
+import javax.vecmath.Matrix4f;
+import javax.vecmath.Quat4f;
+import javax.vecmath.Vector3f;
+
+import org.apache.commons.lang3.tuple.Triple;
 
 import com.github.worldsender.mcanm.client.model.mcanmmodel.Utils;
+import com.google.common.base.Optional;
+
 /**
  * An animation to transform the model.
  *
@@ -13,62 +17,63 @@ import com.github.worldsender.mcanm.client.model.mcanmmodel.Utils;
  */
 public interface IAnimation {
 	/**
-	 * Describes a BoneTransformation, including rotation, translation and
-	 * scaling.
+	 * Describes a BoneTransformation, including rotation, translation and scaling.
 	 *
 	 * @author WorldSEnder
 	 *
 	 */
 	public static class BoneTransformation {
+		public static final BoneTransformation identity = new BoneTransformation();
+
 		private static Vector3f identityScale() {
 			return new Vector3f(1.0F, 1.0F, 1.0F);
 		}
 
-		public static final BoneTransformation identity = new BoneTransformation();
-
-		private Quaternion rotationQuat;
-		private Vector3f translation;
-		private Vector3f scale;
+		private final Matrix4f matrix;
+		private final Vector3f t, s;
+		private final Quat4f r;
 
 		public BoneTransformation() {
-			this(new Vector3f(), new Quaternion(), identityScale());
+			this(null, null, null);
 		}
 
-		public BoneTransformation(Vector3f translation, Quaternion quat) {
+		public BoneTransformation(Vector3f translation, Quat4f quat) {
 			this(translation, quat, identityScale());
 		}
 
-		public BoneTransformation(Vector3f translation, Quaternion quat,
-				Vector3f scale) {
+		public BoneTransformation(Vector3f translation, Quat4f quat, Vector3f scale) {
 			if (quat == null)
-				quat = new Quaternion();
+				quat = new Quat4f();
 			if (translation == null)
 				translation = new Vector3f();
 			if (scale == null)
 				scale = identityScale();
-			this.rotationQuat = quat;
-			this.translation = translation;
-			this.scale = scale;
+			this.t = translation;
+			this.r = quat;
+			this.s = scale;
+			this.matrix = Utils.fromRTS(quat, translation, scale);
 		}
 
-		public Matrix4f asMatrix() {
-			Matrix4f mat = Utils.fromRotTrans(this.rotationQuat,
-					this.translation, 1.0F);
-			mat.scale(scale);
-			return mat;
+		public Matrix4f getMatrix() {
+			return (Matrix4f) matrix.clone();
+		}
+
+		public Triple<Vector3f, Quat4f, Vector3f> asTRS() {
+			return Triple.of(t, r, s);
 		}
 	}
+
 	/**
-	 * Returns the bone's current {@link BoneTransformation} (identified by
-	 * name). If <code>null</code> is returned by this method it is assumed that
-	 * Bone is in his binding-pose-state (identity transform).<br>
-	 * The returned matrix should already be interpolated correctly.
+	 * Returns the bone's current {@link BoneTransformation} (identified by name). <br>
+	 * If the requested bone is not known to the animation it should return an {@link Optional#absent()). This means
+	 * (for the model) that the bone is placed at it's identity position and not transformed at all, but it also gives
+	 * other animations the chance to supply their Transformation
 	 *
 	 * @param bone
 	 *            the name of the bone the matrix is requested
 	 * @param frame
 	 *            the current frame in the animation
-	 * @return the actual, present state of the requested bone
+	 * @return the present position of the bone.
 	 */
-	public BoneTransformation getCurrentTransformation(String bone, float frame);
+	public Optional<BoneTransformation> getCurrentTransformation(String bone, float frame);
 }
