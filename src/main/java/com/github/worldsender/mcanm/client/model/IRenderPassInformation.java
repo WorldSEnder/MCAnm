@@ -1,8 +1,8 @@
 package com.github.worldsender.mcanm.client.model;
 
-import net.minecraft.util.ResourceLocation;
+import com.github.worldsender.mcanm.common.animation.IAnimation;
 
-import com.github.worldsender.mcanm.client.model.mcanmmodel.animation.IAnimation;
+import net.minecraft.util.ResourceLocation;
 
 public interface IRenderPassInformation {
 	IAnimation getAnimation();

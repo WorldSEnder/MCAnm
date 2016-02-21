@@ -9,9 +9,9 @@ import javax.vecmath.Vector3f;
 
 import org.apache.commons.lang3.tuple.Triple;
 
-import com.github.worldsender.mcanm.client.model.mcanmmodel.animation.IAnimation;
-import com.github.worldsender.mcanm.client.model.mcanmmodel.animation.IAnimation.BoneTransformation;
-import com.github.worldsender.mcanm.client.model.mcanmmodel.animation.stored.BSplineInterpolation;
+import com.github.worldsender.mcanm.common.animation.IAnimation;
+import com.github.worldsender.mcanm.common.animation.IAnimation.BoneTransformation;
+import com.github.worldsender.mcanm.common.animation.stored.BSplineInterpolation;
 
 public class Animations {
 	/**

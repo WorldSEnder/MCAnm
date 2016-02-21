@@ -7,7 +7,7 @@ import static org.lwjgl.opengl.GL11.glTranslatef;
 
 import java.util.Objects;
 
-import com.github.worldsender.mcanm.client.model.mcanmmodel.ModelMCMD;
+import com.github.worldsender.mcanm.client.mcanmmodel.ModelMCMD;
 import com.github.worldsender.mcanm.client.model.util.RenderPass;
 import com.github.worldsender.mcanm.client.model.util.RenderPassInformation;
 
@@ -18,7 +18,7 @@ import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.entity.Entity;
 
 /**
- * A general purpose model that should fulfill most of your needs. It is possible to use an {@link IAnimator} to
+ * A general purpose model that should fulfill most of your needs. It is possible to use an {@link IEntityAnimator} to
  * determine the rendered
  *
  * @author WorldSEnder
@@ -31,7 +31,7 @@ public class ModelAnimated extends ModelBase {
 
 	private ModelMCMD model;
 	private float partialTick;
-	private IRender renderer; // The renderer, used to bind textures
+	private IEntityRender renderer; // The renderer, used to bind textures
 
 	private RenderPassInformation userPassCache = new RenderPassInformation();
 	private RenderPass passCache = new RenderPass(userPassCache, null, null);
@@ -71,7 +71,7 @@ public class ModelAnimated extends ModelBase {
 		glTranslatef(0, -1.5f - 1.5f * size, 0);
 
 		userPassCache.reset();
-		IRender currentRender = getRender();
+		IEntityRender currentRender = getRender();
 		IRenderPassInformation currentPass = currentRender.getAnimator().preRenderCallback(
 				entity,
 				userPassCache,
@@ -116,12 +116,12 @@ public class ModelAnimated extends ModelBase {
 	/**
 	 * Returns the currently used renderer. Here to be overridden by subclasses
 	 */
-	protected IRender getRender() {
+	protected IEntityRender getRender() {
 		return this.renderer;
 	}
 
 	/**
-	 * Sets the given {@link IRender} as the current Render. Users should not use this, only if they are the coding the
+	 * Sets the given {@link IEntityRender} as the current Render. Users should not use this, only if they are the coding the
 	 * render.<br>
 	 * The Render however should always call this at least once before rendering the model, as the render is used to
 	 * bind the textures of the model.
@@ -129,7 +129,7 @@ public class ModelAnimated extends ModelBase {
 	 * @param newRender
 	 * @return this, to make this method builder-pattern-like
 	 */
-	public ModelAnimated setRender(IRender newRender) {
+	public ModelAnimated setRender(IEntityRender newRender) {
 		this.renderer = Objects.requireNonNull(newRender);
 		return this;
 	}

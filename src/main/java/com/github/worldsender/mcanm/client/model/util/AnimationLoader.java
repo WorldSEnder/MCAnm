@@ -4,8 +4,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.github.worldsender.mcanm.MCAnm;
-import com.github.worldsender.mcanm.client.model.mcanmmodel.animation.IAnimation;
-import com.github.worldsender.mcanm.client.model.mcanmmodel.animation.stored.StoredAnimation;
+import com.github.worldsender.mcanm.common.animation.IAnimation;
+import com.github.worldsender.mcanm.common.animation.stored.StoredAnimation;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.IResourceManager;

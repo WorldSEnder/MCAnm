@@ -5,7 +5,7 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 
 import com.github.worldsender.mcanm.client.model.IRenderPassInformation;
-import com.github.worldsender.mcanm.client.model.mcanmmodel.animation.IAnimation;
+import com.github.worldsender.mcanm.common.animation.IAnimation;
 
 import net.minecraft.util.ResourceLocation;
 

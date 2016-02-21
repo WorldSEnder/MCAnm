@@ -1,6 +1,6 @@
 package com.github.worldsender.mcanm.client.renderer;
 
-import com.github.worldsender.mcanm.client.model.IAnimator;
+import com.github.worldsender.mcanm.client.model.IEntityAnimator;
 import com.github.worldsender.mcanm.client.model.IRenderPassInformation;
 import com.github.worldsender.mcanm.client.model.util.RenderPassInformation;
 import com.github.worldsender.mcanm.client.renderer.entity.RenderAnimatedModel;
@@ -17,10 +17,10 @@ import net.minecraft.entity.Entity;
 public interface IAnimatedObject {
 	/**
 	 * An animator that can be used in
-	 * {@link RenderAnimatedModel#fromResLocation(IAnimator, net.minecraft.util.ResourceLocation, float)} when the
+	 * {@link RenderAnimatedModel#fromResLocation(IEntityAnimator, net.minecraft.util.ResourceLocation, float)} when the
 	 * animated entity implements the {@link IAnimatedObject} interface.
 	 */
-	public static final IAnimator ANIMATOR_ADAPTER = new IAnimator() {
+	public static final IEntityAnimator ANIMATOR_ADAPTER = new IEntityAnimator() {
 		@Override
 		public IRenderPassInformation preRenderCallback(
 				Entity entity,

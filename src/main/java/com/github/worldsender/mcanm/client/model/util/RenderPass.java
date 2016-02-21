@@ -5,10 +5,10 @@ import java.util.Objects;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.util.ResourceLocation;
 
-import com.github.worldsender.mcanm.client.model.IRender;
+import com.github.worldsender.mcanm.client.mcanmmodel.IRenderPass;
+import com.github.worldsender.mcanm.client.model.IEntityRender;
 import com.github.worldsender.mcanm.client.model.IRenderPassInformation;
-import com.github.worldsender.mcanm.client.model.mcanmmodel.IRenderPass;
-import com.github.worldsender.mcanm.client.model.mcanmmodel.animation.IAnimation;
+import com.github.worldsender.mcanm.common.animation.IAnimation;
 
 /**
  * A collection of information neccessary to render the model.
@@ -19,9 +19,9 @@ import com.github.worldsender.mcanm.client.model.mcanmmodel.animation.IAnimation
 public class RenderPass implements IRenderPass {
 	private IRenderPassInformation userInfo;
 	private Tessellator tesselator;
-	private IRender render;
+	private IEntityRender render;
 
-	public RenderPass(IRenderPassInformation info, Tessellator tesselator, IRender renderer) {
+	public RenderPass(IRenderPassInformation info, Tessellator tesselator, IEntityRender renderer) {
 		this.userInfo = Objects.requireNonNull(info);
 		this.tesselator = tesselator;
 	}
@@ -66,7 +66,7 @@ public class RenderPass implements IRenderPass {
 		return this;
 	}
 
-	public RenderPass setRender(IRender render) {
+	public RenderPass setRender(IEntityRender render) {
 		this.render = Objects.requireNonNull(render);
 		return this;
 	}

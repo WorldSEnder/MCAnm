@@ -1,9 +1,9 @@
 package com.github.worldsender.mcanm.client.renderer.entity;
 
-import com.github.worldsender.mcanm.client.model.IAnimator;
-import com.github.worldsender.mcanm.client.model.IRender;
+import com.github.worldsender.mcanm.client.mcanmmodel.ModelMCMD;
+import com.github.worldsender.mcanm.client.model.IEntityAnimator;
+import com.github.worldsender.mcanm.client.model.IEntityRender;
 import com.github.worldsender.mcanm.client.model.ModelAnimated;
-import com.github.worldsender.mcanm.client.model.mcanmmodel.ModelMCMD;
 import com.github.worldsender.mcanm.client.model.util.ModelLoader;
 
 import net.minecraft.client.renderer.entity.RenderLiving;
@@ -13,13 +13,13 @@ import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.util.ResourceLocation;
 
-public class RenderAnimatedModel extends RenderLiving implements IRender {
+public class RenderAnimatedModel extends RenderLiving implements IEntityRender {
 	private static final ResourceLocation ignored = TextureMap.locationBlocksTexture;
 
 	protected ModelAnimated model;
-	private IAnimator animator;
+	private IEntityAnimator animator;
 
-	public RenderAnimatedModel(ModelAnimated model, IAnimator animator, float shadowSize) {
+	public RenderAnimatedModel(ModelAnimated model, IEntityAnimator animator, float shadowSize) {
 		super(model, shadowSize);
 		this.model = model.setRender(this);
 		this.animator = animator;
@@ -42,7 +42,7 @@ public class RenderAnimatedModel extends RenderLiving implements IRender {
 	}
 
 	@Override
-	public IAnimator getAnimator() {
+	public IEntityAnimator getAnimator() {
 		return this.animator;
 	}
 
@@ -62,9 +62,9 @@ public class RenderAnimatedModel extends RenderLiving implements IRender {
 	 * @param shadowSize
 	 *            the shadow size...
 	 * @return the constructed {@link RenderAnimatedModel}
-	 * @see IAnimator
+	 * @see IEntityAnimator
 	 */
-	public static RenderAnimatedModel fromResLocation(IAnimator animator, ResourceLocation resLoc, float shadowSize) {
+	public static RenderAnimatedModel fromResLocation(IEntityAnimator animator, ResourceLocation resLoc, float shadowSize) {
 		ModelMCMD rawmodel = ModelLoader.loadFrom(resLoc);
 		ModelAnimated mcmodel = new ModelAnimated(rawmodel);
 

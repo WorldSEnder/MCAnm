@@ -7,8 +7,8 @@ import java.util.Optional;
 import org.apache.logging.log4j.Logger;
 
 import com.github.worldsender.mcanm.MCAnm;
-import com.github.worldsender.mcanm.client.model.mcanmmodel.MCMDModelLoader;
-import com.github.worldsender.mcanm.client.model.mcanmmodel.ModelMCMD;
+import com.github.worldsender.mcanm.client.mcanmmodel.MCMDModelLoader;
+import com.github.worldsender.mcanm.client.mcanmmodel.ModelMCMD;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.IResourceManager;
