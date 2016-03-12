@@ -2,8 +2,6 @@ package com.github.worldsender.mcanm.client;
 
 import com.github.worldsender.mcanm.MCAnm;
 import com.github.worldsender.mcanm.Proxy;
-import com.github.worldsender.mcanm.client.model.util.AnimationLoader;
-import com.github.worldsender.mcanm.client.model.util.ModelLoader;
 import com.github.worldsender.mcanm.client.renderer.IAnimatedObject;
 import com.github.worldsender.mcanm.client.renderer.entity.RenderAnimatedModel;
 import com.github.worldsender.mcanm.test.CubeEntity;
@@ -20,8 +18,8 @@ public class ClientProxy implements Proxy {
 		IResourceManager resManager = Minecraft.getMinecraft().getResourceManager();
 		if (resManager instanceof IReloadableResourceManager) {
 			IReloadableResourceManager registry = (IReloadableResourceManager) resManager;
-			registry.registerReloadListener((rm) -> AnimationLoader.instance.onResourceManagerReload(rm));
-			registry.registerReloadListener((rm) -> ModelLoader.instance.onResourceManagerReload(rm));
+			registry.registerReloadListener(rm -> AnimationLoader.instance.onResourceManagerReload(rm));
+			registry.registerReloadListener(rm -> ModelLoader.instance.onResourceManagerReload(rm));
 		} else {
 			MCAnm.logger()
 					.warn("Couldn't register reload managers. Models will not be reloaded on switching resource pack");

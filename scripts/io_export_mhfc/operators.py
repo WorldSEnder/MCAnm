@@ -2,7 +2,7 @@ import bpy
 import bmesh
 
 from .export import export_mesh, export_action, MeshExportOptions
-from ._import import import_tabula
+from .imports import import_tabula
 from .utils import Reporter, extract_safe
 from bpy.props import BoolProperty, CollectionProperty, EnumProperty, IntProperty,\
 		IntVectorProperty, PointerProperty, StringProperty

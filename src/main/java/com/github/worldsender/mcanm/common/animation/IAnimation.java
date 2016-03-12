@@ -8,7 +8,7 @@ import javax.vecmath.Vector3f;
 
 import org.apache.commons.lang3.tuple.Triple;
 
-import com.github.worldsender.mcanm.client.mcanmmodel.Utils;
+import com.github.worldsender.mcanm.common.Utils;
 
 /**
  * An animation to transform the model.

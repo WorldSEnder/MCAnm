@@ -7,6 +7,7 @@ import javax.vecmath.Quat4f;
 import javax.vecmath.Vector3f;
 
 import com.github.worldsender.mcanm.common.animation.IAnimation.BoneTransformation;
+import com.github.worldsender.mcanm.common.animation.stored.AnimatedValue.AnimatedValueBuilder;
 import com.github.worldsender.mcanm.common.exceptions.ModelFormatException;
 
 /**
@@ -15,6 +16,36 @@ import com.github.worldsender.mcanm.common.exceptions.ModelFormatException;
  * @author WorldSEnder
  */
 public class AnimatedTransform {
+	public static class AnimatedTransformBuilder {
+		public static AnimatedValueBuilder builder = new AnimatedValueBuilder();
+
+		private AnimatedTransform value = null;
+
+		private void checkAvailable() {
+			value = new AnimatedTransform();
+		}
+
+		public AnimatedTransformBuilder fromStream(DataInputStream dis) throws IOException, ModelFormatException {
+			checkAvailable();
+			value.loc_x = builder.setDefaultValue(0.0f).fromStream(dis).buildAndReset();
+			value.loc_y = builder.setDefaultValue(0.0f).fromStream(dis).buildAndReset();
+			value.loc_z = builder.setDefaultValue(0.0f).fromStream(dis).buildAndReset();
+			value.quat_x = builder.setDefaultValue(0.0f).fromStream(dis).buildAndReset();
+			value.quat_y = builder.setDefaultValue(0.0f).fromStream(dis).buildAndReset();
+			value.quat_z = builder.setDefaultValue(0.0f).fromStream(dis).buildAndReset();
+			value.quat_w = builder.setDefaultValue(1.0f).fromStream(dis).buildAndReset();
+			value.scale_x = builder.setDefaultValue(1.0f).fromStream(dis).buildAndReset();
+			value.scale_y = builder.setDefaultValue(1.0f).fromStream(dis).buildAndReset();
+			value.scale_z = builder.setDefaultValue(1.0f).fromStream(dis).buildAndReset();
+			return this;
+		}
+
+		public AnimatedTransform buildAndReset() {
+			AnimatedTransform ret = value;
+			return ret;
+		}
+	}
+
 	private AnimatedValue loc_x;
 	private AnimatedValue loc_y;
 	private AnimatedValue loc_z;
@@ -31,17 +62,9 @@ public class AnimatedTransform {
 	 *
 	 * @param dis
 	 */
-	public AnimatedTransform(DataInputStream dis) throws ModelFormatException, IOException {
-		this.loc_x = new AnimatedValue(0.0F, dis);
-		this.loc_y = new AnimatedValue(0.0F, dis);
-		this.loc_z = new AnimatedValue(0.0F, dis);
-		this.quat_x = new AnimatedValue(0.0F, dis);
-		this.quat_y = new AnimatedValue(0.0F, dis);
-		this.quat_z = new AnimatedValue(0.0F, dis);
-		this.quat_w = new AnimatedValue(1.0F, dis);
-		this.scale_x = new AnimatedValue(1.0F, dis);
-		this.scale_y = new AnimatedValue(1.0F, dis);
-		this.scale_z = new AnimatedValue(1.0F, dis);
+	private AnimatedTransform() {
+		loc_x = loc_y = loc_z = quat_x = quat_y = quat_z = AnimatedValue.CONSTANT_ZERO;
+		quat_w = scale_x = scale_y = scale_z = AnimatedValue.CONSTANT_ONE;
 	}
 
 	/**

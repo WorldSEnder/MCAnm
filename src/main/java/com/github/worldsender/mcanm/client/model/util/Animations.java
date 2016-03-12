@@ -109,7 +109,7 @@ public class Animations {
 	}
 
 	/**
-	 * tr \ele (0, 1]
+	 * t \ele (0, 1]
 	 */
 	private static Vector3f interpolated(Vector3f f, Vector3f s, double t) {
 		float x = BSplineInterpolation.calcValue(f.x, f.x, s.x, s.x, t);
@@ -119,7 +119,7 @@ public class Animations {
 	}
 
 	/**
-	 * tr \ele (0, 1]
+	 * t \ele (0, 1]
 	 */
 	private static Quat4f interpolated(Quat4f f, Quat4f s, double t) {
 		float x = BSplineInterpolation.calcValue(f.x, f.x, s.x, s.x, t);

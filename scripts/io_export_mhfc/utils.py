@@ -3,52 +3,92 @@ import struct
 import os
 import bpy
 import sys
+from collections import defaultdict, namedtuple
+from enum import Enum
 
-class ErrorError(RuntimeError):
-	"""When something happened that can't conform with the specification.
-	Aka: the user's fault
-	"""
-	pass
+class LogLevel(Enum):
+	DEBUG = 'debug'
+	INFO = 'info'
+	WARNING = 'warning'
+	ERROR = 'error'
+	FATAL = 'fatal'
 
-class FatalError(RuntimeError):
-	"""When something happened that really shouldn't happen.
-	Aka: my fault
-	"""
-	pass
+	def is_fatal(self):
+		return self == LogLevel.ERROR or self == LogLevel.FATAL
+
+	def get_bl_report_level(self):
+		if self == LogLevel.DEBUG:
+			return {'DEBUG'}
+		if self == LogLevel.INFO:
+			return {'INFO'}
+		if self == LogLevel.WARNING:
+			return {'WARNING'}
+		if self == LogLevel.ERROR:
+			return {'ERROR'}
+		if self == LogLevel.FATAL:
+			return {'ERROR'}
+
+ReportItem = namedtuple('ReportItem', 'message cause')
+
+class Report(object):
+	_reports = None
+
+	def __init__(self):
+		self._reports = defaultdict(list)
+
+	def extend(self, other):
+		"""Append another report to this one
+		"""
+		for level in other._reports:
+			self._reports[level].extend(other._reports[level])
+
+	def append(self, message, level = LogLevel.INFO, cause = None):
+		if cause is None:
+			cause = sys.exc_info()
+		self._reports[level].append(ReportItem(message, cause))
+		return self
+
+	def get_items(self, level):
+		return self._reports[level]
+
+	def contains_fatal(self):
+		for level in self._reports:
+			if level.is_fatal() and self._reports[level]:
+				return True
+		return False
+
+	def print_report(self, op):
+		for level in self._reports:
+			op_level = level.get_bl_report_level()
+			for item in self.get_items[level]:
+				op.report(op_level, str(item.message))
 
 class ReportedError(RuntimeError):
 	"""Thrown when a Reporter fails to run. That is an error or a fatal exception occured during
 	running it.
 	"""
-	warnings = None
-	infos = None
-	error = (None, None, None) # Error tuple as from sys.exc_info()
-	_reporter = None
+	report = None
+	_target = None
 
-	def throw(self):
-		"""Throws itself, resulting in a correct traceback
-		"""
-		raise self from self.error[1] # from exc_value
+	def __init__(self, message, target = None):
+		super(ReportedError, self).__init__(message)
+		self.report = Report()
+		self._target = target
 
-	def is_reporter(self, candidate):
-		return self._reporter is None or self._reporter is candidate
+	def is_aimed_at(self, candidate):
+		return self._target is None or self._target is candidate
 
 	@classmethod
-	def from_exception(cls, reporter, exc = None):
+	def throw_from_exception(cls, reporter, level = LogLevel.ERROR, exc = None):
 		"""Constructs a ReportedError from the current exception handling context.
 		"""
 		if exc is None:
 			exc = sys.exc_info()
 		exc_type, exc_value, traceback = exc
-		if isinstance(exc_value, ReportedError):
-			exc_value._reporter = reporter
-			return exc_value # DONE
-		report = cls("An error occured:\n" + str(exc_value))
-		report._reporter = reporter
-		report.warnings = []
-		report.infos = []
-		report.error = exc
-		return report
+		message = "An error occured: " + str(exc_value)
+		reported = cls(message, target = reporter)
+		reported.report.append(exc, message, level = level, cause = exc)
+		raise reported from exc_value
 
 def static_access(func):
 	"""Provides static access to member functions by calling the function with self set to None
@@ -66,65 +106,72 @@ class Reporter(object):
 	"""
 	_stack = []
 
-	_warnings = None
-	_infos = None
-	_debug = None
-	_error = (None, None, None)
-	_passexceptions = None
+	_report = None
+	_caught = None
 	_engaged = None
+	_bl_op = None
 
-	def __init__(self, catchexceptions=True):
-		"""@param catchexceptions: if True when exiting the context because of an exception occured,
-		it is not passed on, but instead an error is reported.
+	def __init__(self, caught_types=(Exception,), reported_to = None):
+		"""@param caught_types: A repeatable-iterable containing classinfos that will be used to check if an exception of type exc_t
+		should be caught or not. A caught exception will be logged as LogLevel.ERROR and not passed onwards. Note that
+		each entry of caught_types can be either a class or a tuple of classes and will be checked via issubclass(exc_t, entry).
+
 		Note that this does not change how an ReportedError is handled. They are reported if they
 		belong to this reporter.
 		"""
-		self._warnings = []
-		self._infos = []
-		self._debug = []
-		self._passexceptions = not catchexceptions
-		self._error = (None, None, None)
+		self._report = Report()
+		self._caught = caught_types
 		self._engaged = False
+		self._bl_op = reported_to
+		# The following will check that the given caught_types is indeed legal by performing a dummy check
+		self._should_catch(type(None))
+
+	def _should_catch(self, exc_type):
+		return any(issubclass(exc_type, ct) for ct in self._caught)
 
 	def __enter__(self):
-		if self._error[1] is not None:
-			raise RuntimeError("Clear the reporter with .get_report() before reusing it")
+		if self._engaged:
+			raise RuntimeError("No multi-entry into a reporter allowed")
 		self._engaged = True
 		Reporter._stack.append(self)
 		return self
 
 	def __exit__(self, exc_type, exc_value, traceback):
 		try:
-			exc = exc_type, exc_value, traceback
+			exc = (exc_type, exc_value, traceback)
 			if exc_value is None:
 				# Completed normally, yay
 				return False
 			if isinstance(exc_value, ReportedError):
 				# Allows for nesting of multiple reporters
-				if exc_value.is_reporter(self):
-					assert(self._error[1] is None)
-					self._warnings.extend(exc_value.warnings)
-					self._infos.extend(exc_value.infos)
-					self._error = exc_value.error
+				if exc_value.is_aimed_at(self):
+					self._report.extend(exc_value.report)
 					return True # Catch it, was ours
 				else:
-					exc_value.warnings.extend(self._warnings)
-					exc_value.infos.extend(self._infos)
+					exc_value.report.extend(self._report)
 					return False # Pass it on, to another reporter
-			if self._passexceptions:
-				return False # Pass it on, don't handle it
-			self._error = exc
+			if self._should_catch(exc_type):
+				self._report.append(exc_value, level = LogLevel.ERROR, cause = exc)
+				return True
+			return False
 		finally:
 			self._engaged = False
+			if self._bl_op is not None:
+				self.print_report(self._bl_op)
 			assert(Reporter._stack.pop() is self)
+
+	def rebind_bl_op(self, op):
+		"""Binds a Blender op that will be reported to when this Reporter __exit__s
+		"""
+		self._bl_op = op
 
 	@classmethod
 	def _get_reporter(cls, proposed):
 		if proposed is not None:
 			return proposed
-		if cls._stack:
-			return cls._stack[-1]
-		return None
+		if not cls._stack:
+			return None
+		return cls._stack[-1]
 
 	@static_access
 	def warning(self, message, *args, **wargs):
@@ -135,7 +182,7 @@ class Reporter(object):
 		if self is None:
 			return
 		formatted = message.format(*args, **wargs)
-		self._warnings.append(formatted)
+		self._report.append(formatted, level = LogLevel.WARNING)
 
 	@static_access
 	def info(self, message, *args, **wargs):
@@ -145,7 +192,7 @@ class Reporter(object):
 		if self is None:
 			return
 		formatted = message.format(*args, **wargs)
-		self._infos.append(formatted)
+		self._report.append(formatted, level = LogLevel.INFO)
 
 	@static_access
 	def debug(self, message, *args, **wargs):
@@ -155,7 +202,7 @@ class Reporter(object):
 		if self is None:
 			return
 		formatted = message.format(*args, **wargs)
-		self._debug.append(formatted)
+		self._report.append(formatted, level = LogLevel.DEBUG)
 
 	@static_access
 	def error(self, message, *args, cause=None, **wargs):
@@ -168,8 +215,7 @@ class Reporter(object):
 		try:
 			raise ErrorError(formatted) from cause
 		except ErrorError:
-			exc = ReportedError.from_exception(self)
-		exc.throw()
+			ReportedError.rethrow_from_exception(self)
 
 	@static_access
 	def fatal(self, message, *args, cause=None, **wargs):
@@ -184,22 +230,13 @@ class Reporter(object):
 		try:
 			raise FatalException(message) from cause
 		except FatalException:
-			exc = ReportedError.from_exception(self)
-		exc.throw()
+			ReportedError.rethrow_from_exception(self)
 
 	def print_report(self, op):
-		# Print the things
-		for info in self._infos:
-			op.report({'INFO'}, str(info))
-		for debug in self._debug:
-			op.report({'DEBUG'}, str(debug))
-		for warning in self._warnings:
-			op.report({'WARNING'}, str(warning))
-		if not self.was_success():
-			op.report({'ERROR'}, str(self._error[1]))
+		self._report.print_report(op)
 
 	def was_success(self):
-		return self._error[1] is None
+		return not self._report.contains_fatal()
 
 def extract_safe(collection, key, mess_on_fail, *args, on_fail = Reporter.error, **wargs):
 	"""Ensures that the item is in the collection by reporting an error with

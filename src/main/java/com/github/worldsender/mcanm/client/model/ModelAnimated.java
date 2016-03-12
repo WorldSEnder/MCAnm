@@ -7,7 +7,7 @@ import static org.lwjgl.opengl.GL11.glTranslatef;
 
 import java.util.Objects;
 
-import com.github.worldsender.mcanm.client.mcanmmodel.ModelMCMD;
+import com.github.worldsender.mcanm.client.mcanmmodel.stored.ModelMCMD;
 import com.github.worldsender.mcanm.client.model.util.RenderPass;
 import com.github.worldsender.mcanm.client.model.util.RenderPassInformation;
 

@@ -5,7 +5,7 @@ import java.util.Objects;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.util.ResourceLocation;
 
-import com.github.worldsender.mcanm.client.mcanmmodel.IRenderPass;
+import com.github.worldsender.mcanm.client.IRenderPass;
 import com.github.worldsender.mcanm.client.model.IEntityRender;
 import com.github.worldsender.mcanm.client.model.IRenderPassInformation;
 import com.github.worldsender.mcanm.common.animation.IAnimation;
