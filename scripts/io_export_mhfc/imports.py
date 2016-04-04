@@ -161,9 +161,7 @@ class Techne(Element):
             obj = model.apply()
             if obj is None:
                 continue
-            if hasattr(obj.data, 'mcprops'):
-                props = obj.data.mcprops
-                props.artist = self.author
+            obj.data.mcprops.artist = self.author
             objects.append(obj)
         return objects
 
@@ -235,9 +233,7 @@ class Model(Element):
         bm = bmesh.new()
         uv = bm.loops.layers.uv.new('UVLayer')
         tex = bm.faces.layers.tex.new('UVLayer')
-        mc_loop = None
-        if hasattr(mesh, 'mcprops'):
-            mc_loop = bm.faces.layers.int.new('MCRenderGroupIndex')
+        mc_loop = bm.faces.layers.int.new('MCRenderGroupIndex')
         for shape_nbr, shape in enumerate(self.shapes):
             # points is a list of lists of points (representing a list of
             # faces)
@@ -267,17 +263,16 @@ class Model(Element):
         bm.to_mesh(mesh)
         # make obj
         obj = bpy.data.objects.new(self.name, mesh)
-        if hasattr(mesh, 'mcprops'):
-            props = mesh.mcprops
-            props.name = self.name
-            props.uv_layer = uv.name
+        props = mesh.mcprops
+        props.name = self.name
+        props.uv_layer = uv.name
+        if self.img is not None:
+            props.default_group.image = self.img.name
+        for shape in self.shapes:
+            group = props.render_groups.add()
+            group.name = shape.name
             if self.img is not None:
-                props.default_img = self.img.name
-            for shape in self.shapes:
-                group = props.render_groups.add()
-                group.name = shape.name
-                if self.img is not None:
-                    group.image = self.img.name
+                group.image = self.img.name
         return obj
 
 

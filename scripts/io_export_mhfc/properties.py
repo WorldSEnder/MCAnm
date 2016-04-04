@@ -124,13 +124,6 @@ class SceneProps(PropertyGroup):
 
 
 class MeshProps(PropertyGroup):
-    version = EnumProperty(
-        name="Version",
-        description="Target version in Minecraft.",
-        items=[
-            ("V1", "Version 1", "Version 1 of MC model files. Rev1_010814")],
-        default="V1",
-        options={'SKIP_SAVE'})
     armature = StringProperty(
         name="Armature",
         description="The armature that defines animations.",
@@ -162,15 +155,6 @@ class MeshProps(PropertyGroup):
         type=RenderGroups,
         name="Model Name",
         description="The group all faces are in if not in a valid group",
-        options=set())
-    default_group_name = StringProperty(
-        name="Default Group",
-        description="The group all faces are in if not in a valid group",
-        default="Default",
-        options=set())
-    default_img = StringProperty(
-        name="Default Tex",
-        description="The texture a face gets if it doesn't specify a specific one.",
         options=set())
 
 

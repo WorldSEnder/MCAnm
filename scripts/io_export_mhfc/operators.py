@@ -161,7 +161,6 @@ class ObjectExporter(Operator):
         if not self.uv_layer and context.object.data.uv_layers.active is not None:
             self.uv_layer = context.object.data.uv_layers.active.name
 
-        self.version = props.version
         self.artist = props.artist
         self.model_name = props.name
         self.model_name = bpy.path.ensure_ext(self.model_name, '.mcmd')[:-5]
