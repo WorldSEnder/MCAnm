@@ -1,5 +1,4 @@
 from bpy_extras.io_utils import ImportHelper
-from contextlib import ExitStack
 import bmesh
 import bpy
 
@@ -8,12 +7,13 @@ from bpy.props import BoolProperty, CollectionProperty, EnumProperty, IntPropert
 from bpy.types import Operator
 
 from .export import export_mesh, export_action, MeshExportOptions
-from .imports import import_tabula
+from .imports import import_tabula, read_tcn
 from .utils import Reporter, extract_safe
 
 
-VERSIONS = [("V1", "Version 1", "Version 1 of MD model files. Rev1_010814")]
-DEFAULT_VER = "V1"
+VERSIONS = [("V1", "Version 1", "Version 1 of MD model files. Rev1_010814"),
+            ("V2", "Version 2", "Version 2 of MD model files. Rev1_300316")]
+DEFAULT_VER = "V2"
 
 
 class ObjectExporter(Operator):
@@ -23,14 +23,15 @@ class ObjectExporter(Operator):
     bl_label = "Export MCMD"
 
     # Fileselector class uses this
+    directory = StringProperty(
+        name="Dir name",
+        description="The resource folder to export to",
+        subtype='DIR_PATH')
+
     mod_id = StringProperty(
         name="Mod ID",
         description="Your Mod ID",
         default="minecraft")
-    filepath = StringProperty(
-        name="Dir name",
-        description="The resource folder to export to",
-        subtype='DIR_PATH')
     model_path = StringProperty(
         name="Path to the model",
         description="A formatstring to the path of you model. You may use {modid} and {modelname}.",
@@ -101,7 +102,7 @@ class ObjectExporter(Operator):
             opt = MeshExportOptions()
 
             opt.mod_id = self.mod_id
-            opt.dirpath = self.filepath
+            opt.dirpath = self.directory
             opt.modelpath = self.model_path
             opt.texpath = self.tex_path
 
@@ -126,10 +127,8 @@ class ObjectExporter(Operator):
             opt.artist = self.artist
             opt.modelname = self.model_name
             opt.def_group_name = self.default_group_name
-            if opt.def_group_name in opt.obj.data.mcprops.render_groups:
-                Reporter.error("Default groupname can't duplicate group name")
             opt.def_image = extract_safe(
-                bpy.data.images, self.default_img, "Default image {item} not in bpy.data.images").name
+                bpy.data.images, self.default_img, "Default image {item} not in bpy.data.images")
             opt.export_tex = self.export_tex
 
             context.scene.mcprops.export_tex = False
@@ -139,7 +138,8 @@ class ObjectExporter(Operator):
 
     def invoke(self, context, event):
         if context.object is None or context.object.type != 'MESH':
-            self.report({'ERROR'}, "Active object must be a mesh")
+            self.report(
+                {'ERROR'}, "Active object must be a mesh not {}".format(context.object.type))
             return {'CANCELLED'}
         prefs = context.user_preferences.addons[__package__].preferences
         props = context.object.data.mcprops
@@ -167,12 +167,12 @@ class ObjectExporter(Operator):
         self.model_name = bpy.path.ensure_ext(self.model_name, '.mcmd')[:-5]
         self.model_name = self.model_name.replace(
             ' ', '_').replace('/', '_').replace('\\', '_')
-        self.default_group_name = props.default_group_name
-        self.default_img = props.default_img
+        self.default_group_name = props.default_group.name
+        self.default_img = props.default_group.image
 
         self.export_tex = sceprops.export_tex
 
-        self.filepath = bpy.path.abspath(prefs.directory)
+        self.directory = bpy.path.abspath(prefs.directory)
         context.window_manager.fileselect_add(self)
         return {'RUNNING_MODAL'}
 
@@ -290,7 +290,7 @@ class TabulaImporter(Operator, ImportHelper):
         with Reporter() as reporter:
             sce = extract_safe(
                 bpy.data.scenes, self.scene, 'Scene {item} not found')
-            import_tabula(filepath, sce, only_poses)
+            import_tabula(self.filepath, sce, self.only_poses)
             reporter.info(
                 "Successfully imported the Tabula model from {path}", path=self.filepath)
         reporter.print_report(self)
@@ -482,3 +482,27 @@ class UpdateGroupsVisual(Operator):
         bmesh.update_edit_mesh(data)
         context.scene.render.engine = "BLENDER_RENDER"
         return {'FINISHED'}
+
+
+class ImportTechne(Operator, ImportHelper):
+    bl_idname = "import_mesh.tcn"
+    bl_label = "Import Techne Model"
+
+    # ImportHelper mixin class uses this
+    filename_ext = ".tcn"
+
+    filter_glob = StringProperty(
+        default="*.tcn",
+        options={'HIDDEN'},
+    )
+
+    def execute(self, context):
+        with Reporter() as reporter:
+            context.scene.render.engine = 'BLENDER_RENDER'
+            context.scene.game_settings.material_mode = 'GLSL'
+            context.user_preferences.system.use_mipmaps = False
+            read_tcn(context, self.filepath, self)
+            reporter.info(
+                "Successfully imported the Tabula model from {path}", path=self.filepath)
+        reporter.print_report(self)
+        return {'FINISHED'} if reporter.was_success() else {'CANCELLED'}

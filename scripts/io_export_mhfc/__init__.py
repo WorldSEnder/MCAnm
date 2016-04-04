@@ -4,7 +4,7 @@
 #  modify it under the terms of the GNU General Public License
 #  as published by the Free Software Foundation; either version 2
 #  of the License, or (at your option) any later version.
-
+#
 #  This program is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -15,6 +15,10 @@
 #  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ##### END GPL LICENSE BLOCK #####
+
+import bpy
+
+from . import properties, layout, operators
 
 bl_info = {
     "name": "Export: Minecraft Model (.mcmd)",
@@ -28,10 +32,6 @@ bl_info = {
     "tracker_url": "",
     "category": "Import-Export",
 }
-
-import bpy
-
-from . import properties, layout, operators
 
 
 def register():

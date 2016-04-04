@@ -50,63 +50,6 @@ def update_default_ifnot(prop, default):
     return update
 
 
-class UniqueNameElement(object):
-    _PATH_RE = re.compile('(.*)\[\d*\]')
-    _NAME_RE = re.compile('(.*)\.(\d{3,})')
-
-    def collection_from_element(self):
-        # this gets the collection that the element is in
-        path = self.path_from_id()
-        match = self._PATH_RE.match(path)
-        parent = self.id_data
-        try:
-            coll_path = match.group(1)
-        except AttributeError:
-            raise TypeError("Property not element in a collection.")
-        return parent.path_resolve(coll_path)
-
-    def __setattr__(self, attr, value):
-        _NAME = "name"
-
-        def new_val(stem, nbr):
-            # simply for formatting
-            return '{st}.{nbr:03d}'.format(st=stem, nbr=nbr)
-
-        # =====================================================
-        if attr != _NAME:
-            # don't want to handle
-            super().__setattr__(attr, value)
-            return
-        self_name = getattr(self, _NAME)
-        if value == self_name:
-            # check for assignement of current value
-            return
-
-        coll = self.collection_from_element()
-        if value not in coll:
-            # if value is not in the collection, just assign
-            super().__setattr__(_NAME, value)
-            return
-
-        # see if value is already in a format like 'name.012'
-        match = self._NAME_RE.match(value)
-        if match is None:
-            stem, nbr = value, 1
-        else:
-            stem, nbr = match.groups()
-            nbr = int(nbr) + 1
-
-        # check for each value if in collection
-        new_value = new_val(stem, nbr)
-        while new_value in coll:
-            # return if we would set it to current value
-            if new_value == self_name:
-                return
-            nbr += 1
-            new_value = new_val(stem, nbr)
-        super().__setattr__(_NAME, new_value)
-
-
 class Preferences(AddonPreferences):
     bl_idname = __package__
 
@@ -149,7 +92,7 @@ class ArmatureDESCR(PropertyGroup):
     pass
 
 
-class RenderGroups(UniqueNameElement, PropertyGroup):
+class RenderGroups(PropertyGroup):
     image = StringProperty(
         name="Image",
         description="The image-texture of this group")
@@ -215,6 +158,11 @@ class MeshProps(PropertyGroup):
     active_render_group = IntProperty(
         name="Active Render Group",
         default=-1)
+    default_group = PointerProperty(
+        type=RenderGroups,
+        name="Model Name",
+        description="The group all faces are in if not in a valid group",
+        options=set())
     default_group_name = StringProperty(
         name="Default Group",
         description="The group all faces are in if not in a valid group",

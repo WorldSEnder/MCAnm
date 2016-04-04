@@ -3,8 +3,8 @@ from collections import defaultdict, namedtuple
 from enum import Enum
 import bpy
 import os
-import struct
 import sys
+import traceback
 
 
 class LogLevel(Enum):
@@ -25,11 +25,11 @@ class LogLevel(Enum):
         if self == LogLevel.WARNING:
             return {'WARNING'}
         if self == LogLevel.ERROR:
-            return {'ERROR'}
+            return {'ERROR_INVALID_INPUT'}
         if self == LogLevel.FATAL:
             return {'ERROR'}
 
-ReportItem = namedtuple('ReportItem', 'message cause')
+ReportItem = namedtuple('ReportItem', 'message etype value traceback')
 
 
 class Report(object):
@@ -47,7 +47,8 @@ class Report(object):
     def append(self, message, level=LogLevel.INFO, cause=None):
         if cause is None:
             cause = sys.exc_info()
-        self._reports[level].append(ReportItem(message, cause))
+        etype, val, trace = cause
+        self._reports[level].append(ReportItem(message, etype, val, trace))
         return self
 
     def get_items(self, level):
@@ -62,7 +63,11 @@ class Report(object):
     def print_report(self, op):
         for level in self._reports:
             op_level = level.get_bl_report_level()
-            for item in self.get_items[level]:
+            for item in self.get_items(level):
+                if level.is_fatal():
+                    formatted = traceback.format_exception(
+                        item.etype, item.value, item.traceback)
+                    op.report(op_level, ''.join(formatted))
                 op.report(op_level, str(item.message))
 
 
@@ -87,10 +92,10 @@ class ReportedError(RuntimeError):
         """
         if exc is None:
             exc = sys.exc_info()
-        exc_type, exc_value, traceback = exc
+        _, exc_value, _ = exc
         message = "An error occured: " + str(exc_value)
         reported = cls(message, target=reporter)
-        reported.report.append(exc, message, level=level, cause=exc)
+        reported.report.append(message, level=level, cause=exc)
         raise reported from exc_value
 
 
@@ -223,9 +228,9 @@ class Reporter(object):
                 "Can't file an error without __enter__'ing this Reporter")
         formatted = message.format(*args, **wargs)
         try:
-            raise ErrorError(formatted) from cause
-        except ErrorError:
-            ReportedError.rethrow_from_exception(self)
+            raise RuntimeError(formatted) from cause
+        except RuntimeError:
+            ReportedError.throw_from_exception(self, level=LogLevel.FATAL)
 
     @static_access
     def fatal(self, message, *args, cause=None, **wargs):
@@ -240,9 +245,9 @@ class Reporter(object):
         message = "This should not have happened. Report to WorldSEnder:\n{mess}".format(
             mess=formatted)
         try:
-            raise FatalException(message) from cause
-        except FatalException:
-            ReportedError.rethrow_from_exception(self)
+            raise RuntimeError(message) from cause
+        except RuntimeError:
+            ReportedError.throw_from_exception(self, level=LogLevel.FATAL)
 
     def print_report(self, op):
         self._report.print_report(op)
@@ -314,7 +319,7 @@ def openw_save(filepath, flags, *args, **wargs):
     open(filepath, flags, *args, **wargs)
     """
     filepath = bpy.path.abspath(filepath)
-    dir = os.path.dirname(filepath)
-    if not os.path.exists(dir):
-        os.makedirs(dir)
+    directory = os.path.dirname(filepath)
+    if not os.path.exists(directory):
+        os.makedirs(directory)
     return open(filepath, flags, *args, **wargs)

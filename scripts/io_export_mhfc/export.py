@@ -10,28 +10,67 @@ from .utils import Reporter, asset_to_dir, openw_save, extract_safe
 
 
 class Writer(object):
-    _file_h = None
+    _path = None
+    _file = None
 
-    def __init__(self, file_h):
-        self._file_h = file_h
+    def __init__(self, filepath):
+        self._path = filepath
+
+    def __enter__(self):
+        self._file = openw_save(self._path, 'wb')
+        return self
+
+    def __exit__(self, *args):
+        return self._file.__exit__(*args)
 
     def write_bytes(self, bytestring):
-        """Writes a byte string like it is to the file
-        @return: 
-        """
-        self._file_h.write(bytestring)
+        self._file.write(bytestring)
 
     def write_string(self, string):
         """Writes a String to a file
         """
-        self.write_bytes(string.encode("utf-8") + b'\x00')
-        return self
+        data = string.encode("utf-8") + b'\x00'
+        self.write_bytes(data)
 
     def write_packed(self, fmt, *args):
         """Packs the given data into the given bytebuffer using the given format
         """
-        self.write_bytes(struct.pack(fmt, *args))
-        return self
+        data = struct.pack(fmt, *args)
+        self.write_bytes(data)
+
+
+class MeshExportOptions(object):
+    mod_id = None
+    dirpath = None
+    modelpath = None
+    texpath = None
+
+    obj = None
+    arm = None
+    uv_layer = None
+    version = None
+
+    artist = None
+    modelname = None
+    def_group_name = None
+    def_image = None
+
+    export_tex = None
+
+
+class ByteIndex(object):
+
+    def __init__(self, idx):
+        self.idx = idx
+
+    def __lt__(self, other):
+        return self.idx < other.idx
+
+    def __eq__(self, other):
+        return self.idx == other.idx
+
+    def dump(self, writer):
+        writer.write_packed(">B", self.idx)
 
 
 class Bone(object):
@@ -50,11 +89,12 @@ class Bone(object):
         self.quat = mat.to_quaternion()
         self.translate = mat.translation
 
-    def dunp(self, writer):
+    def dump(self, writer):
         q = self.quat
         t = self.translate
         writer.write_string(self.name)
-        writer.write_packed(">7f", q.x, q.y, q.z, q.w, t.x, t.y, t.z)
+        writer.write_packed(">7f", q.x, q.y, q.z, q.w,
+                            t.x, t.y, t.z)
 
 
 class Point(object):
@@ -129,31 +169,43 @@ class Point(object):
             binds=self.bindings)
 
 
+class Material(object):
+
+    def __init__(self, options, group):
+        if group is None:
+            image = options.def_image
+        else:
+            try:
+                image = bpy.data.images[group.image]
+            except KeyError:
+                Reporter.error("Material with an invalid image ({img})",
+                               name=self.name, img=group.image)
+        self.img_location = options.texpath.format(
+            modid=options.mod_id,
+            modelname=options.modelname,
+            texname=bpy.path.ensure_ext(image.name, '.png')[:-4])
+
+    def __hash__(self, *args, **kwargs):
+        return hash(self.img_location)
+
+    def __eq__(self, other):
+        return self.img_location == other.img_location
+
+    def dump(self, writer):
+        writer.write_string(self.img_location)
+
+
 class Part(object):
 
-    def __init__(self, group, options):
+    def __init__(self, group, options, material_resolve):
         """
         group Group: can be None
                 in case of None, it is the default group
         """
-        img = options.def_image
-        if group is None:
-            self.name = options.def_group_name
-        elif group.image in bpy.data.images:
-            self.name = group.name
-            img = group.image
-        else:
-            self.name = group.name
-            Reporter.warning("Group {name} has an invalid image ({img}) assigned. Defaulted to {default}",
-                             name=self.name, img=group.image, default=options.def_image)
-            img = options.def_image.name
-        self.image = bpy.data.images[img]
-        self.img_location = options.texpath.format(
-            modid=options.mod_id,
-            modelname=options.modelname,
-            texname=bpy.path.ensure_ext(img, '.png')[:-4])
+        self.name = options.def_group_name if group is None else group.name
+        self.texture = material_resolve(group)
         # maps vertices to (point, list-index) pair-list
-        self.point_map = defaultdict(lambda: [])
+        self.point_map = defaultdict(list)
         # a full list of all points
         self.points = []
         self.indices = []
@@ -198,7 +250,7 @@ class Part(object):
                 "(Part) too many tris in part {name}", name=self.name)
         writer.write_packed(">2H", p_len, tris)
         writer.write_string(self.name)
-        writer.write_string(self.img_location)
+        self.texture.dump(writer)
         for point in points:
             point.dump(writer)
         writer.write_packed(">{idxs}H".format(idxs=idxs_len), *idxs)
@@ -207,48 +259,79 @@ class Part(object):
 class Animation(object):
 
     def __init__(self, fcurve, start):
-        self.extrapolation_mode = 'CONSTANT'
-        self.offset = start
-        if fcurve is None:
-            self.points = []
-        else:
-            self.points = [keyf for keyf in fcurve.keyframe_points]
-            self.extrapolation_mode = fcurve.extrapolation
-
-    def dump(self, writer):
-        interpolations = {'CONSTANT': 8, 'LINEAR': 9, 'BEZIER': 10}
-        extrapolations = {'CONSTANT': 16, 'LINEAR': 17}
-
-        points = self.points
+        def write_all(*write_func):
+            def wrapped(writer):
+                for f in write_func:
+                    f(writer)
+            return wrapped
 
         def write_point(co):
-            writer.write_packed(">2f", co[0] - self.offset, co[1])
-        anim_len = len(points)
-        if anim_len > 2**16 - 1:
-            Reporter.error("Too many keyframes in fcurve to export")
-        # animation length
-        writer.write_packed(">H", anim_len)
-        if anim_len == 0:
-            return
-        write_point(points[0].co)
-        # TUNE IN
-        writer.write_packed(">B", 0)  # = LINEAR
-        # POINTS
-        for left, right in zip(points[:], points[1:]):
-            write_point(right.co)
-            raw_mode = right.interpolation
-            interpolation_code = extract_safe(
-                interpolations, raw_mode, "Unknown interpolation mode {item}")
-            writer.write_packed(">B", interpolation_code)
-            if raw_mode == 'BEZIER':
-                write_point(left.handle_right)
-                write_point(right.handle_left)
-        # TUNE OUT
-        extrapolation_code = extract_safe(
-            extrapolations, self.extrapolation_mode, "Unknown extrapolation mode {item}")
-        writer.write_packed(">B", extrapolation_code)
-        if self.extrapolation_mode == 'LINEAR':
-            write_point(points[-1].handle_right)
+            def wrapped(writer):
+                writer.write_packed(">2f", co[0] - self.offset, co[1])
+            return wrapped
+
+        def constant_between(left, right):
+            def wrapped(writer):
+                writer.write_packed(">B", 8)
+            return write_all(write_point(right.co), wrapped)
+
+        def linear_between(left, right):
+            def wrapped(writer):
+                writer.write_packed(">B", 9)
+            return write_all(write_point(right.co), wrapped)
+
+        def bezier_between(left, right):
+            def wrapped(writer):
+                write_point(right.co)
+                writer.write_packed(">B", 9)
+            return write_all(write_point(right.co),
+                             wrapped,
+                             write_point(left.handle_right),
+                             write_point(right.handle_left))
+
+        def constant_extrapolation(writer):
+            writer.write_packed(">B", 16)
+
+        def linear_extrapolation(writer):
+            writer.write_packed(">B", 17)
+            write_point(points[-1].handle_right)(writer)
+
+        interpolations = {
+            'CONSTANT': constant_between,
+            'LINEAR': linear_between,
+            'BEZIER': bezier_between}
+        extrapolations = {
+            'CONSTANT': constant_extrapolation,
+            'LINEAR': linear_extrapolation}
+
+        self.offset = start
+        if fcurve is None:
+            self.write_all = lambda writer: writer.write_packed(">H", 0)
+        else:
+            points = [keyf for keyf in fcurve.keyframe_points]
+            extrapolation_mode = fcurve.extrapolation
+
+            anim_len = len(points)
+            if anim_len > 2**16 - 1:
+                Reporter.error("Too many keyframes in fcurve to export")
+
+            def write_tunein(writer):
+                writer.write_packed(">H", anim_len)
+                if anim_len > 0:
+                    write_point(points[0].co)(writer)
+                    writer.write_packed(">B", 0)
+            write_seq = write_all(
+                extract_safe(
+                    interpolations, right.interpolation,
+                    "Unknown interpolation mode {item}")(left, right)
+                for left, right in zip(points[:], points[1:]))
+            write_end = extract_safe(
+                extrapolations, extrapolation_mode,
+                "Unknown extrapolation mode {item}")
+            self.write_all = write_all(write_tunein, write_seq, write_end)
+
+    def dump(self, writer):
+        self.write_all(writer)
 
 
 class BoneAction(object):
@@ -270,7 +353,7 @@ class BoneAction(object):
         self.scale_z = Animation(scale_curves[2], offset)
 
     def dump(self, writer):
-        writer.write_string(self.name, writer)
+        writer.write_string(self.name)
         self.loc_x.dump(writer)
         self.loc_y.dump(writer)
         self.loc_z.dump(writer)
@@ -285,45 +368,25 @@ class BoneAction(object):
         self.scale_z.dump(writer)
 
 
-class MeshExportOptions(object):
-    mod_id = None
-    dirpath = None
-    modelpath = None
-    texpath = None
-
-    obj = None
-    arm = None
-    uv_layer = None
-    version = None
-
-    artist = None
-    modelname = None
-    def_group_name = None
-    def_image = None
-
-    export_tex = None
-
-
 def sort_bones(arm):
-    if arm is None:
-        return []
-    return sorted(arm.bones, key=lambda b: b.name)
+    return None if arm is None else arm.bones
 
 
 def export_mesh_v1(context, options, writer):
     # extract used values
     obj = options.obj
+    mesh = obj.data
     # the object we export
     with ExitStack() as stack:
         if context.mode == 'EDIT_MESH':
-            bmc = bmesh.from_edit_mesh(obj.data)
-            stack.callback(bmesh.update_edit_mesh, obj.data)
+            bmc = bmesh.from_edit_mesh(mesh)
+            stack.callback(bmesh.update_edit_mesh, mesh)
             bm = bmc.copy()
             stack.callback(bm.free)
         else:
             bm = bmesh.new()
             stack.callback(bm.free)
-            bm.from_mesh(obj.data)
+            bm.from_mesh(mesh)
         bmesh.ops.triangulate(bm, faces=bm.faces)
         # the armature to that object
         arm = options.arm
@@ -336,28 +399,33 @@ def export_mesh_v1(context, options, writer):
         # sorted bones
         sorted_bones = sort_bones(arm)
         # never none
-        arm_vgroup_idxs = [
+        arm_vgroup_idxs = [] if sorted_bones is None else [
             obj.vertex_groups.find(bone.name) for bone in sorted_bones]
 
         g_layer = None
         if 'MCRenderGroupIndex' in bm.faces.layers.int:
             g_layer = bm.faces.layers.int['MCRenderGroupIndex']
-        groups = obj.data.mcprops.render_groups
+        groups = mesh.mcprops.render_groups
         for face in bm.faces:
             g_idx = face[g_layer] - 1 if g_layer is not None else -1
             group = groups[g_idx] if g_idx >= 0 and g_idx < len(
                 groups) else None
             if group not in part_dict:
-                part_dict.update({group: Part(group, options)})
+                part_dict[group] = Part(
+                    group, options, lambda g: Material(options, g))
             part_dict[group].append_face(
                 face, uv_layer, deform_layer, arm_vgroup_idxs)
         if len(part_dict) > 0xFF:
             Reporter.error("Too many parts")
-        bones = [Bone(bone) for bone in sorted_bones]
+        bones = ([] if sorted_bones is None else
+                 [Bone(bone) for bone in sorted_bones])
         if len(bones) > 0xFF:
             Reporter.error("Too many bones")
-        bone_parents = [next(i for i, c in enumerate(sorted_bones) if c == b.parent, 0xFF) & 0xFF for b in sorted_bones]
-
+        bone_parents = ([] if sorted_bones is None else
+                        [sorted_bones.find(b.parent.name) & 0xFF
+                         if b.parent is not None
+                         else 0xFF
+                         for b in sorted_bones])
         # write the stuff
         writer.write_packed(">I", 1)
         writer.write_packed(">2B", len(part_dict), len(bones))
@@ -385,6 +453,79 @@ def export_mesh_v1(context, options, writer):
     )
     Reporter.info(summary)
 
+
+def export_mesh_v2(context, options, writer):
+    # extract used values
+    obj = options.obj
+    mesh = obj.data
+    # the object we export
+    with ExitStack() as stack:
+        if context.mode == 'EDIT_MESH':
+            bmc = bmesh.from_edit_mesh(mesh)
+            stack.callback(bmesh.update_edit_mesh, mesh)
+            bm = bmc.copy()
+            stack.callback(bm.free)
+        else:
+            bm = bmesh.new()
+            stack.callback(bm.free)
+            bm.from_mesh(mesh)
+        bmesh.ops.triangulate(bm, faces=bm.faces)
+        # the armature to that object
+        arm = options.arm
+        # for part one part with one material
+        part_dict = {}
+        mat_dict = defaultdict(lambda: ByteIndex(len(mat_dict)))
+        # checked
+        uv_layer = bm.loops.layers.uv[options.uv_layer.name]
+        # could be None
+        deform_layer = bm.verts.layers.deform.active
+        # sorted bones
+        sorted_bones = sort_bones(arm)
+        # never none
+        arm_vgroup_idxs = [] if sorted_bones is None else [
+            obj.vertex_groups.find(bone.name) for bone in sorted_bones]
+
+        g_layer = None
+        if 'MCRenderGroupIndex' in bm.faces.layers.int:
+            g_layer = bm.faces.layers.int['MCRenderGroupIndex']
+        groups = mesh.mcprops.render_groups
+        for face in bm.faces:
+            g_idx = face[g_layer] - 1 if g_layer is not None else -1
+            group = groups[g_idx] if g_idx >= 0 and g_idx < len(
+                groups) else None
+            if group not in part_dict:
+                part_dict[group] = Part(
+                    group, options, lambda g: mat_dict[Material(options, g)])
+            part_dict[group].append_face(
+                face, uv_layer, deform_layer, arm_vgroup_idxs)
+        if len(part_dict) > 0xFF:
+            Reporter.error("Too many parts")
+        # write the stuff
+        writer.write_packed(">I", 2)
+        writer.write_packed(">2B", len(part_dict), len(mat_dict))
+        for part in part_dict.values():
+            part.dump(writer)
+        for mat, _ in sorted(mat_dict.items(), key=lambda x: x[1]):
+            mat.dump(writer)
+
+        if options.export_tex:
+            settings = context.scene.render.image_settings
+            settings.file_format = 'PNG'
+            settings.color_mode = 'RGBA'
+            for img, path in set([(p.image, p.img_location) for p in part_dict.values()]):
+                ext_path =\
+                    os.path.join(
+                        options.dirpath,
+                        asset_to_dir(path))
+                img.save_render(
+                    bpy.path.abspath(ext_path), scene=context.scene)
+
+    summary = 'Exported with {numparts} parts'.format(
+        numparts=len(part_dict)
+    )
+    Reporter.info(summary)
+
+
 # exporters also have to write their version number
 known_mesh_exporters = {"V1": export_mesh_v1,
                         "V2": export_mesh_v2}
@@ -402,8 +543,7 @@ def export_mesh(context, options):
     filepath = os.path.join(
         options.dirpath,
         asset_to_dir(modelpath))
-    with openw_save(filepath, 'wb') as file_h:
-        writer = Writer(file_h)
+    with Writer(filepath) as writer:
         writer.write_bytes(b'MHFC MDL')
         writer.write_packed(">4I",
                             uuid_vec[0] & bitmask,
@@ -413,32 +553,30 @@ def export_mesh(context, options):
         writer.write_string(options.artist)
         try:
             known_mesh_exporters[options.version](context, options, writer)
-        except (KeyError, NotImplementedError) as ex:
+        except (KeyError, NotImplementedError):
             Reporter.fatal(
                 "Version {v} is not implemented yet", v=options.version)
 
 
 def export_skl_v1(context, options, writer):
-    with ExitStack() as stack:
-        # the armature to that object
-        arm = options.arm
-        # sorted bones
-        sorted_bones = sort_bones(arm)
+    # the armature to that object
+    arm = options.arm
+    # sorted bones
+    sorted_bones = sort_bones(arm)
 
-        bones = ([] if sorted_bones is None else
-                 [Bone(bone) for bone in sorted_bones])
-        if len(bones) > 0xFF:
-            Reporter.error("Too many bones")
-        bone_parents = ([] if sorted_bones is None else
-                        [sorted_bones.find(b.parent.name) & 0xFF if b.parent is not None else 255 for b in sorted_bones])
+    bones = ([] if sorted_bones is None else
+             [Bone(bone) for bone in sorted_bones])
+    if len(bones) > 0xFF:
+        Reporter.error("Too many bones")
+    bone_parents = ([] if sorted_bones is None else
+                    [sorted_bones.find(b.parent.name) & 0xFF if b.parent is not None else 0xFF for b in sorted_bones])
 
-        # write the stuff
-        writer.write_packed(">I", 1)
-        writer.write_packed(">B", len(bones))
-        for bone in bones:
-            bone.dump(writer)
-        writer.write_packed(">{nums}B".format(nums=len(bones)), *bone_parents)
-
+    # write the stuff
+    writer.write_packed(">I", 1)
+    writer.write_packed(">B", len(bones))
+    for bone in bones:
+        bone.dump(writer)
+    writer.write_packed(">{nums}B".format(nums=len(bones)), *bone_parents)
     Reporter.info('Exported {numbones} bones'.format(numbones=sorted_bones))
 
 
@@ -467,8 +605,7 @@ def export_action(filepath, action, offset, artist, armature):
     bone_count = len(bone_dict)
     if bone_count > 255:
         Reporter.error("Too many bones to export")
-    with open(filepath, 'wb') as file_h:
-        writer = Writer(file_h)
+    with Writer(filepath) as writer:
         writer.write_bytes(b'MHFC ANM')
         writer.write_string(artist)
         writer.write_packed(">B", bone_count)
