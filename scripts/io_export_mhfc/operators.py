@@ -334,9 +334,9 @@ class AddRenderGroup(Operator):
         data = context.object.data
         props = data.mcprops
         groups = props.render_groups
+        props.active_render_group = len(groups)
         g = groups.add()
         g.name = "Default"
-        props.active_render_group = len(groups)
         return {'FINISHED'}
 
 

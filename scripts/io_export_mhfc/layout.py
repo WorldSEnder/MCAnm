@@ -1,10 +1,72 @@
 import bpy
 
-from bpy.types import Panel, Menu, UIList, Header
+from bpy.types import Panel, Menu, UIList, Header, UILayout
 
 from .operators import ObjectExporter, ArmAnimationExporter, ArmatureUpdater,\
     AddRenderGroup, RemoveRenderGroup, AddFacesToGroup, SelectGroup,\
     UpdateGroupsVisual, ImportTechne
+
+
+class LayoutWrapper(object):
+    _layout = None
+
+    def __init__(self, layout):
+        self._layout = layout
+
+    def __dir__(self):
+        return dir(self._layout)
+
+    def __getattr__(self, name):
+        if name in {"row", "column", "column_flow", "box", "split"}:
+            fn = getattr(self._layout, name)
+
+            def wrapped(*args, **wargs):
+                sublayout = fn(*args, **wargs)
+                return LayoutWrapper(sublayout)
+            return wrapped
+        if name in {"prop", "props_enum", "prop_menu_enum", "prop_enum",
+                    "prop_search", "template_ID", "template_ID_preview",
+                    "template_any_ID", "template_path_builder",
+                    "template_curve_mapping", "template_color_ramp",
+                    "template_icon_view", "template_histogram",
+                    "template_waveform", "template_vectorscope",
+                    "template_layers", "template_color_picker",
+                    "template_image", "template_movieclip",
+                    "template_track", "template_marker",
+                    "template_movieclip_information", "template_component_menu",
+                    "template_colorspace_settings",
+                    "template_colormanaged_view_settings"}:
+            def wrapped(data, prop, *args, **wargs):
+                wrapper = self
+
+                class BoundArgs(object):
+                    _tests = []
+
+                    def add_test(self, predicate, error_message):
+                        self._tests.append((predicate, error_message))
+                        return self
+
+                    def display(self):
+                        row_layout = wrapper._layout.row()
+                        original_call = getattr(
+                            row_layout, name)(data, prop, *args, **wargs)
+                        errored = False
+                        for pre, mess in self._tests:
+                            if not pre(getattr(data, prop)):
+                                wrapper._layout.label(mess, icon="ERROR")
+                                errored = True
+                        if errored:
+                            row_layout.label(icon="ERROR")
+                        return original_call
+
+                return BoundArgs()
+            return wrapped
+        prop = getattr(self._layout, name)
+        if callable(prop):
+            def wrapped(*args, **wargs):
+                return prop(*args, **wargs)
+            return wrapped
+        return prop
 
 
 class RenderGroupUIList(UIList):
@@ -69,47 +131,34 @@ class ObjectPropertiesPanel(Panel):
         obj = context.object
         data = obj.data
         meshprops = data.mcprops
-        layout = self.layout
+        layout = LayoutWrapper(self.layout)
         # check for invalidity: #poll
         # Properties of this object
-        box = layout.box()
-        box.label(text="Object properties")
-        box.prop(meshprops, 'artist', text="Artist name")
-        box.prop(meshprops, 'name', text="Model Name")
-        if not meshprops.name:
-            box.label(text="Select model name", icon="ERROR")
-            box.separator()
+        box = layout
+        box.prop(meshprops, 'artist', text="Artist name").display()
+        box.prop(meshprops, "name", text="Model Name")\
+            .add_test(lambda k: k, "Select model name").display()
         box.prop_search(meshprops, 'armature', meshprops,
-                        'poss_arms', text="Armature", icon="ARMATURE_DATA")
-        if meshprops.armature and meshprops.armature not in meshprops.poss_arms:
-            box.label(text="Invalid Armature", icon="ERROR")
-            box.separator()
+                        'poss_arms', text="Armature", icon="ARMATURE_DATA")\
+            .add_test(lambda a: not a or a in meshprops.poss_arms, "Invalid Armature")\
+            .display()
         box.operator(ArmatureUpdater.bl_idname)
         box.prop_search(
-            meshprops, 'uv_layer', data, 'uv_layers', text="UV Layer", icon="GROUP_UVS")
-        if not meshprops.uv_layer:
-            box.label(text="Select a UV map.", icon="ERROR")
-            box.separator()
-        elif meshprops.uv_layer not in data.uv_layers:
-            box.label(text="Invalid UV Map", icon="ERROR")
-            box.separator()
+            meshprops, 'uv_layer', data, 'uv_layers', text="UV Layer", icon="GROUP_UVS")\
+            .add_test(lambda uv: uv, "Select a UV map.")\
+            .add_test(lambda uv: uv in data.uv_layers, "Invalid UV map")\
+            .display()
         box = box.box()
         box.label(text="Default group")
-        box.prop(meshprops.default_group, 'name', text="Name")
-        if not meshprops.default_group.name:
-            box.label(text="Select a default group name.", icon="ERROR")
-            layout.separator()
-        elif meshprops.default_group.name in meshprops.render_groups:
-            box.label(text="Name collision with existing group.", icon="ERROR")
-            layout.separator()
+        box.prop(meshprops.default_group, 'name', text="Name")\
+            .add_test(lambda n: n, "Select a default group name.")\
+            .add_test(lambda n: n not in meshprops.render_groups, "Name collision with existing group.")\
+            .display()
         box.prop_search(meshprops.default_group, 'image', bpy.data,
-                        'images', text="Texture", icon="IMAGE_DATA")
-        if not meshprops.default_group.image:
-            box.label(text="Select default texture.", icon="ERROR")
-            layout.separator()
-        elif meshprops.default_group.image not in bpy.data.images:
-            layout.label(text="Invalid image texture", icon="ERROR")
-            layout.separator()
+                        'images', text="Texture", icon="IMAGE_DATA")\
+            .add_test(lambda img: img, "Select a default texture.")\
+            .add_test(lambda img: img in bpy.data.images, "Invalid image texture")\
+            .display()
 
 
 class MeshDataPanel(Panel):
@@ -125,7 +174,7 @@ class MeshDataPanel(Panel):
         return context.object is not None and context.object.type == 'MESH'
 
     def draw(self, context):
-        layout = self.layout
+        layout = LayoutWrapper(self.layout)
         props = context.object.data.mcprops
         groups = props.render_groups
         active_idx = props.active_render_group
@@ -141,21 +190,14 @@ class MeshDataPanel(Panel):
             type='DEFAULT',
         )
         col = row.column(align=True)
-        col.operator(
-            AddRenderGroup.bl_idname,
-            text="", icon='ZOOMIN')
-        col.operator(
-            RemoveRenderGroup.bl_idname,
-            text="", icon='ZOOMOUT')
+        col.operator(AddRenderGroup.bl_idname, text="", icon='ZOOMIN')
+        col.operator(RemoveRenderGroup.bl_idname, text="", icon='ZOOMOUT')
         if active_idx >= 0 and active_idx < len(groups):
             active_g = groups[active_idx]
-            layout.prop_search(
-                active_g, 'image', bpy.data, 'images', text="Image", icon="IMAGE_DATA")
-            if not active_g.image:
-                layout.label(
-                    text="Select an imagetexture for active group", icon="ERROR")
-            elif active_g.image not in bpy.data.images:
-                layout.label(text="Invalid image texture", icon="ERROR")
+            layout.prop_search(active_g, 'image', bpy.data, 'images', text="Image", icon="IMAGE_DATA")\
+                .add_test(lambda img: img, "Select an imagetexture for active group")\
+                .add_test(lambda img: img in bpy.data.images, "Invalid image texture")\
+                .display()
         if context.mode == 'EDIT_MESH':
             row = layout.row()
             row.operator(AddFacesToGroup.bl_idname)
