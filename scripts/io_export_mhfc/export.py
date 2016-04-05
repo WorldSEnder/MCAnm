@@ -40,20 +40,15 @@ class Writer(object):
 
 
 class MeshExportOptions(object):
-    mod_id = None
-    dirpath = None
-    modelpath = None
-    texpath = None
-
     obj = None
     arm = None
     uv_layer = None
-    version = None
 
-    artist = None
-    modelname = None
-    def_group_name = None
-    def_image = None
+    dirpath = None
+    mod_id = None
+    version = None
+    modelpath = None
+    texpath = None
 
     export_tex = None
 

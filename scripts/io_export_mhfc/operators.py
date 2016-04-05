@@ -47,12 +47,6 @@ class ObjectExporter(Operator):
         name="Object",
         description="The object to export",
         options=set())
-    armature = StringProperty(
-        name="Armature",
-        description="The armature that defines animations.")
-    uv_layer = StringProperty(
-        name="UV Layer",
-        description="The uv layer for texture mappings")
 
     version = EnumProperty(
         name="Version",
@@ -60,19 +54,6 @@ class ObjectExporter(Operator):
         items=VERSIONS,
         default=DEFAULT_VER,
         options={'HIDDEN'})
-    artist = StringProperty(
-        name="Artist name",
-        description="Your name")
-    model_name = StringProperty(
-        name="Model Name",
-        description="The name of your model. ")
-    default_group_name = StringProperty(
-        name="Default Group",
-        description="The group all faces are in if not in a valid group",
-        default="Default")
-    default_img = StringProperty(
-        name="Default Tex",
-        description="The texture a face gets if it doesn't specify a specific one.")
 
     export_tex = BoolProperty(
         name="Export Textures",
@@ -80,19 +61,23 @@ class ObjectExporter(Operator):
 
     def draw(self, context):
         layout = self.layout
-        layout.prop_search(
-            self, "armature", bpy.data, "armatures", icon="ARMATURE_DATA")
-        if self.object:
-            layout.prop_search(self, "uv_layer", bpy.data.objects[
-                               self.object].data, "uv_layers", icon="GROUP_UVS")
+        if self.object in bpy.data.objects:
+            obj = bpy.data.objects[self.object]
+            mesh = obj.data
+            mcprops = mesh.mcprops
+            layout.prop_search(
+                mcprops, "armature", bpy.data, "armatures", icon="ARMATURE_DATA")
+            layout.prop_search(
+                mcprops, "uv_layer", mesh, "uv_layers", icon="GROUP_UVS")
+
+            layout.prop(mcprops, "artist")
+            layout.prop(mcprops, "name")
+            box = layout.box()
+            box.prop(mcprops.default_group, "name")
+            box.prop_search(mcprops.default_group, "image", bpy.data, "images")
 
         layout.prop(self, "version")
-        layout.prop(self, "artist")
-        layout.prop(self, "model_name")
-        box = layout.box()
-        box.prop(self, "default_group_name")
-        box.prop_search(self, "default_img", bpy.data, "images")
-
+        layout.prop(self, "mod_id")
         layout.prop(self, "export_tex")
         layout.prop(self, "model_path")
         layout.prop(self, "tex_path")
@@ -111,17 +96,20 @@ class ObjectExporter(Operator):
             # Note: we have to export an object, because vertex-groups are on
             # the object, not the mesh
             if opt.obj.type != 'MESH':
-                Reporter.error("Active Object not a Mesh")
+                Reporter.error(
+                    "Object {item} not a Mesh".format(item=self.object))
+            mesh = opt.obj.data
+            mcprops = mesh.mcprops
             if self.armature:
                 opt.arm = extract_safe(
-                    bpy.data.armatures, self.armature, "Armature {item} not in bpy.data.armatures")
+                    bpy.data.armatures, mcprops.armature, "Armature {item} not in bpy.data.armatures")
                 if opt.arm not in [mod.object.data for mod in opt.obj.modifiers if mod.type == 'ARMATURE' and mod.object is not None]:
                     Reporter.warning(
-                        "Armature {arm} is not active on object {obj}", arm=self.armature, obj=self.object)
+                        "Armature {arm} is not active on object {obj}", arm=mcprops.armature, obj=self.object)
             else:
                 opt.arm = None
             opt.uv_layer = extract_safe(
-                opt.obj.data.uv_layers, self.uv_layer, "Invalid UV-Layer {item}")
+                opt.obj.data.uv_layers, mcprops.uv_layer, "Invalid UV-Layer {item}")
 
             opt.version = self.version
             opt.artist = self.artist

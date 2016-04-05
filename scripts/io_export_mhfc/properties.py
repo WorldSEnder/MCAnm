@@ -122,6 +122,14 @@ class SceneProps(PropertyGroup):
         default=False,
         options={'HIDDEN', 'SKIP_SAVE'})
 
+    @classmethod
+    def register(cls):
+        Scene.mcprops = PointerProperty(type=SceneProps)
+
+    @classmethod
+    def unregister(cls):
+        del Scene.mcprops
+
 
 class MeshProps(PropertyGroup):
     armature = StringProperty(
@@ -153,9 +161,17 @@ class MeshProps(PropertyGroup):
         default=-1)
     default_group = PointerProperty(
         type=RenderGroups,
-        name="Model Name",
+        name="Default Render Group",
         description="The group all faces are in if not in a valid group",
         options=set())
+
+    @classmethod
+    def register(cls):
+        Mesh.mcprops = PointerProperty(type=MeshProps)
+
+    @classmethod
+    def unregister(cls):
+        del Mesh.mcprops
 
 
 class ActionProps(PropertyGroup):
@@ -169,6 +185,14 @@ class ActionProps(PropertyGroup):
         default=0,
         options=set())
 
+    @classmethod
+    def register(cls):
+        Action.mcprops = PointerProperty(type=ActionProps)
+
+    @classmethod
+    def unregister(cls):
+        del Action.mcprops
+
 
 @persistent
 def load_handler(_):
@@ -180,18 +204,7 @@ def load_handler(_):
 
 def register():
     bpy.app.handlers.load_post.append(load_handler)
-    # scene props
-    Scene.mcprops = PointerProperty(type=SceneProps)
-    # meshprops
-    Mesh.mcprops = PointerProperty(type=MeshProps)
-    # actionprops
-    Action.mcprops = PointerProperty(type=ActionProps)
 
 
 def unregister():
-    # scene props
-    del Scene.mcprops
-    # meshprops
-    del Mesh.mcprops
-    # actionprops
-    del Action.mcprops
+    bpy.app.handlers.load_post.remove(load_handler)
