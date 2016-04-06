@@ -1,6 +1,7 @@
 from bpy_extras.io_utils import ImportHelper
 import bmesh
 import bpy
+import os
 
 from bpy.props import BoolProperty, CollectionProperty, EnumProperty, IntProperty,\
     IntVectorProperty, PointerProperty, StringProperty
@@ -8,7 +9,7 @@ from bpy.types import Operator
 
 from .export import export_mesh, export_action, MeshExportOptions
 from .imports import import_tabula, read_tcn
-from .utils import Reporter, extract_safe
+from .utils import Reporter, extract_safe, asset_to_dir
 
 
 VERSIONS = [("V1", "Version 1", "Version 1 of MD model files. Rev1_010814"),
@@ -50,10 +51,6 @@ class ObjectExporter(Operator):
         default=DEFAULT_VER,
         options={'HIDDEN'})
 
-    export_tex = BoolProperty(
-        name="Export Textures",
-        description="Whether to export textures or not")
-
     def draw(self, context):
         layout = self.layout
         if self.object in bpy.data.objects:
@@ -73,17 +70,18 @@ class ObjectExporter(Operator):
 
         layout.prop(self, "version")
         layout.prop(self, "mod_id")
-        layout.prop(self, "export_tex")
         layout.prop(self, "model_path")
 
     def execute(self, context):
         with Reporter() as reporter:
             opt = MeshExportOptions()
 
-            opt.mod_id = self.mod_id
-            opt.dirpath = self.directory
-            opt.modelpath = self.model_path
-
+            modelpath = self.model_path.format(
+                modid=self.mod_id,
+                modelname=self.model_name)
+            opt.filepath = os.path.join(
+                self.directory,
+                asset_to_dir(modelpath))
             opt.obj = extract_safe(
                 bpy.data.objects, self.object, "Object {item} not in bpy.data.objects!")
             # Note: we have to export an object, because vertex-groups are on
@@ -93,7 +91,7 @@ class ObjectExporter(Operator):
                     "Object {item} not a Mesh".format(item=self.object))
             mesh = opt.obj.data
             mcprops = mesh.mcprops
-            if self.armature:
+            if mcprops.armature:
                 opt.arm = extract_safe(
                     bpy.data.armatures, mcprops.armature, "Armature {item} not in bpy.data.armatures")
                 if opt.arm not in [mod.object.data for mod in opt.obj.modifiers if mod.type == 'ARMATURE' and mod.object is not None]:
@@ -106,11 +104,10 @@ class ObjectExporter(Operator):
 
             opt.version = self.version
             opt.artist = self.artist
-            opt.modelname = self.model_name
+
             opt.def_group_name = self.default_group_name
             opt.def_image = extract_safe(
                 bpy.data.images, self.default_img, "Default image {item} not in bpy.data.images")
-            opt.export_tex = self.export_tex
 
             context.scene.mcprops.export_tex = False
             export_mesh(context, opt)

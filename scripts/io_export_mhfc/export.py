@@ -2,11 +2,10 @@ from collections import defaultdict
 from contextlib import ExitStack
 import bmesh
 import bpy
-import os
 import re
 import struct
 
-from .utils import Reporter, asset_to_dir, openw_save, extract_safe
+from .utils import Reporter, openw_save, extract_safe
 
 
 class Writer(object):
@@ -490,6 +489,50 @@ class SkeletonV1(object):
         Reporter.info(message)
 
 
+class ActionV1(object):
+
+    def __init__(self, options):
+        armature = options.armature
+        action = options.action
+        offset = options.offset
+        bone_data_re = re.compile(
+            "pose\.bones\[\"(.*)\"\]\.(rotation_quaternion|location|scale)")
+        bone_dict = defaultdict(lambda: ([None] * 3, [None] * 4, [None] * 3))
+        armBones = sort_bones(armature)
+        self.curve_count = 0
+        for curve in action.fcurves:
+            match = bone_data_re.match(curve.data_path)
+            if match is None:
+                continue
+            name, key = match.groups()
+            if name not in armBones:
+                continue
+            if key == 'location' and not armBones[name].use_connect:
+                bone_dict[name][0][curve.array_index] = curve
+                self.curve_count += 1
+            elif key == 'rotation_quaternion':
+                bone_dict[name][1][curve.array_index] = curve
+                self.curve_count += 1
+            elif key == 'scale':
+                bone_dict[name][2][curve.array_index] = curve
+                self.curve_count += 1
+        bone_count = len(bone_dict)
+        if bone_count > 255:
+            Reporter.error("Too many bones to export")
+        self.actions = [BoneAction(name, curves, offset)
+                        for name, curves in bone_dict.items()]
+
+    def dump(self, writer):
+        bone_count = len(self.actions)
+        writer.write_packed(">B", bone_count)
+        for bone in self.actions:
+            bone.dump(writer)
+        summary = 'Exported {bones} bones with {curves} animated paths'.format(
+            bones=bone_count,
+            curves=self.curve_count
+        )
+        Reporter.info(summary)
+
 known_mesh_exporters = {"V1": MeshV1,
                         "V2": MeshV2}
 
@@ -499,27 +542,17 @@ class MeshExportOptions(object):
     arm = None
     uv_layer = None
 
-    dirpath = None
-    mod_id = None
+    filepath = None
     version = None
-    modelpath = None
-    texpath = None
-
-    export_tex = None
 
 
 def export_mesh(context, options):
     scene = context.scene
+    filepath = options.filepath
     # Write file header
     bitmask = 0xFFFFFFFF
     uuid_vec = scene.mcprops.uuid
     # Write to file
-    modelpath = options.modelpath.format(
-        modid=options.mod_id,
-        modelname=options.modelname)
-    filepath = os.path.join(
-        options.dirpath,
-        asset_to_dir(modelpath))
     # the object we export
     with ExitStack() as stack:
         mesh = options.obj.data
@@ -573,39 +606,11 @@ def export_skl(context, options):
         skeleton.dump(writer)
 
 
-def export_action(filepath, action, offset, artist, armature):
-    bone_data_re = re.compile(
-        "pose\.bones\[\"(.*)\"\]\.(rotation_quaternion|location|scale)")
-    bone_dict = defaultdict(lambda: ([None] * 3, [None] * 4, [None] * 3))
-    armBones = sort_bones(armature)
-    curves = 0
-    for curve in action.fcurves:
-        match = bone_data_re.match(curve.data_path)
-        if match is None:
-            continue
-        bone, key = match.groups()
-        if bone not in armBones:
-            continue
-        if key == 'location' and not armBones[bone].use_connect:
-            bone_dict[bone][0][curve.array_index] = curve
-            curves += 1
-        elif key == 'rotation_quaternion':
-            bone_dict[bone][1][curve.array_index] = curve
-            curves += 1
-        elif key == 'scale':
-            bone_dict[bone][2][curve.array_index] = curve
-            curves += 1
-    bone_count = len(bone_dict)
-    if bone_count > 255:
-        Reporter.error("Too many bones to export")
+def export_action(context, options):
+    filepath = options.filepath
+    artist = options.artist
+    actions = ActionV1(options)
     with Writer(filepath) as writer:
         writer.write_bytes(b'MHFC ANM')
         writer.write_string(artist)
-        writer.write_packed(">B", bone_count)
-        for bone in bone_dict:
-            BoneAction(bone, bone_dict[bone], offset).dump(writer)
-    summary = 'Exported {bones} bones with {curves} animated values'.format(
-        bones=bone_count,
-        curves=curves
-    )
-    Reporter.info(summary)
+        actions.dump(writer)
