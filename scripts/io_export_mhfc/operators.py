@@ -37,11 +37,6 @@ class ObjectExporter(Operator):
         description="A formatstring to the path of you model. You may use {modid} and {modelname}.",
         default="{modid}:models/{modelname}/{modelname}.mcmd",
         options={'HIDDEN'})
-    tex_path = StringProperty(
-        name="Path to the textures",
-        description="A formatstring to the textures. You may use {modid}, {modelname} and {texname}.",
-        default="{modid}:textures/models/{modelname}/{texname}.png",
-        options={'HIDDEN'})
 
     object = StringProperty(
         name="Object",
@@ -80,7 +75,6 @@ class ObjectExporter(Operator):
         layout.prop(self, "mod_id")
         layout.prop(self, "export_tex")
         layout.prop(self, "model_path")
-        layout.prop(self, "tex_path")
 
     def execute(self, context):
         with Reporter() as reporter:
@@ -89,7 +83,6 @@ class ObjectExporter(Operator):
             opt.mod_id = self.mod_id
             opt.dirpath = self.directory
             opt.modelpath = self.model_path
-            opt.texpath = self.tex_path
 
             opt.obj = extract_safe(
                 bpy.data.objects, self.object, "Object {item} not in bpy.data.objects!")
@@ -139,9 +132,6 @@ class ObjectExporter(Operator):
         self.model_path = prefs.model_path
         if not self.model_path:
             self.model_path = '{modid}:models/{modelname}/{modelname}.mcmd'
-        self.tex_path = prefs.tex_path
-        if not self.tex_path:
-            self.tex_path = '{modid}:textures/models/{modelname}/{texname}.png'
 
         self.object = context.object.name
         self.armature = props.armature
@@ -493,3 +483,4 @@ class ImportTechne(Operator, ImportHelper):
                 "Successfully imported the Tabula model from {path}", path=self.filepath)
         reporter.print_report(self)
         return {'FINISHED'} if reporter.was_success() else {'CANCELLED'}
+    # TODO: priority2 finish

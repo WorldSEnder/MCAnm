@@ -39,20 +39,6 @@ class Writer(object):
         self.write_bytes(data)
 
 
-class MeshExportOptions(object):
-    obj = None
-    arm = None
-    uv_layer = None
-
-    dirpath = None
-    mod_id = None
-    version = None
-    modelpath = None
-    texpath = None
-
-    export_tex = None
-
-
 class ByteIndex(object):
 
     def __init__(self, idx):
@@ -175,10 +161,7 @@ class Material(object):
             except KeyError:
                 Reporter.error("Material with an invalid image ({img})",
                                name=self.name, img=group.image)
-        self.img_location = options.texpath.format(
-            modid=options.mod_id,
-            modelname=options.modelname,
-            texname=bpy.path.ensure_ext(image.name, '.png')[:-4])
+        self.img_location = bpy.path.ensure_ext(image.name, '.png')[:-4]
 
     def __hash__(self, *args, **kwargs):
         return hash(self.img_location)
@@ -367,30 +350,19 @@ def sort_bones(arm):
     return None if arm is None else arm.bones
 
 
-def export_mesh_v1(context, options, writer):
-    # extract used values
-    obj = options.obj
-    mesh = obj.data
-    # the object we export
-    with ExitStack() as stack:
-        if context.mode == 'EDIT_MESH':
-            bmc = bmesh.from_edit_mesh(mesh)
-            stack.callback(bmesh.update_edit_mesh, mesh)
-            bm = bmc.copy()
-            stack.callback(bm.free)
-        else:
-            bm = bmesh.new()
-            stack.callback(bm.free)
-            bm.from_mesh(mesh)
-        bmesh.ops.triangulate(bm, faces=bm.faces)
+class MeshV1(object):
+
+    def __init__(self, options, bmesh):
+        obj = options.obj
+        mesh = obj.data
         # the armature to that object
         arm = options.arm
         # for each material we make one part
-        part_dict = {}
+        self.part_dict = {}
         # checked
-        uv_layer = bm.loops.layers.uv[options.uv_layer.name]
+        uv_layer = bmesh.loops.layers.uv[options.uv_layer.name]
         # could be None
-        deform_layer = bm.verts.layers.deform.active
+        deform_layer = bmesh.verts.layers.deform.active
         # sorted bones
         sorted_bones = sort_bones(arm)
         # never none
@@ -398,30 +370,34 @@ def export_mesh_v1(context, options, writer):
             obj.vertex_groups.find(bone.name) for bone in sorted_bones]
 
         g_layer = None
-        if 'MCRenderGroupIndex' in bm.faces.layers.int:
-            g_layer = bm.faces.layers.int['MCRenderGroupIndex']
+        if 'MCRenderGroupIndex' in bmesh.faces.layers.int:
+            g_layer = bmesh.faces.layers.int['MCRenderGroupIndex']
         groups = mesh.mcprops.render_groups
-        for face in bm.faces:
+        for face in bmesh.faces:
             g_idx = face[g_layer] - 1 if g_layer is not None else -1
             group = groups[g_idx] if g_idx >= 0 and g_idx < len(
                 groups) else None
-            if group not in part_dict:
-                part_dict[group] = Part(
+            if group not in self.part_dict:
+                self.part_dict[group] = Part(
                     group, options, lambda g: Material(options, g))
-            part_dict[group].append_face(
+            self.part_dict[group].append_face(
                 face, uv_layer, deform_layer, arm_vgroup_idxs)
-        if len(part_dict) > 0xFF:
+        if len(self.part_dict) > 0xFF:
             Reporter.error("Too many parts")
-        bones = ([] if sorted_bones is None else
-                 [Bone(bone) for bone in sorted_bones])
-        if len(bones) > 0xFF:
+        self.bones = ([] if sorted_bones is None else
+                      [Bone(bone) for bone in sorted_bones])
+        if len(self.bones) > 0xFF:
             Reporter.error("Too many bones")
-        bone_parents = ([] if sorted_bones is None else
-                        [sorted_bones.find(b.parent.name) & 0xFF
-                         if b.parent is not None
-                         else 0xFF
-                         for b in sorted_bones])
-        # write the stuff
+        self.bone_parents = ([] if sorted_bones is None else
+                             [sorted_bones.find(b.parent.name) & 0xFF
+                              if b.parent is not None
+                              else 0xFF
+                              for b in sorted_bones])
+
+    def dump(self, writer):
+        part_dict = self.part_dict
+        bones = self.bones
+        bone_parents = self.bone_parents
         writer.write_packed(">I", 1)
         writer.write_packed(">2B", len(part_dict), len(bones))
         for part in part_dict.values():
@@ -429,51 +405,26 @@ def export_mesh_v1(context, options, writer):
         for bone in bones:
             bone.dump(writer)
         writer.write_packed(">{nums}B".format(nums=len(bones)), *bone_parents)
-
-        if options.export_tex:
-            settings = context.scene.render.image_settings
-            settings.file_format = 'PNG'
-            settings.color_mode = 'RGBA'
-            for img, path in set([(p.image, p.img_location) for p in part_dict.values()]):
-                ext_path =\
-                    os.path.join(
-                        options.dirpath,
-                        asset_to_dir(path))
-                img.save_render(
-                    bpy.path.abspath(ext_path), scene=context.scene)
-
-    summary = 'Exported with ({numparts} parts, {numbones} bones)'.format(
-        numparts=len(part_dict),
-        numbones=len(bones)
-    )
-    Reporter.info(summary)
+        summary = 'Exported with ({numparts} parts, {numbones} bones)'.format(
+            numparts=len(part_dict),
+            numbones=len(bones)
+        )
+        Reporter.info(summary)
 
 
-def export_mesh_v2(context, options, writer):
-    # extract used values
-    obj = options.obj
-    mesh = obj.data
-    # the object we export
-    with ExitStack() as stack:
-        if context.mode == 'EDIT_MESH':
-            bmc = bmesh.from_edit_mesh(mesh)
-            stack.callback(bmesh.update_edit_mesh, mesh)
-            bm = bmc.copy()
-            stack.callback(bm.free)
-        else:
-            bm = bmesh.new()
-            stack.callback(bm.free)
-            bm.from_mesh(mesh)
-        bmesh.ops.triangulate(bm, faces=bm.faces)
-        # the armature to that object
+class MeshV2(object):
+
+    def __init__(self, options, bmesh):
+        obj = options.obj
+        mesh = obj.data
         arm = options.arm
         # for part one part with one material
-        part_dict = {}
-        mat_dict = defaultdict(lambda: ByteIndex(len(mat_dict)))
+        self.part_dict = {}
+        self.mat_dict = defaultdict(lambda: ByteIndex(len(self.mat_dict)))
         # checked
-        uv_layer = bm.loops.layers.uv[options.uv_layer.name]
+        uv_layer = bmesh.loops.layers.uv[options.uv_layer.name]
         # could be None
-        deform_layer = bm.verts.layers.deform.active
+        deform_layer = bmesh.verts.layers.deform.active
         # sorted bones
         sorted_bones = sort_bones(arm)
         # never none
@@ -481,49 +432,80 @@ def export_mesh_v2(context, options, writer):
             obj.vertex_groups.find(bone.name) for bone in sorted_bones]
 
         g_layer = None
-        if 'MCRenderGroupIndex' in bm.faces.layers.int:
-            g_layer = bm.faces.layers.int['MCRenderGroupIndex']
+        if 'MCRenderGroupIndex' in bmesh.faces.layers.int:
+            g_layer = bmesh.faces.layers.int['MCRenderGroupIndex']
         groups = mesh.mcprops.render_groups
-        for face in bm.faces:
+        for face in bmesh.faces:
             g_idx = face[g_layer] - 1 if g_layer is not None else -1
             group = groups[g_idx] if g_idx >= 0 and g_idx < len(
                 groups) else None
-            if group not in part_dict:
-                part_dict[group] = Part(
-                    group, options, lambda g: mat_dict[Material(options, g)])
-            part_dict[group].append_face(
+            if group not in self.part_dict:
+                self.part_dict[group] = Part(
+                    group, options, lambda g: self.mat_dict[Material(options, g)])
+            self.part_dict[group].append_face(
                 face, uv_layer, deform_layer, arm_vgroup_idxs)
-        if len(part_dict) > 0xFF:
+        if len(self.part_dict) > 0xFF:
             Reporter.error("Too many parts")
-        # write the stuff
+
+    def dump(self, writer):
+        part_dict = self.part_dict
+        mat_dict = self.mat_dict
         writer.write_packed(">I", 2)
         writer.write_packed(">2B", len(part_dict), len(mat_dict))
         for part in part_dict.values():
             part.dump(writer)
         for mat, _ in sorted(mat_dict.items(), key=lambda x: x[1]):
             mat.dump(writer)
-
-        if options.export_tex:
-            settings = context.scene.render.image_settings
-            settings.file_format = 'PNG'
-            settings.color_mode = 'RGBA'
-            for img, path in set([(p.image, p.img_location) for p in part_dict.values()]):
-                ext_path =\
-                    os.path.join(
-                        options.dirpath,
-                        asset_to_dir(path))
-                img.save_render(
-                    bpy.path.abspath(ext_path), scene=context.scene)
-
-    summary = 'Exported with {numparts} parts'.format(
-        numparts=len(part_dict)
-    )
-    Reporter.info(summary)
+        summary = 'Exported with {numparts} parts'.format(
+            numparts=len(part_dict)
+        )
+        Reporter.info(summary)
 
 
-# exporters also have to write their version number
-known_mesh_exporters = {"V1": export_mesh_v1,
-                        "V2": export_mesh_v2}
+class SkeletonV1(object):
+
+    def __init__(self, options):
+        arm = options.arm
+        # sorted bones
+        sorted_bones = sort_bones(arm)
+
+        self.bones = ([] if sorted_bones is None else
+                      [Bone(bone) for bone in sorted_bones])
+        if len(self.bones) > 0xFF:
+            Reporter.error("Too many bones")
+        self.bone_parents = ([] if sorted_bones is None else
+                             [sorted_bones.find(b.parent.name) & 0xFF
+                              if b.parent is not None
+                              else 0xFF for b in sorted_bones])
+
+    def dump(self, writer):
+        bones = self.bones
+        bone_parents = self.bone_parents
+        writer.write_packed(">I", 1)
+        writer.write_packed(">B", len(bones))
+        for bone in bones:
+            bone.dump(writer)
+        writer.write_packed(">{nums}B".format(nums=len(bones)), *bone_parents)
+        message = 'Exported {numbones} bones'.format(numbones=len(bones))
+        Reporter.info(message)
+
+
+known_mesh_exporters = {"V1": MeshV1,
+                        "V2": MeshV2}
+
+
+class MeshExportOptions(object):
+    obj = None
+    arm = None
+    uv_layer = None
+
+    dirpath = None
+    mod_id = None
+    version = None
+    modelpath = None
+    texpath = None
+
+    export_tex = None
 
 
 def export_mesh(context, options):
@@ -538,6 +520,26 @@ def export_mesh(context, options):
     filepath = os.path.join(
         options.dirpath,
         asset_to_dir(modelpath))
+    # the object we export
+    with ExitStack() as stack:
+        mesh = options.obj.data
+        if context.mode == 'EDIT_MESH':
+            bmc = bmesh.from_edit_mesh(mesh)
+            stack.callback(bmesh.update_edit_mesh, mesh)
+            bm = bmc.copy()
+            stack.callback(bm.free)
+        else:
+            bm = bmesh.new()
+            stack.callback(bm.free)
+            bm.from_mesh(mesh)
+        bmesh.ops.triangulate(bm, faces=bm.faces)
+        try:
+            MeshClass = known_mesh_exporters[options.version]
+            model = MeshClass(options, bm)
+        except (KeyError, NotImplementedError):
+            Reporter.fatal(
+                "Version {v} is not implemented yet", v=options.version)
+    # No more error (apart from IO) should happen now
     with Writer(filepath) as writer:
         writer.write_bytes(b'MHFC MDL')
         writer.write_packed(">4I",
@@ -546,33 +548,29 @@ def export_mesh(context, options):
                             uuid_vec[2] & bitmask,
                             uuid_vec[3] & bitmask)
         writer.write_string(options.artist)
-        try:
-            known_mesh_exporters[options.version](context, options, writer)
-        except (KeyError, NotImplementedError):
-            Reporter.fatal(
-                "Version {v} is not implemented yet", v=options.version)
+        model.dump(writer)
 
 
-def export_skl_v1(context, options, writer):
-    # the armature to that object
-    arm = options.arm
-    # sorted bones
-    sorted_bones = sort_bones(arm)
-
-    bones = ([] if sorted_bones is None else
-             [Bone(bone) for bone in sorted_bones])
-    if len(bones) > 0xFF:
-        Reporter.error("Too many bones")
-    bone_parents = ([] if sorted_bones is None else
-                    [sorted_bones.find(b.parent.name) & 0xFF if b.parent is not None else 0xFF for b in sorted_bones])
-
-    # write the stuff
-    writer.write_packed(">I", 1)
-    writer.write_packed(">B", len(bones))
-    for bone in bones:
-        bone.dump(writer)
-    writer.write_packed(">{nums}B".format(nums=len(bones)), *bone_parents)
-    Reporter.info('Exported {numbones} bones'.format(numbones=sorted_bones))
+def export_skl(context, options):
+    scene = context.scene
+    # Write file header
+    bitmask = 0xFFFFFFFF
+    uuid_vec = scene.mcprops.uuid
+    skeletonpath = options.modelpath.format(
+        modid=options.mod_id,
+        modelname=options.modelname)
+    filepath = os.path.join(
+        options.dirpath,
+        asset_to_dir(skeletonpath))
+    skeleton = SkeletonV1(options)
+    with Writer(filepath) as writer:
+        writer.write_bytes(b'MHFC SKL')
+        writer.write_packed(">4I",
+                            uuid_vec[0] & bitmask,
+                            uuid_vec[1] & bitmask,
+                            uuid_vec[2] & bitmask,
+                            uuid_vec[3] & bitmask)
+        skeleton.dump(writer)
 
 
 def export_action(filepath, action, offset, artist, armature):
