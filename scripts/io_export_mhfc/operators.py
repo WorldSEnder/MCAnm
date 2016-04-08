@@ -7,7 +7,8 @@ from bpy.props import BoolProperty, CollectionProperty, EnumProperty, IntPropert
     IntVectorProperty, PointerProperty, StringProperty
 from bpy.types import Operator
 
-from .export import export_mesh, export_action, MeshExportOptions
+from .export import export_mesh, export_skl, export_action, MeshExportOptions,\
+    SkeletonExportOptions, ActionExportOptions
 from .imports import import_tabula, read_tcn
 from .utils import Reporter, extract_safe, asset_to_dir
 
@@ -28,17 +29,27 @@ class ObjectExporter(Operator):
         name="Dir name",
         description="The resource folder to export to",
         subtype='DIR_PATH')
-
+    model_path = StringProperty(
+        name="Path to the model",
+        description="A formatstring to the path of you model." +
+        "You may use {modid}, {projectname} and {modelname}.",
+        default="{modid}:models/{projectname}/{modelname}.mcmd",
+        options={'HIDDEN'})
     mod_id = StringProperty(
         name="Mod ID",
         description="Your Mod ID",
         default="minecraft")
-    model_path = StringProperty(
-        name="Path to the model",
-        description="A formatstring to the path of you model. You may use {modid} and {modelname}.",
-        default="{modid}:models/{modelname}/{modelname}.mcmd",
-        options={'HIDDEN'})
+    proj_name = StringProperty(
+        name="Project name",
+        description="The name of the project to export",
+        options=set())
 
+    uuid = IntVectorProperty(
+        name="UUID",
+        description="An unique ID for this file",
+        options={'HIDDEN'},
+        default=(0, 0, 0, 0),
+        size=4)
     object = StringProperty(
         name="Object",
         description="The object to export",
@@ -53,21 +64,7 @@ class ObjectExporter(Operator):
 
     def draw(self, context):
         layout = self.layout
-        if self.object in bpy.data.objects:
-            obj = bpy.data.objects[self.object]
-            mesh = obj.data
-            mcprops = mesh.mcprops
-            layout.prop_search(
-                mcprops, "armature", bpy.data, "armatures", icon="ARMATURE_DATA")
-            layout.prop_search(
-                mcprops, "uv_layer", mesh, "uv_layers", icon="GROUP_UVS")
-
-            layout.prop(mcprops, "artist")
-            layout.prop(mcprops, "name")
-            box = layout.box()
-            box.prop(mcprops.default_group, "name")
-            box.prop_search(mcprops.default_group, "image", bpy.data, "images")
-
+        layout.prop(self, "proj_name")
         layout.prop(self, "version")
         layout.prop(self, "mod_id")
         layout.prop(self, "model_path")
@@ -76,14 +73,15 @@ class ObjectExporter(Operator):
         with Reporter() as reporter:
             opt = MeshExportOptions()
 
+            opt.obj = extract_safe(
+                bpy.data.objects, self.object, "Object {item} not in bpy.data.objects!")
             modelpath = self.model_path.format(
                 modid=self.mod_id,
-                modelname=self.model_name)
+                projectname=self.proj_name,
+                modelname=opt.obj.name)
             opt.filepath = os.path.join(
                 self.directory,
                 asset_to_dir(modelpath))
-            opt.obj = extract_safe(
-                bpy.data.objects, self.object, "Object {item} not in bpy.data.objects!")
             # Note: we have to export an object, because vertex-groups are on
             # the object, not the mesh
             if opt.obj.type != 'MESH':
@@ -104,12 +102,12 @@ class ObjectExporter(Operator):
 
             opt.version = self.version
             opt.artist = self.artist
+            opt.uuid = self.uuid
 
             opt.def_group_name = self.default_group_name
             opt.def_image = extract_safe(
                 bpy.data.images, self.default_img, "Default image {item} not in bpy.data.images")
 
-            context.scene.mcprops.export_tex = False
             export_mesh(context, opt)
         reporter.print_report(self)
         return {'FINISHED'} if reporter.was_success() else {'CANCELLED'}
@@ -137,58 +135,50 @@ class ObjectExporter(Operator):
             self.uv_layer = context.object.data.uv_layers.active.name
 
         self.artist = props.artist
-        self.model_name = props.name
-        self.model_name = bpy.path.ensure_ext(self.model_name, '.mcmd')[:-5]
-        self.model_name = self.model_name.replace(
-            ' ', '_').replace('/', '_').replace('\\', '_')
         self.default_group_name = props.default_group.name
         self.default_img = props.default_group.image
 
-        self.export_tex = sceprops.export_tex
+        self.proj_name = sceprops.projectname
+        self.uuid = sceprops.uuid
 
         self.directory = bpy.path.abspath(prefs.directory)
         context.window_manager.fileselect_add(self)
         return {'RUNNING_MODAL'}
 
 
-class ArmAnimationExporter(Operator):
+class AnimationExporter(Operator):
     """Exports the active action of the selected armature
     """
     bl_idname = "export_anim.mcanm"
     bl_label = "Export MCANM"
 
-    filename_ext = ".mcanm"
-
-    filepath = StringProperty(
-        subtype="FILE_PATH"
-    )
-
-    filter_glob = StringProperty(
-        default="*.mcanm",
-        options={'HIDDEN'},
-    )
-
-    arm_action = StringProperty(
-        name="Action",
-        description="The action to export",
-    )
-
-    artist = StringProperty(
-        name="Artist",
-        description="The artist of this action",
-        default=""
-    )
+    directory = StringProperty(
+        name="Dir name",
+        description="The resource folder to export to",
+        subtype='DIR_PATH')
+    animation_path = StringProperty(
+        name="Path to the model",
+        description="A formatstring to the path of the animation. " +
+        "You may use {modid}, {projectname} and {animname}.",
+        default="{modid}:models/{projectname}/{animname}.mcanm",
+        options={'HIDDEN'})
+    mod_id = StringProperty(
+        name="Mod ID",
+        description="Your Mod ID",
+        default="minecraft")
+    proj_name = StringProperty(
+        name="Project name",
+        description="The name of the project to export",
+        options=set())
 
     armature = StringProperty(
         name="Armature",
         description="The armature this action is \"bound\" to",
         default=""
     )
-
-    offset = IntProperty(
-        name="Animation begin",
-        description="The frame the animation should begin at",
-        default=0
+    arm_action = StringProperty(
+        name="Action",
+        description="The action to export",
     )
 
     @staticmethod
@@ -203,12 +193,14 @@ class ArmAnimationExporter(Operator):
 
     def draw(self, context):
         layout = self.layout
-        layout.prop(self, "artist")
-        layout.prop_search(
-            self, "armature", bpy.data, "armatures", icon="ARMATURE_DATA")
         layout.prop_search(
             self, "arm_action", bpy.data, "actions", icon="ANIM_DATA")
-        layout.prop(self, "offset")
+        layout.prop_search(
+            self, "armature", bpy.data, "armatures", icon="ARMATURE_DATA")
+        layout.prop(self, "proj_name")
+        # layout.prop(self, "version")
+        layout.prop(self, "mod_id")
+        layout.prop(self, "animation_path")
 
     def execute(self, context):
         with Reporter() as reporter:
@@ -216,8 +208,15 @@ class ArmAnimationExporter(Operator):
                 bpy.data.armatures, self.armature, "Invalid armature: {item}, not in bpy.data.armatures")
             action = extract_safe(
                 bpy.data.actions, self.arm_action, "Invalid action: {item}, not in bpy.data.actions")
-            export_action(
-                self.filepath, action, self.offset, self.artist, armature)
+            opts = ActionExportOptions()
+            opts.action = action
+            opts.armature = armature
+            opts.filepath = self.animation_path.format(
+                modid=self.mod_id,
+                projectname=self.proj_name,
+                animname=action.name)
+            opts.version = 0
+            export_action(context, opts)
         reporter.print_report(self)
         return {'FINISHED'} if reporter.was_success() else {'CANCELLED'}
 
@@ -228,7 +227,7 @@ class ArmAnimationExporter(Operator):
             return {'CANCELLED'}
         self.armature = context.object.data.name
         try:
-            self.arm_action, props = ArmAnimationExporter.guess_action(
+            self.arm_action, props = AnimationExporter.guess_action(
                 context.object)
         except ValueError as ex:
             self.report(
@@ -278,6 +277,7 @@ class TabulaImporter(Operator, ImportHelper):
 class ArmatureUpdater(Operator):
     bl_idname = "object.mc_update_arms"
     bl_label = "Update possible armatures"
+    bl_options = {'REGISTER', 'INTERNAL'}
 
     @classmethod
     def poll(cls, context):

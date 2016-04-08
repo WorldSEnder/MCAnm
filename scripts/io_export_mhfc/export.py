@@ -464,18 +464,14 @@ class MeshV2(object):
 class SkeletonV1(object):
 
     def __init__(self, options):
-        arm = options.arm
-        # sorted bones
-        sorted_bones = sort_bones(arm)
+        sorted_bones = sort_bones(options.arm)
 
-        self.bones = ([] if sorted_bones is None else
-                      [Bone(bone) for bone in sorted_bones])
+        self.bones = [Bone(bone) for bone in sorted_bones]
         if len(self.bones) > 0xFF:
             Reporter.error("Too many bones")
-        self.bone_parents = ([] if sorted_bones is None else
-                             [sorted_bones.find(b.parent.name) & 0xFF
-                              if b.parent is not None
-                              else 0xFF for b in sorted_bones])
+        self.bone_parents = [sorted_bones.find(b.parent.name) & 0xFF
+                             if b.parent is not None
+                             else 0xFF for b in sorted_bones]
 
     def dump(self, writer):
         bones = self.bones
@@ -494,7 +490,7 @@ class ActionV1(object):
     def __init__(self, options):
         armature = options.armature
         action = options.action
-        offset = options.offset
+        offset = action.mcprops.offset
         bone_data_re = re.compile(
             "pose\.bones\[\"(.*)\"\]\.(rotation_quaternion|location|scale)")
         bone_dict = defaultdict(lambda: ([None] * 3, [None] * 4, [None] * 3))
@@ -524,6 +520,7 @@ class ActionV1(object):
 
     def dump(self, writer):
         bone_count = len(self.actions)
+        writer.write_packed(">B", 1)
         writer.write_packed(">B", bone_count)
         for bone in self.actions:
             bone.dump(writer)
@@ -543,19 +540,17 @@ class MeshExportOptions(object):
     uv_layer = None
 
     filepath = None
+    uuid = None
     version = None
 
 
 def export_mesh(context, options):
-    scene = context.scene
     filepath = options.filepath
     # Write file header
     bitmask = 0xFFFFFFFF
-    uuid_vec = scene.mcprops.uuid
-    # Write to file
-    # the object we export
+    uuid_vec = options.uuid
+    mesh = options.obj.data
     with ExitStack() as stack:
-        mesh = options.obj.data
         if context.mode == 'EDIT_MESH':
             bmc = bmesh.from_edit_mesh(mesh)
             stack.callback(bmesh.update_edit_mesh, mesh)
@@ -580,8 +575,15 @@ def export_mesh(context, options):
                             uuid_vec[1] & bitmask,
                             uuid_vec[2] & bitmask,
                             uuid_vec[3] & bitmask)
-        writer.write_string(options.artist)
+        writer.write_string(mesh.mcprops.artist)
         model.dump(writer)
+
+
+class SkeletonExportOptions(object):
+    arm = None
+
+    filepath = None
+    version = None
 
 
 def export_skl(context, options):
@@ -589,12 +591,14 @@ def export_skl(context, options):
     # Write file header
     bitmask = 0xFFFFFFFF
     uuid_vec = scene.mcprops.uuid
-    skeletonpath = options.modelpath.format(
-        modid=options.mod_id,
-        modelname=options.modelname)
-    filepath = os.path.join(
-        options.dirpath,
-        asset_to_dir(skeletonpath))
+    filepath = options.filepath
+#     skeletonpath = options.modelpath.format(
+#         modid=options.mod_id,
+#         modelname=options.modelname)
+#     filepath = os.path.join(
+#         options.dirpath,
+#         asset_to_dir(skeletonpath))
+    arm = options.arm
     skeleton = SkeletonV1(options)
     with Writer(filepath) as writer:
         writer.write_bytes(b'MHFC SKL')
@@ -603,14 +607,23 @@ def export_skl(context, options):
                             uuid_vec[1] & bitmask,
                             uuid_vec[2] & bitmask,
                             uuid_vec[3] & bitmask)
+        writer.write_string(arm.mcprops.artist)
         skeleton.dump(writer)
+
+
+class ActionExportOptions(object):
+    action = None
+    armature = None
+
+    filepath = None
+    version = None
 
 
 def export_action(context, options):
     filepath = options.filepath
-    artist = options.artist
+    action = options.action
     actions = ActionV1(options)
     with Writer(filepath) as writer:
         writer.write_bytes(b'MHFC ANM')
-        writer.write_string(artist)
+        writer.write_string(action.mcprops.artist)
         actions.dump(writer)

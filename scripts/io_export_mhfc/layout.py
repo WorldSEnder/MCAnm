@@ -2,7 +2,7 @@ import bpy
 
 from bpy.types import Panel, Menu, UIList, Header, UILayout
 
-from .operators import ObjectExporter, ArmAnimationExporter, ArmatureUpdater,\
+from .operators import ObjectExporter, AnimationExporter, ArmatureUpdater,\
     AddRenderGroup, RemoveRenderGroup, AddFacesToGroup, SelectGroup,\
     UpdateGroupsVisual, ImportTechne
 
@@ -95,7 +95,7 @@ class AnimationExportMenu(Menu):
         sce = context.scene
         if context.space_data.mode == 'ACTION':
             row = layout.row()
-            op = row.operator(ArmAnimationExporter.bl_idname)
+            op = row.operator(AnimationExporter.bl_idname)
             # op.armature = context.object
             op.offset = sce.frame_start
             if not context.space_data.action:
@@ -105,7 +105,7 @@ class AnimationExportMenu(Menu):
 
 
 class AnimationExportHeader(Header):
-    bl_label = "Animation Export Menu"
+    bl_label = "MCAnimation Export Menu"
     bl_idname = "animation.mc_export"
     bl_space_type = "DOPESHEET_EDITOR"
 
@@ -116,7 +116,7 @@ class AnimationExportHeader(Header):
 
 class ObjectPropertiesPanel(Panel):
     # MC Panel under Object
-    bl_label = "Monster Hunter Frontier Craft"
+    bl_label = "Minecraft Animated"
     bl_idname = "object.mc_export"
     bl_region_type = "WINDOW"
     bl_space_type = "PROPERTIES"
@@ -131,12 +131,13 @@ class ObjectPropertiesPanel(Panel):
         obj = context.object
         data = obj.data
         meshprops = data.mcprops
+        sceprops = context.scene.mcprops
         layout = LayoutWrapper(self.layout)
         # check for invalidity: #poll
         # Properties of this object
         box = layout
         box.prop(meshprops, 'artist', text="Artist name").display()
-        box.prop(meshprops, "name", text="Model Name")\
+        box.prop(sceprops, "projectname", text="Model Name")\
             .add_test(lambda k: k, "Select model name").display()
         box.prop_search(meshprops, 'armature', meshprops,
                         'poss_arms', text="Armature", icon="ARMATURE_DATA")\
@@ -223,7 +224,7 @@ class AnimationExportPanel(Panel):
         sce = context.scene
         row = layout.row()
         row.operator_context = 'INVOKE_DEFAULT'
-        op = row.operator(ArmAnimationExporter.bl_idname)
+        op = row.operator(AnimationExporter.bl_idname)
         op.offset = sce.frame_start
         if obj.animation_data is not None and obj.animation_data.action is not None:
             action = obj.animation_data.action

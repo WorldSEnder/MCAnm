@@ -103,11 +103,11 @@ class SceneProps(PropertyGroup):
         name="isUUIDset",
         description="Set to true if scene data is initialized. DON'T TOUCH THIS UNLESS YOU ARE SURE WHAT YOU DO.",
         default=False,
-        options=set())
+        options={'HIDDEN'})
     uuid = IntVectorProperty(
         name="UUID",
         description="An unique ID for this file. Read-only",
-        options=set(),
+        options={'HIDDEN'},
         default=(0, 0, 0, 0),
         size=4,
         get=get_ifnot_gen('uuid', gen_rand, 'isuuidset'))
@@ -121,6 +121,11 @@ class SceneProps(PropertyGroup):
         description="Enables advanced settings",
         default=False,
         options={'HIDDEN', 'SKIP_SAVE'})
+    projectname = StringProperty(
+        name="Model Name",
+        description="The name of your model. ",
+        subtype='FILE_NAME',
+        options=set())
 
     @classmethod
     def register(cls):
@@ -139,11 +144,6 @@ class MeshProps(PropertyGroup):
     uv_layer = StringProperty(
         name="UV Layer",
         description="The uv layer for texture mappings",
-        options=set())
-    name = StringProperty(
-        name="Model Name",
-        description="The name of your model. ",
-        subtype='FILE_NAME',
         options=set())
     artist = StringProperty(
         name="Artist name",

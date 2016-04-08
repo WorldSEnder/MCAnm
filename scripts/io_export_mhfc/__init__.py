@@ -26,7 +26,7 @@ bl_info = {
     "author": "Martin Molzer",
     "version": (0, 6),
     "blender": (2, 70, 0),
-    "location": "File > Export > Monster Hunter Frontier Craft (.mcmd)",
+    "location": "File > Export > Minecraft Animated (.mcmd)",
     "warning": "",
     "wiki_url": "",
     "tracker_url": "",
