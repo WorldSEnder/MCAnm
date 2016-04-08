@@ -152,14 +152,11 @@ class Point(object):
 class Material(object):
 
     def __init__(self, options, group):
-        if group is None:
-            image = options.def_image
-        else:
-            try:
-                image = bpy.data.images[group.image]
-            except KeyError:
-                Reporter.error("Material with an invalid image ({img})",
-                               name=self.name, img=group.image)
+        try:
+            image = bpy.data.images[group.image]
+        except KeyError:
+            Reporter.error("Material with an invalid image ({img})",
+                           name=self.name, img=group.image)
         self.img_location = bpy.path.ensure_ext(image.name, '.png')[:-4]
 
     def __hash__(self, *args, **kwargs):
@@ -179,7 +176,7 @@ class Part(object):
         group Group: can be None
                 in case of None, it is the default group
         """
-        self.name = options.def_group_name if group is None else group.name
+        self.name = group.name
         self.texture = material_resolve(group)
         # maps vertices to (point, list-index) pair-list
         self.point_map = defaultdict(list)
@@ -236,10 +233,10 @@ class Part(object):
 class Animation(object):
 
     def __init__(self, fcurve, start):
-        def write_all(*write_func):
+        def write_all(*write_funcs):
             def wrapped(writer):
-                for f in write_func:
-                    f(writer)
+                for fn in write_funcs:
+                    fn(writer)
             return wrapped
 
         def write_point(co):
@@ -298,10 +295,11 @@ class Animation(object):
                     write_point(points[0].co)(writer)
                     writer.write_packed(">B", 0)
             write_seq = write_all(
-                extract_safe(
+                *[extract_safe(
                     interpolations, right.interpolation,
                     "Unknown interpolation mode {item}")(left, right)
-                for left, right in zip(points[:], points[1:]))
+                  for left, right in zip(points[:], points[1:])]
+            )
             write_end = extract_safe(
                 extrapolations, extrapolation_mode,
                 "Unknown extrapolation mode {item}")
@@ -349,9 +347,9 @@ def sort_bones(arm):
     return None if arm is None else arm.bones
 
 
-class MeshV1(object):
+class MeshAbstract(object):
 
-    def __init__(self, options, bmesh):
+    def __init__(self, options, bmesh, resolve_mat):
         obj = options.obj
         mesh = obj.data
         # the armature to that object
@@ -363,7 +361,8 @@ class MeshV1(object):
         # could be None
         deform_layer = bmesh.verts.layers.deform.active
         # sorted bones
-        sorted_bones = sort_bones(arm)
+        self.sorted_bones = sort_bones(arm)
+        sorted_bones = self.sorted_bones
         # never none
         arm_vgroup_idxs = [] if sorted_bones is None else [
             obj.vertex_groups.find(bone.name) for bone in sorted_bones]
@@ -375,14 +374,21 @@ class MeshV1(object):
         for face in bmesh.faces:
             g_idx = face[g_layer] - 1 if g_layer is not None else -1
             group = groups[g_idx] if g_idx >= 0 and g_idx < len(
-                groups) else None
+                groups) else mesh.mcprops.default_group
             if group not in self.part_dict:
                 self.part_dict[group] = Part(
-                    group, options, lambda g: Material(options, g))
+                    group, options, resolve_mat)
             self.part_dict[group].append_face(
                 face, uv_layer, deform_layer, arm_vgroup_idxs)
         if len(self.part_dict) > 0xFF:
             Reporter.error("Too many parts")
+
+
+class MeshV1(MeshAbstract):
+
+    def __init__(self, options, bmesh):
+        super().__init__(options, bmesh, lambda g: Material(options, g))
+        sorted_bones = self.sorted_bones
         self.bones = ([] if sorted_bones is None else
                       [Bone(bone) for bone in sorted_bones])
         if len(self.bones) > 0xFF:
@@ -411,40 +417,12 @@ class MeshV1(object):
         Reporter.info(summary)
 
 
-class MeshV2(object):
+class MeshV2(MeshAbstract):
 
     def __init__(self, options, bmesh):
-        obj = options.obj
-        mesh = obj.data
-        arm = options.arm
-        # for part one part with one material
-        self.part_dict = {}
         self.mat_dict = defaultdict(lambda: ByteIndex(len(self.mat_dict)))
-        # checked
-        uv_layer = bmesh.loops.layers.uv[options.uv_layer.name]
-        # could be None
-        deform_layer = bmesh.verts.layers.deform.active
-        # sorted bones
-        sorted_bones = sort_bones(arm)
-        # never none
-        arm_vgroup_idxs = [] if sorted_bones is None else [
-            obj.vertex_groups.find(bone.name) for bone in sorted_bones]
-
-        g_layer = None
-        if 'MCRenderGroupIndex' in bmesh.faces.layers.int:
-            g_layer = bmesh.faces.layers.int['MCRenderGroupIndex']
-        groups = mesh.mcprops.render_groups
-        for face in bmesh.faces:
-            g_idx = face[g_layer] - 1 if g_layer is not None else -1
-            group = groups[g_idx] if g_idx >= 0 and g_idx < len(
-                groups) else None
-            if group not in self.part_dict:
-                self.part_dict[group] = Part(
-                    group, options, lambda g: self.mat_dict[Material(options, g)])
-            self.part_dict[group].append_face(
-                face, uv_layer, deform_layer, arm_vgroup_idxs)
-        if len(self.part_dict) > 0xFF:
-            Reporter.error("Too many parts")
+        super().__init__(
+            options, bmesh, lambda g: self.mat_dict[Material(options, g)])
 
     def dump(self, writer):
         part_dict = self.part_dict

@@ -106,10 +106,6 @@ class ObjectExporter(Operator):
                 self.directory,
                 asset_to_dir(modelpath))
 
-            opt.def_group_name = self.default_group_name
-            opt.def_image = extract_safe(
-                bpy.data.images, self.default_img, "Default image {item} not in bpy.data.images")
-
             export_mesh(context, opt)
         reporter.print_report(self)
         return {'FINISHED'} if reporter.was_success() else {'CANCELLED'}
@@ -239,7 +235,7 @@ class AnimationExporter(Operator):
                 context.object)
         except ValueError as ex:
             self.report(
-                {'ERROR'}, "Guessing action from active armature failed: {err}".format(err=ex.value))
+                {'ERROR'}, "Guessing action from active armature failed: {err}".format(err=ex))
             return {'CANCELLED'}
 
         prefs = context.user_preferences.addons[__package__].preferences
@@ -250,7 +246,7 @@ class AnimationExporter(Operator):
             self.report({'ERROR'}, "mod_id is empty")
             return {'CANCELLED'}
         self.animation_path = prefs.animation_path
-        if not self.model_path:
+        if not self.animation_path:
             self.report({'ERROR'}, "animation_path is empty")
             return {'CANCELLED'}
         self.directory = prefs.directory

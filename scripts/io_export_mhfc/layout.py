@@ -114,55 +114,10 @@ class AnimationExportHeader(Header):
         layout.menu(AnimationExportMenu.bl_idname)
 
 
-class ObjectPropertiesPanel(Panel):
-    # MC Panel under Object
-    bl_label = "Minecraft Animated"
-    bl_idname = "object.mc_export"
-    bl_region_type = "WINDOW"
-    bl_space_type = "PROPERTIES"
-    bl_context = "object"
-
-    @classmethod
-    def poll(cls, context):
-        return context.object is not None and context.object.type == 'MESH'
-
-    def draw(self, context):
-        # setup vars
-        obj = context.object
-        data = obj.data
-        meshprops = data.mcprops
-        sceprops = context.scene.mcprops
-        layout = LayoutWrapper(self.layout)
-        # check for invalidity: #poll
-        # Properties of this object
-        box = layout
-        box.prop(meshprops, 'artist', text="Artist name").display()
-        box.prop(sceprops, "projectname", text="Model Name")\
-            .add_test(lambda k: k, "Select model name").display()
-        box.prop(meshprops, 'armature', text="Armature", icon="ARMATURE_DATA")\
-            .display()
-        box.prop_search(
-            meshprops, 'uv_layer', data, 'uv_layers', text="UV Layer", icon="GROUP_UVS")\
-            .add_test(lambda uv: uv, "Select a UV map.")\
-            .add_test(lambda uv: uv in data.uv_layers, "Invalid UV map")\
-            .display()
-        box = box.box()
-        box.label(text="Default group")
-        box.prop(meshprops.default_group, 'name', text="Name")\
-            .add_test(lambda n: n, "Select a default group name.")\
-            .add_test(lambda n: n not in meshprops.render_groups, "Name collision with existing group.")\
-            .display()
-        box.prop_search(meshprops.default_group, 'image', bpy.data,
-                        'images', text="Texture", icon="IMAGE_DATA")\
-            .add_test(lambda img: img, "Select a default texture.")\
-            .add_test(lambda img: img in bpy.data.images, "Invalid image texture")\
-            .display()
-
-
 class MeshDataPanel(Panel):
     # MC Panel under Object
     bl_idname = "object.mc_meshdata"
-    bl_label = "Minecraft Render Groups"
+    bl_label = "Minecraft Animated"
     bl_region_type = "WINDOW"
     bl_space_type = "PROPERTIES"
     bl_context = "data"
@@ -173,10 +128,31 @@ class MeshDataPanel(Panel):
 
     def draw(self, context):
         layout = LayoutWrapper(self.layout)
+        data = context.object.data
         props = context.object.data.mcprops
-        groups = props.render_groups
-        active_idx = props.active_render_group
 
+        layout.prop(props, 'artist', text="Artist name").display()
+        layout.prop(props, 'armature', text="Armature", icon="ARMATURE_DATA")\
+            .display()
+        layout.prop_search(
+            props, 'uv_layer', data, 'uv_layers', text="UV Layer", icon="GROUP_UVS")\
+            .add_test(lambda uv: uv, "Select a UV map.")\
+            .add_test(lambda uv: uv in data.uv_layers, "Invalid UV map")\
+            .display()
+        box = layout.box()
+        box.label(text="Default group")
+        box.prop(props.default_group, 'name', text="Name")\
+            .add_test(lambda n: n, "Select a default group name.")\
+            .add_test(lambda n: n not in props.render_groups, "Name collision with existing group.")\
+            .display()
+        box.prop_search(props.default_group, 'image', bpy.data,
+                        'images', text="Texture", icon="IMAGE_DATA")\
+            .add_test(lambda img: img, "Select a default texture.")\
+            .add_test(lambda img: img in bpy.data.images, "Invalid image texture")\
+            .display()
+
+        layout.separator()
+        layout.label("Render Groups")
         row = layout.row()
         row.template_list(
             listtype_name='RenderGroupUIList',
@@ -190,6 +166,8 @@ class MeshDataPanel(Panel):
         col = row.column(align=True)
         col.operator(AddRenderGroup.bl_idname, text="", icon='ZOOMIN')
         col.operator(RemoveRenderGroup.bl_idname, text="", icon='ZOOMOUT')
+        groups = props.render_groups
+        active_idx = props.active_render_group
         if active_idx >= 0 and active_idx < len(groups):
             active_g = groups[active_idx]
             layout.prop_search(active_g, 'image', bpy.data, 'images', text="Image", icon="IMAGE_DATA")\
@@ -203,39 +181,25 @@ class MeshDataPanel(Panel):
             layout.operator_menu_enum(UpdateGroupsVisual.bl_idname, 'mode')
 
 
-class AnimationExportPanel(Panel):
+class SceneDataPanel(Panel):
     # MC Panel under Object
-    bl_space_type = "VIEW_3D"
-    bl_region_type = "TOOLS"
-    bl_category = "Export"
-    bl_label = "Minecraft"
-    bl_idname = "view3d.mcanm_export"
-
-    @classmethod
-    def poll(cls, context):
-        return context.object is not None and context.object.type == 'ARMATURE'
+    bl_idname = "scene.mcdata"
+    bl_label = "Minecraft Animated"
+    bl_region_type = "WINDOW"
+    bl_space_type = "PROPERTIES"
+    bl_context = "scene"
 
     def draw(self, context):
-        layout = self.layout
-        obj = context.object
-        sce = context.scene
-        row = layout.row()
-        row.operator_context = 'INVOKE_DEFAULT'
-        op = row.operator(AnimationExporter.bl_idname)
-        op.offset = sce.frame_start
-        if obj.animation_data is not None and obj.animation_data.action is not None:
-            action = obj.animation_data.action
-            op.arm_action = action.name
-            op.armature = obj.name
-            layout.prop(action.mcprops, 'artist')
-            op.artist = action.mcprops.artist
-        else:
-            row.enabled = False
+        layout = LayoutWrapper(self.layout)
+        sceprops = context.scene.mcprops
+        layout.prop(sceprops, 'projectname').display()
 
 
 def export_func(self, context):
     self.layout.operator(
         ObjectExporter.bl_idname, text="Minecraft Animated models (.mcmd)")
+    self.layout.operator(
+        AnimationExporter.bl_idname, text="Minecraft Animations (.mcanm)")
 
 
 def import_func(self, context):

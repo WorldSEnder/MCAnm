@@ -130,13 +130,8 @@ class SceneProps(PropertyGroup):
         description="Whether to export textures or not",
         default=False,
         options={'HIDDEN'})
-    enable_advanced = BoolProperty(
-        name="Adv. settings",
-        description="Enables advanced settings",
-        default=False,
-        options={'HIDDEN', 'SKIP_SAVE'})
     projectname = StringProperty(
-        name="Model Name",
+        name="Project Name",
         description="The name of your model. ",
         subtype='FILE_NAME',
         options=set())
