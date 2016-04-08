@@ -2,9 +2,9 @@ import bpy
 
 from bpy.types import Panel, Menu, UIList, Header, UILayout
 
-from .operators import ObjectExporter, AnimationExporter, ArmatureUpdater,\
+from .operators import ObjectExporter, AnimationExporter,\
     AddRenderGroup, RemoveRenderGroup, AddFacesToGroup, SelectGroup,\
-    UpdateGroupsVisual, ImportTechne
+    UpdateGroupsVisual, TechneImport
 
 
 class LayoutWrapper(object):
@@ -139,11 +139,8 @@ class ObjectPropertiesPanel(Panel):
         box.prop(meshprops, 'artist', text="Artist name").display()
         box.prop(sceprops, "projectname", text="Model Name")\
             .add_test(lambda k: k, "Select model name").display()
-        box.prop_search(meshprops, 'armature', meshprops,
-                        'poss_arms', text="Armature", icon="ARMATURE_DATA")\
-            .add_test(lambda a: not a or a in meshprops.poss_arms, "Invalid Armature")\
+        box.prop(meshprops, 'armature', text="Armature", icon="ARMATURE_DATA")\
             .display()
-        box.operator(ArmatureUpdater.bl_idname)
         box.prop_search(
             meshprops, 'uv_layer', data, 'uv_layers', text="UV Layer", icon="GROUP_UVS")\
             .add_test(lambda uv: uv, "Select a UV map.")\
@@ -243,7 +240,7 @@ def export_func(self, context):
 
 def import_func(self, context):
     self.layout.operator(
-        ImportTechne.bl_idname, text="Techne Models (.tcn)")
+        TechneImport.bl_idname, text="Techne Models (.tcn)")
 
 
 def register():

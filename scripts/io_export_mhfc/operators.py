@@ -71,38 +71,40 @@ class ObjectExporter(Operator):
 
     def execute(self, context):
         with Reporter() as reporter:
-            opt = MeshExportOptions()
-
-            opt.obj = extract_safe(
+            obj = extract_safe(
                 bpy.data.objects, self.object, "Object {item} not in bpy.data.objects!")
+            mesh = obj.data
+            # Note: we have to export an object, because vertex-groups are on
+            # the object, not the mesh
+            if obj.type != 'MESH':
+                Reporter.error(
+                    "Object {item} not a Mesh".format(item=self.object))
             modelpath = self.model_path.format(
                 modid=self.mod_id,
                 projectname=self.proj_name,
-                modelname=opt.obj.name)
-            opt.filepath = os.path.join(
-                self.directory,
-                asset_to_dir(modelpath))
-            # Note: we have to export an object, because vertex-groups are on
-            # the object, not the mesh
-            if opt.obj.type != 'MESH':
-                Reporter.error(
-                    "Object {item} not a Mesh".format(item=self.object))
-            mesh = opt.obj.data
-            mcprops = mesh.mcprops
-            if mcprops.armature:
-                opt.arm = extract_safe(
-                    bpy.data.armatures, mcprops.armature, "Armature {item} not in bpy.data.armatures")
-                if opt.arm not in [mod.object.data for mod in opt.obj.modifiers if mod.type == 'ARMATURE' and mod.object is not None]:
+                modelname=obj.name)
+            props = mesh.mcprops
+            if props.armature:
+                armature = extract_safe(
+                    bpy.data.armatures, props.armature, "Armature {item} not in bpy.data.armatures")
+                if armature not in [mod.object.data for mod in obj.modifiers if mod.type == 'ARMATURE' and mod.object is not None]:
                     Reporter.warning(
-                        "Armature {arm} is not active on object {obj}", arm=mcprops.armature, obj=self.object)
+                        "Armature {arm} is not active on object {obj}", arm=props.armature, obj=self.object)
             else:
-                opt.arm = None
+                armature = None
+
+            opt = MeshExportOptions()
+            opt.obj = obj
+            opt.arm = armature
             opt.uv_layer = extract_safe(
-                opt.obj.data.uv_layers, mcprops.uv_layer, "Invalid UV-Layer {item}")
+                opt.obj.data.uv_layers, props.uv_layer, "Invalid UV-Layer {item}")
 
             opt.version = self.version
             opt.artist = self.artist
             opt.uuid = self.uuid
+            opt.filepath = os.path.join(
+                self.directory,
+                asset_to_dir(modelpath))
 
             opt.def_group_name = self.default_group_name
             opt.def_image = extract_safe(
@@ -118,15 +120,17 @@ class ObjectExporter(Operator):
                 {'ERROR'}, "Active object must be a mesh not {}".format(context.object.type))
             return {'CANCELLED'}
         prefs = context.user_preferences.addons[__package__].preferences
-        props = context.object.data.mcprops
         sceprops = context.scene.mcprops
+        props = context.object.data.mcprops
 
         self.mod_id = prefs.mod_id
         if not self.mod_id:
-            self.mod_id = 'minecraft'
+            self.report({'ERROR'}, "mod_id is empty")
+            return {'CANCELLED'}
         self.model_path = prefs.model_path
         if not self.model_path:
-            self.model_path = '{modid}:models/{modelname}/{modelname}.mcmd'
+            self.report({'ERROR'}, "model_path is empty")
+            return {'CANCELLED'}
 
         self.object = context.object.name
         self.armature = props.armature
@@ -208,13 +212,17 @@ class AnimationExporter(Operator):
                 bpy.data.armatures, self.armature, "Invalid armature: {item}, not in bpy.data.armatures")
             action = extract_safe(
                 bpy.data.actions, self.arm_action, "Invalid action: {item}, not in bpy.data.actions")
-            opts = ActionExportOptions()
-            opts.action = action
-            opts.armature = armature
-            opts.filepath = self.animation_path.format(
+            modelpath = self.animation_path.format(
                 modid=self.mod_id,
                 projectname=self.proj_name,
                 animname=action.name)
+
+            opts = ActionExportOptions()
+            opts.action = action
+            opts.armature = armature
+            opts.filepath = os.path.join(
+                self.directory,
+                asset_to_dir(modelpath))
             opts.version = 0
             export_action(context, opts)
         reporter.print_report(self)
@@ -233,6 +241,22 @@ class AnimationExporter(Operator):
             self.report(
                 {'ERROR'}, "Guessing action from active armature failed: {err}".format(err=ex.value))
             return {'CANCELLED'}
+
+        prefs = context.user_preferences.addons[__package__].preferences
+        sceprops = context.scene.mcprops
+
+        self.mod_id = prefs.mod_id
+        if not self.mod_id:
+            self.report({'ERROR'}, "mod_id is empty")
+            return {'CANCELLED'}
+        self.animation_path = prefs.animation_path
+        if not self.model_path:
+            self.report({'ERROR'}, "animation_path is empty")
+            return {'CANCELLED'}
+        self.directory = prefs.directory
+
+        self.proj_name = sceprops.projectname
+
         self.offset = props.offset
         context.window_manager.fileselect_add(self)
         return {'RUNNING_MODAL'}
@@ -274,24 +298,29 @@ class TabulaImporter(Operator, ImportHelper):
         return context.window_manager.fileselect_add(self)
 
 
-class ArmatureUpdater(Operator):
-    bl_idname = "object.mc_update_arms"
-    bl_label = "Update possible armatures"
-    bl_options = {'REGISTER', 'INTERNAL'}
+class TechneImport(Operator, ImportHelper):
+    bl_idname = "import_mesh.tcn"
+    bl_label = "Import Techne Model"
 
-    @classmethod
-    def poll(cls, context):
-        return context.object is not None and context.object.type == 'MESH'
+    # ImportHelper mixin class uses this
+    filename_ext = ".tcn"
+
+    filter_glob = StringProperty(
+        default="*.tcn",
+        options={'HIDDEN'},
+    )
 
     def execute(self, context):
-        obj = context.object
-        armlist = obj.data.mcprops.poss_arms
-        armlist.clear()
-        for mod in obj.modifiers:
-            if mod.type != 'ARMATURE' or mod.object is None:
-                continue
-            armlist.add().name = mod.object.data.name
-        return {'FINISHED'}
+        with Reporter() as reporter:
+            context.scene.render.engine = 'BLENDER_RENDER'
+            context.scene.game_settings.material_mode = 'GLSL'
+            context.user_preferences.system.use_mipmaps = False
+            read_tcn(context, self.filepath, self)
+            reporter.info(
+                "Successfully imported the techne model from {path}", path=self.filepath)
+        reporter.print_report(self)
+        return {'FINISHED'} if reporter.was_success() else {'CANCELLED'}
+    # TODO: priority2 finish
 
 
 class AddRenderGroup(Operator):
@@ -456,28 +485,3 @@ class UpdateGroupsVisual(Operator):
         bmesh.update_edit_mesh(data)
         context.scene.render.engine = "BLENDER_RENDER"
         return {'FINISHED'}
-
-
-class ImportTechne(Operator, ImportHelper):
-    bl_idname = "import_mesh.tcn"
-    bl_label = "Import Techne Model"
-
-    # ImportHelper mixin class uses this
-    filename_ext = ".tcn"
-
-    filter_glob = StringProperty(
-        default="*.tcn",
-        options={'HIDDEN'},
-    )
-
-    def execute(self, context):
-        with Reporter() as reporter:
-            context.scene.render.engine = 'BLENDER_RENDER'
-            context.scene.game_settings.material_mode = 'GLSL'
-            context.user_preferences.system.use_mipmaps = False
-            read_tcn(context, self.filepath, self)
-            reporter.info(
-                "Successfully imported the Tabula model from {path}", path=self.filepath)
-        reporter.print_report(self)
-        return {'FINISHED'} if reporter.was_success() else {'CANCELLED'}
-    # TODO: priority2 finish

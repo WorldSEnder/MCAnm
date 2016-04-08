@@ -65,15 +65,33 @@ class Preferences(AddonPreferences):
         subtype='DIR_PATH',
         options={'HIDDEN'})
     model_path = StringProperty(
-        name="Modelpath",
-        description="Advanced: A formatstring to the path of you model. You may use {modid} and {modelname}.",
-        default="{modid}:models/{modelname}/{modelname}.mcmd",
+        name="Model Path",
+        description="Advanced: A formatstring to the path of your models." +
+        " You may use {modid}, {projectname} and {modelname}.",
+        default="{modid}:models/{projectname}/{modelname}.mcmd",
         update=update_default_ifnot(
-            'model_path', "{modid}:models/{modelname}/{modelname}.mcmd"),
+            'model_path', "{modid}:models/{projectname}/{modelname}.mcmd"),
+        options={'HIDDEN'})
+    skeleton_path = StringProperty(
+        name="Model Path",
+        description="Advanced: A formatstring to the path of your skeletons." +
+        " You may use {modid}, {projectname} and {skeletonname}.",
+        default="{modid}:models/{projectname}/{skeletonname}.mcskl",
+        update=update_default_ifnot(
+            'skeleton_path', "{modid}:models/{projectname}/{skeletonname}.mcskl"),
+        options={'HIDDEN'})
+    animation_path = StringProperty(
+        name="Animation Path",
+        description="Advanced: A formatstring to the path of you model." +
+        " You may use {modid}, {projectname} and {animname}.",
+        default="{modid}:models/{projectname}/{animname}.mcanm",
+        update=update_default_ifnot(
+            'animation_path', "{modid}:models/{projectname}/{animname}.mcanm"),
         options={'HIDDEN'})
     tex_path = StringProperty(
         name="Texpath",
-        description="Advanced: A formatstring to the textures. You may use {modid}, {modelname} and {texname}.",
+        description="Advanced: A formatstring to the textures." +
+        " You may use {modid}, {modelname} and {texname}.",
         default="{modid}:textures/models/{modelname}/{texname}.png",
         update=update_default_ifnot(
             'tex_path', "{modid}:textures/models/{modelname}/{texname}.png"),
@@ -84,12 +102,8 @@ class Preferences(AddonPreferences):
         layout.prop(self, 'mod_id')
         layout.prop(self, 'directory')
         layout.prop(self, 'model_path')
+        layout.prop(self, 'animation_path')
         layout.prop(self, 'tex_path')
-
-
-class ArmatureDESCR(PropertyGroup):
-    # The name of this in the Collection is enough
-    pass
 
 
 class RenderGroups(PropertyGroup):
@@ -136,10 +150,21 @@ class SceneProps(PropertyGroup):
         del Scene.mcprops
 
 
+def collect_armatures(_, context):
+    t = []
+    for mod in context.object.modifiers:
+        if mod.type != 'ARMATURE' or mod.object is None:
+            continue
+        name = mod.object.data.name
+        t.append((name, name, ''))
+    return t
+
+
 class MeshProps(PropertyGroup):
-    armature = StringProperty(
+    armature = EnumProperty(
         name="Armature",
         description="The armature that defines animations.",
+        items=collect_armatures,
         options=set())
     uv_layer = StringProperty(
         name="UV Layer",
@@ -149,10 +174,6 @@ class MeshProps(PropertyGroup):
         name="Artist name",
         description="Your name",
         options=set())
-    poss_arms = CollectionProperty(
-        type=ArmatureDESCR,
-        name="Possible Armatures",
-        options={'SKIP_SAVE'})
     render_groups = CollectionProperty(
         type=RenderGroups,
         name="Render Groups")
