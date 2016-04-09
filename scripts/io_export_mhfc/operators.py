@@ -10,6 +10,7 @@ from bpy.types import Operator
 from .export import export_mesh, export_skl, export_action, MeshExportOptions,\
     SkeletonExportOptions, ActionExportOptions
 from .imports import import_tabula, read_tcn
+from .properties import SceneProps, Preferences
 from .utils import Reporter, extract_safe, asset_to_dir
 
 
@@ -29,31 +30,17 @@ class ObjectExporter(Operator):
         name="Dir name",
         description="The resource folder to export to",
         subtype='DIR_PATH')
-    model_path = StringProperty(
-        name="Path to the model",
-        description="A formatstring to the path of you model." +
-        "You may use {modid}, {projectname} and {modelname}.",
-        default="{modid}:models/{projectname}/{modelname}.mcmd",
-        options={'HIDDEN'})
-    mod_id = StringProperty(
-        name="Mod ID",
-        description="Your Mod ID",
-        default="minecraft")
-    proj_name = StringProperty(
-        name="Project name",
-        description="The name of the project to export",
-        options=set())
+    model_path = Preferences.model_path
+    mod_id = Preferences.mod_id
+    proj_name = SceneProps.projectname
 
     uuid = IntVectorProperty(
         name="UUID",
-        description="An unique ID for this file",
+        description="A unique ID for this file",
         options={'HIDDEN'},
         default=(0, 0, 0, 0),
         size=4)
-    object = StringProperty(
-        name="Object",
-        description="The object to export",
-        options=set())
+    object = SceneProps.object
 
     version = EnumProperty(
         name="Version",
@@ -73,12 +60,12 @@ class ObjectExporter(Operator):
         with Reporter() as reporter:
             obj = extract_safe(
                 bpy.data.objects, self.object, "Object {item} not in bpy.data.objects!")
-            mesh = obj.data
             # Note: we have to export an object, because vertex-groups are on
             # the object, not the mesh
             if obj.type != 'MESH':
                 Reporter.error(
                     "Object {item} not a Mesh".format(item=self.object))
+            mesh = obj.data
             modelpath = self.model_path.format(
                 modid=self.mod_id,
                 projectname=self.proj_name,
@@ -100,7 +87,6 @@ class ObjectExporter(Operator):
                 opt.obj.data.uv_layers, props.uv_layer, "Invalid UV-Layer {item}")
 
             opt.version = self.version
-            opt.artist = self.artist
             opt.uuid = self.uuid
             opt.filepath = os.path.join(
                 self.directory,
@@ -156,29 +142,18 @@ class AnimationExporter(Operator):
         name="Dir name",
         description="The resource folder to export to",
         subtype='DIR_PATH')
-    animation_path = StringProperty(
-        name="Path to the model",
-        description="A formatstring to the path of the animation. " +
-        "You may use {modid}, {projectname} and {animname}.",
-        default="{modid}:models/{projectname}/{animname}.mcanm",
-        options={'HIDDEN'})
-    mod_id = StringProperty(
-        name="Mod ID",
-        description="Your Mod ID",
-        default="minecraft")
-    proj_name = StringProperty(
-        name="Project name",
-        description="The name of the project to export",
-        options=set())
+    animation_path = Preferences.animation_path
+    mod_id = Preferences.mod_id
+    proj_name = SceneProps.projectname
 
-    armature = StringProperty(
+    skeleton = StringProperty(
         name="Armature",
         description="The armature this action is \"bound\" to",
         default=""
     )
-    arm_action = StringProperty(
+    action = StringProperty(
         name="Action",
-        description="The action to export",
+        description="The action to export"
     )
 
     @staticmethod
@@ -193,10 +168,6 @@ class AnimationExporter(Operator):
 
     def draw(self, context):
         layout = self.layout
-        layout.prop_search(
-            self, "arm_action", bpy.data, "actions", icon="ANIM_DATA")
-        layout.prop_search(
-            self, "armature", bpy.data, "armatures", icon="ARMATURE_DATA")
         layout.prop(self, "proj_name")
         # layout.prop(self, "version")
         layout.prop(self, "mod_id")
@@ -204,10 +175,14 @@ class AnimationExporter(Operator):
 
     def execute(self, context):
         with Reporter() as reporter:
-            armature = extract_safe(
-                bpy.data.armatures, self.armature, "Invalid armature: {item}, not in bpy.data.armatures")
+            skeleton = extract_safe(
+                bpy.data.objects, self.skeleton, "Invalid skeleton: {item}, not in bpy.data.objects")
+            if skeleton.type != 'ARMATURE':
+                Reporter.error(
+                    "Skeleton {obj} is not an armature", obj=skeleton.name)
+            armature = skeleton.data
             action = extract_safe(
-                bpy.data.actions, self.arm_action, "Invalid action: {item}, not in bpy.data.actions")
+                bpy.data.actions, self.action, "Invalid action: {item}, not in bpy.data.actions")
             modelpath = self.animation_path.format(
                 modid=self.mod_id,
                 projectname=self.proj_name,
@@ -229,7 +204,7 @@ class AnimationExporter(Operator):
             self.report({'ERROR'}, "Active object {obj} is not an armature".format(
                 obj=context.object.name))
             return {'CANCELLED'}
-        self.armature = context.object.data.name
+        self.armature = context.object.name
         try:
             self.arm_action, props = AnimationExporter.guess_action(
                 context.object)
@@ -253,7 +228,154 @@ class AnimationExporter(Operator):
 
         self.proj_name = sceprops.projectname
 
-        self.offset = props.offset
+        context.window_manager.fileselect_add(self)
+        return {'RUNNING_MODAL'}
+
+
+class SkeletonExporter(Operator):
+    """Exports the active action of the selected armature
+    """
+    bl_idname = "export_arm.mcanm"
+    bl_label = "Export MCSKL"
+
+    directory = StringProperty(
+        name="Dir name",
+        description="The resource folder to export to",
+        subtype='DIR_PATH')
+    skeleton_path = Preferences.skeleton_path
+    mod_id = Preferences.mod_id
+    proj_name = SceneProps.projectname
+
+    uuid = IntVectorProperty(
+        name="UUID",
+        description="A unique ID for this file",
+        options={'HIDDEN'},
+        default=(0, 0, 0, 0),
+        size=4)
+    skeleton = SceneProps.skeleton
+
+    @staticmethod
+    def guess_action(obj):
+        anim_data = obj.animation_data
+        if anim_data is None:
+            raise ValueError("Active object has no animation data")
+        action = anim_data.action
+        if action is None:
+            raise ValueError("Active object has no action bound")
+        return action.name, action.mcprops
+
+    def draw(self, context):
+        layout = self.layout
+        layout.prop(self, "proj_name")
+        # layout.prop(self, "version")
+        layout.prop(self, "mod_id")
+        layout.prop(self, "skeleton_path")
+
+    def execute(self, context):
+        with Reporter() as reporter:
+            armature = extract_safe(
+                bpy.data.objects, self.skeleton, "Invalid armature: {item}, not in bpy.data.objects")
+            # the object, not the mesh
+            if armature.type != 'ARMATURE':
+                Reporter.error(
+                    "Object {item} not an Armature".format(item=self.skeleton))
+            modelpath = self.skeleton_path.format(
+                modid=self.mod_id,
+                projectname=self.proj_name,
+                skeletonname=armature.name)
+
+            opts = SkeletonExportOptions()
+            opts.arm = armature
+            opts.filepath = os.path.join(
+                self.directory,
+                asset_to_dir(modelpath))
+            opts.uuid = self.uuid
+            export_skl(context, opts)
+        reporter.print_report(self)
+        return {'FINISHED'} if reporter.was_success() else {'CANCELLED'}
+
+    def invoke(self, context, event):
+        if context.object.type != 'ARMATURE':
+            self.report({'ERROR'}, "Active object {obj} is not an armature".format(
+                obj=context.object.name))
+            return {'CANCELLED'}
+        self.skeleton = context.object.name
+
+        prefs = context.user_preferences.addons[__package__].preferences
+        sceprops = context.scene.mcprops
+
+        self.mod_id = prefs.mod_id
+        if not self.mod_id:
+            self.report({'ERROR'}, "mod_id is empty")
+            return {'CANCELLED'}
+        self.skeleton_path = prefs.skeleton_path
+        if not self.skeleton_path:
+            self.report({'ERROR'}, "animation_path is empty")
+            return {'CANCELLED'}
+        self.directory = prefs.directory
+        self.proj_name = sceprops.projectname
+        self.uuid = sceprops.uuid
+
+        context.window_manager.fileselect_add(self)
+        return {'RUNNING_MODAL'}
+
+
+class SceneExporter(Operator):
+    bl_idname = "export_scene.mcanm"
+    bl_label = "Export Scene to Minecraft"
+
+    scene = StringProperty(
+        name="Scene",
+        description="The scene to export fully")
+    directory = Preferences.directory
+    model_path = Preferences.model_path
+    animation_path = Preferences.animation_path
+    skeleton_path = Preferences.skeleton_path
+    mod_id = Preferences.mod_id
+
+    def execute(self, context):
+        with Reporter() as reporter:
+            scene = extract_safe(
+                bpy.data.scenes, self.scene, "Scene {item} not found")
+            sceprops = scene.mcprops
+            eval('bpy.ops.' + ObjectExporter.bl_idname)(
+                directory=self.directory,
+                model_path=self.model_path,
+                mod_id=self.mod_id,
+                proj_name=sceprops.projectname,
+                uuid=sceprops.uuid,
+                object=sceprops.object)
+            eval('bpy.ops.' + SkeletonExporter.bl_idname)(
+                directory=self.directory,
+                skeleton_path=self.skeleton_path,
+                mod_id=self.mod_id,
+                proj_name=sceprops.projectname,
+                uuid=sceprops.uuid,
+                skeleton=sceprops.skeleton)
+            ActionExporter = eval('bpy.ops.' + AnimationExporter.bl_idname)
+            for act in bpy.data.actions:
+                if act.mcprops.scene not in {'', self.scene}:
+                    continue
+                ActionExporter(
+                    directory=self.directory,
+                    mod_id=self.mod_id,
+                    proj_name=sceprops.projectname,
+                    skeleton=sceprops.skeleton,
+                    action=act.name)
+        reporter.print_report(self)
+        return {'FINISHED'} if reporter.was_success() else {'CANCELLED'}
+
+    def invoke(self, context, event):
+        prefs = context.user_preferences.addons[__package__].preferences
+        scene = context.scene
+        self.scene = scene.name
+
+        self.directory = prefs.directory
+        self.model_path = prefs.model_path
+        self.animation_path = prefs.animation_path
+        self.skeleton_path = prefs.skeleton_path
+        self.mod_id = prefs.mod_id
+
         context.window_manager.fileselect_add(self)
         return {'RUNNING_MODAL'}
 

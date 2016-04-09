@@ -2,9 +2,9 @@ import bpy
 
 from bpy.types import Panel, Menu, UIList, Header, UILayout
 
-from .operators import ObjectExporter, AnimationExporter,\
+from .operators import ObjectExporter, AnimationExporter, SkeletonExporter,\
     AddRenderGroup, RemoveRenderGroup, AddFacesToGroup, SelectGroup,\
-    UpdateGroupsVisual, TechneImport
+    UpdateGroupsVisual, TechneImport, SceneExporter
 
 
 class LayoutWrapper(object):
@@ -193,13 +193,20 @@ class SceneDataPanel(Panel):
         layout = LayoutWrapper(self.layout)
         sceprops = context.scene.mcprops
         layout.prop(sceprops, 'projectname').display()
+        layout.prop_search(sceprops, 'object', bpy.data, 'objects').display()
+        layout.prop_search(sceprops, 'skeleton', bpy.data, 'objects').display()
+        layout.operator(SceneExporter.bl_idname)
 
 
 def export_func(self, context):
     self.layout.operator(
         ObjectExporter.bl_idname, text="Minecraft Animated models (.mcmd)")
     self.layout.operator(
+        SkeletonExporter.bl_idname, text="Minecraft Animated skeletons (.mcskl)")
+    self.layout.operator(
         AnimationExporter.bl_idname, text="Minecraft Animations (.mcanm)")
+    self.layout.operator(
+        SceneExporter.bl_idname, text="Minecraft Animated (.mc*)")
 
 
 def import_func(self, context):

@@ -442,7 +442,7 @@ class MeshV2(MeshAbstract):
 class SkeletonV1(object):
 
     def __init__(self, options):
-        sorted_bones = sort_bones(options.arm)
+        sorted_bones = sort_bones(options.arm.data)
 
         self.bones = [Bone(bone) for bone in sorted_bones]
         if len(self.bones) > 0xFF:
@@ -561,21 +561,15 @@ class SkeletonExportOptions(object):
     arm = None
 
     filepath = None
+    uuid = None
     version = None
 
 
 def export_skl(context, options):
-    scene = context.scene
     # Write file header
     bitmask = 0xFFFFFFFF
-    uuid_vec = scene.mcprops.uuid
+    uuid_vec = options.uuid
     filepath = options.filepath
-#     skeletonpath = options.modelpath.format(
-#         modid=options.mod_id,
-#         modelname=options.modelname)
-#     filepath = os.path.join(
-#         options.dirpath,
-#         asset_to_dir(skeletonpath))
     arm = options.arm
     skeleton = SkeletonV1(options)
     with Writer(filepath) as writer:
@@ -585,7 +579,7 @@ def export_skl(context, options):
                             uuid_vec[1] & bitmask,
                             uuid_vec[2] & bitmask,
                             uuid_vec[3] & bitmask)
-        writer.write_string(arm.mcprops.artist)
+        writer.write_string(arm.data.mcprops.artist)
         skeleton.dump(writer)
 
 

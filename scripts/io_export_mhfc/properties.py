@@ -5,7 +5,7 @@ import re
 from bpy.app.handlers import persistent
 from bpy.props import BoolProperty, CollectionProperty, EnumProperty, IntProperty,\
     IntVectorProperty, PointerProperty, StringProperty
-from bpy.types import AddonPreferences, PropertyGroup, Scene, Mesh, Action
+from bpy.types import AddonPreferences, PropertyGroup, Scene, Mesh, Action, Armature
 
 
 # helper methods for properties
@@ -36,8 +36,9 @@ def get_ifnot_gen(prop, generator, init_name=None):
 
 
 def gen_rand(obj, name):
-    next = lambda: random.randint(-2**31, 2**31 - 1)
-    return (next(), next(), next(), next())
+    def rand():
+        return random.randint(-2**31, 2**31 - 1)
+    return (rand(), rand(), rand(), rand())
 
 
 def update_default_ifnot(prop, default):
@@ -88,22 +89,22 @@ class Preferences(AddonPreferences):
         update=update_default_ifnot(
             'animation_path', "{modid}:models/{projectname}/{animname}.mcanm"),
         options={'HIDDEN'})
-    tex_path = StringProperty(
-        name="Texpath",
-        description="Advanced: A formatstring to the textures." +
-        " You may use {modid}, {modelname} and {texname}.",
-        default="{modid}:textures/models/{modelname}/{texname}.png",
-        update=update_default_ifnot(
-            'tex_path', "{modid}:textures/models/{modelname}/{texname}.png"),
-        options={'HIDDEN'})
+#     tex_path = StringProperty(
+#         name="Texpath",
+#         description="Advanced: A formatstring to the textures." +
+#         " You may use {modid}, {modelname} and {texname}.",
+#         default="{modid}:textures/models/{modelname}/{texname}.png",
+#         update=update_default_ifnot(
+#             'tex_path', "{modid}:textures/models/{modelname}/{texname}.png"),
+#         options={'HIDDEN'})
 
     def draw(self, context):
         layout = self.layout
         layout.prop(self, 'mod_id')
         layout.prop(self, 'directory')
         layout.prop(self, 'model_path')
+        layout.prop(self, 'skeleton_path')
         layout.prop(self, 'animation_path')
-        layout.prop(self, 'tex_path')
 
 
 class RenderGroups(PropertyGroup):
@@ -135,6 +136,14 @@ class SceneProps(PropertyGroup):
         description="The name of your model. ",
         subtype='FILE_NAME',
         options=set())
+    object = StringProperty(
+        name="Main model",
+        description="The mesh to export",
+        options=set())
+    skeleton = StringProperty(
+        name="Armature",
+        description="The armature to export",
+    )
 
     @classmethod
     def register(cls):
@@ -195,6 +204,10 @@ class ActionProps(PropertyGroup):
         name="Artist name",
         description="Your name",
         options=set())
+    scene = StringProperty(
+        name="Scene",
+        description="The scene this action belongs to",
+        default='')
     offset = IntProperty(
         name="Frame offset",
         description="The initial offset of the animation in frames",
@@ -208,6 +221,21 @@ class ActionProps(PropertyGroup):
     @classmethod
     def unregister(cls):
         del Action.mcprops
+
+
+class ArmatureProps(PropertyGroup):
+    artist = StringProperty(
+        name="Artist name",
+        description="Your name",
+        options=set())
+
+    @classmethod
+    def register(cls):
+        Armature.mcprops = PointerProperty(type=ArmatureProps)
+
+    @classmethod
+    def unregister(cls):
+        del Armature.mcprops
 
 
 @persistent
