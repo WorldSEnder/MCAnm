@@ -333,25 +333,35 @@ class SceneExporter(Operator):
     skeleton_path = Preferences.skeleton_path
     mod_id = Preferences.mod_id
 
+    def draw(self, context):
+        layout = self.layout
+        layout.prop_search(self, 'scene', bpy.data, 'scenes')
+        layout.prop(self, 'mod_id')
+        layout.prop(self, 'model_path')
+        layout.prop(self, 'animation_path')
+        layout.prop(self, 'skeleton_path')
+
     def execute(self, context):
         with Reporter() as reporter:
             scene = extract_safe(
                 bpy.data.scenes, self.scene, "Scene {item} not found")
             sceprops = scene.mcprops
-            eval('bpy.ops.' + ObjectExporter.bl_idname)(
-                directory=self.directory,
-                model_path=self.model_path,
-                mod_id=self.mod_id,
-                proj_name=sceprops.projectname,
-                uuid=sceprops.uuid,
-                object=sceprops.object)
-            eval('bpy.ops.' + SkeletonExporter.bl_idname)(
-                directory=self.directory,
-                skeleton_path=self.skeleton_path,
-                mod_id=self.mod_id,
-                proj_name=sceprops.projectname,
-                uuid=sceprops.uuid,
-                skeleton=sceprops.skeleton)
+            if sceprops.object in bpy.data.objects:
+                eval('bpy.ops.' + ObjectExporter.bl_idname)(
+                    directory=self.directory,
+                    model_path=self.model_path,
+                    mod_id=self.mod_id,
+                    proj_name=sceprops.projectname,
+                    uuid=sceprops.uuid,
+                    object=sceprops.object)
+            if sceprops.skeleton in bpy.data.objects:
+                eval('bpy.ops.' + SkeletonExporter.bl_idname)(
+                    directory=self.directory,
+                    skeleton_path=self.skeleton_path,
+                    mod_id=self.mod_id,
+                    proj_name=sceprops.projectname,
+                    uuid=sceprops.uuid,
+                    skeleton=sceprops.skeleton)
             ActionExporter = eval('bpy.ops.' + AnimationExporter.bl_idname)
             for act in bpy.data.actions:
                 if act.mcprops.scene not in {'', self.scene}:

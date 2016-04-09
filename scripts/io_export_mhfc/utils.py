@@ -64,11 +64,11 @@ class Report(object):
         for level in self._reports:
             op_level = level.get_bl_report_level()
             for item in self.get_items(level):
+                op.report(op_level, str(item.message))
                 if level.is_fatal():
                     formatted = traceback.format_exception(
                         item.etype, item.value, item.traceback)
                     op.report(op_level, ''.join(formatted))
-                op.report(op_level, str(item.message))
 
 
 class ReportedError(RuntimeError):
