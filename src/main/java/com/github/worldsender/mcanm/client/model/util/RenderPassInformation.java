@@ -1,5 +1,6 @@
 package com.github.worldsender.mcanm.client.model.util;
 
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -103,10 +104,14 @@ public class RenderPassInformation implements IRenderPassInformation {
 
 	/**
 	 * @param animation
-	 *            the animation to set, never null
+	 *            the animation to set, Optional.empty() for bind pose
 	 */
 	public RenderPassInformation setAnimation(Optional<IAnimation> animation) {
-		this.animation = animation.orElse(BIND_POSE);
+		return setAnimation(animation.orElse(BIND_POSE));
+	}
+
+	public RenderPassInformation setAnimation(IAnimation animation) {
+		this.animation = Objects.requireNonNull(animation);
 		return this;
 	}
 
@@ -121,15 +126,23 @@ public class RenderPassInformation implements IRenderPassInformation {
 
 	/**
 	 * @param partPredicate
-	 *            the partPredicate to set, never null
+	 *            the partPredicate to set, Optional.empty() for RENDER_ALL
 	 */
 	public RenderPassInformation setPartPredicate(Optional<Predicate<String>> partPredicate) {
-		this.partPredicate = partPredicate.orElse(RENDER_ALL);
+		return setPartPredicate(partPredicate.orElse(RENDER_ALL));
+	}
+
+	public RenderPassInformation setPartPredicate(Predicate<String> partPredicate) {
+		this.partPredicate = Objects.requireNonNull(partPredicate);
 		return this;
 	}
 
 	public RenderPassInformation setTextureTransform(Optional<Function<String, ResourceLocation>> textureRemap) {
-		this.textureRemap = textureRemap.orElse(ResourceLocation::new);
+		return setTextureTransform(textureRemap.orElse(ResourceLocation::new));
+	}
+
+	public RenderPassInformation setTextureTransform(Function<String, ResourceLocation> textureRemap) {
+		this.textureRemap = Objects.requireNonNull(textureRemap);
 		return this;
 	}
 }

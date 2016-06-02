@@ -32,11 +32,7 @@ public class StoredAnimation extends ReloadableData<IAnimationVisitable> impleme
 	}
 
 	public StoredAnimation(IResourceLocation resource) {
-		super(
-				resource,
-				ReloadableData.convertThrowingLoader(RawData::retrieveFrom, "Error loading model from %s."),
-				RawData.MISSING_DATA);
-
+		super(resource, RawData::retrieveFrom, RawData.MISSING_DATA);
 	}
 
 	@Override

@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 import javax.vecmath.Quat4f;
@@ -21,7 +22,6 @@ import javax.vecmath.Vector4f;
 import org.apache.commons.lang3.ArrayUtils;
 
 import com.github.worldsender.mcanm.common.animation.IAnimation;
-import com.github.worldsender.mcanm.common.exceptions.ModelFormatException;
 import com.github.worldsender.mcanm.common.resource.IResource;
 import com.github.worldsender.mcanm.common.resource.IResourceLocation;
 import com.github.worldsender.mcanm.common.skeleton.parts.Bone;
@@ -30,7 +30,6 @@ import com.github.worldsender.mcanm.common.skeleton.stored.RawData;
 import com.github.worldsender.mcanm.common.skeleton.visitor.IBoneVisitor;
 import com.github.worldsender.mcanm.common.skeleton.visitor.ISkeletonVisitable;
 import com.github.worldsender.mcanm.common.skeleton.visitor.ISkeletonVisitor;
-import com.github.worldsender.mcanm.common.util.ExceptionLessFunctions.ThrowingFunction;
 import com.github.worldsender.mcanm.common.util.ReloadableData;
 
 import net.minecraft.client.renderer.Tessellator;
@@ -151,13 +150,8 @@ public abstract class AbstractSkeleton extends ReloadableData<ISkeletonVisitable
 	private Bone[] bonesByIndex;
 	private Map<String, Bone> bonesByName;
 
-	public AbstractSkeleton(
-			IResourceLocation resLoc,
-			ThrowingFunction<IResource, ISkeletonVisitable, ModelFormatException> readFunc) {
-		super(
-				resLoc,
-				ReloadableData.convertThrowingLoader(readFunc, "Error loading skeleton from %s."),
-				RawData.MISSING_DATA);
+	public AbstractSkeleton(IResourceLocation resLoc, Function<IResource, ISkeletonVisitable> readFunc) {
+		super(resLoc, readFunc, RawData.MISSING_DATA);
 	}
 
 	@Override

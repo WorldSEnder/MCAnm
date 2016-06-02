@@ -2,45 +2,14 @@ package com.github.worldsender.mcanm.common.util;
 
 import java.io.IOException;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.function.Function;
 
-import com.github.worldsender.mcanm.MCAnm;
-import com.github.worldsender.mcanm.common.exceptions.ModelFormatException;
 import com.github.worldsender.mcanm.common.resource.IResource;
 import com.github.worldsender.mcanm.common.resource.IResourceLocation;
-import com.github.worldsender.mcanm.common.util.ExceptionLessFunctions.ThrowingFunction;
 
 import net.minecraft.util.ResourceLocation;
 
 public abstract class ReloadableData<D> {
-
-	public static <D> Function<? super IResource, Optional<D>> convertThrowingLoader(
-			final ThrowingFunction<? super IResource, ? extends D, ModelFormatException> direct) {
-		return convertThrowingLoader(direct, "Error loading from %s");
-	}
-
-	public static <D> Function<? super IResource, Optional<D>> convertThrowingLoader(
-			final ThrowingFunction<? super IResource, ? extends D, ModelFormatException> direct,
-			String errorMessage) {
-		Objects.requireNonNull(errorMessage);
-		return convertThrowingLoader(direct, r -> String.format(errorMessage, r.getResourceName()));
-	}
-
-	public static <D> Function<? super IResource, Optional<D>> convertThrowingLoader(
-			final ThrowingFunction<? super IResource, ? extends D, ModelFormatException> direct,
-			final Function<? super IResource, ? extends String> error) {
-		Objects.requireNonNull(direct);
-		Objects.requireNonNull(error);
-		return r -> {
-			try {
-				return Optional.of(direct.apply(r));
-			} catch (ModelFormatException mfe) {
-				MCAnm.logger().error(error.apply(r), mfe);
-			}
-			return Optional.empty();
-		};
-	}
 
 	// Keep this around so that it doesn't get garbage collected
 	private final IResourceLocation reloadLocation;
@@ -61,7 +30,7 @@ public abstract class ReloadableData<D> {
 	 * @param loader
 	 *            a function that loads the raw data from a specific {@link IResource}.
 	 * @param defaultData
-	 *            the data to use if loading fails, can be null
+	 *            the data to use if loading fails (e.g. IOException)
 	 * @param additionalArgs
 	 *            these arguments will be forwarded to preInit. Use this to initialize before the resource is loaded the
 	 *            first time
@@ -70,14 +39,14 @@ public abstract class ReloadableData<D> {
 	 */
 	public ReloadableData(
 			IResourceLocation initial,
-			Function<? super IResource, Optional<D>> loader,
+			Function<? super IResource, D> loader,
 			D defaultData,
 			Object... additionalArgs) {
 		Objects.requireNonNull(initial);
 		Objects.requireNonNull(loader);
 		Objects.requireNonNull(defaultData);
 		// We do this strange lambda because of java's shitty generic capture...
-		this.loader = loader.andThen(d -> d.orElse(defaultData))::apply;
+		this.loader = loader::apply;
 		this.reloadLocation = initial;
 		this.defaultData = defaultData;
 		preInit(additionalArgs);

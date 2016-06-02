@@ -46,11 +46,7 @@ public class ModelMCMD extends ReloadableData<IModelVisitable> implements IModel
 	private ISkeleton skeleton;
 
 	public ModelMCMD(IResourceLocation initial, ISkeleton skeleton) {
-		super(
-				initial,
-				ReloadableData.convertThrowingLoader(RawData::retrieveFrom, "Error loading model from %s."),
-				RawData.MISSING_DATA,
-				skeleton);
+		super(initial, RawData::retrieveFrom, RawData.MISSING_DATA, skeleton);
 	}
 
 	@Override

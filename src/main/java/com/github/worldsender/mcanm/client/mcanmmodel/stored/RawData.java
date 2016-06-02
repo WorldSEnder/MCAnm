@@ -5,6 +5,7 @@ import java.io.EOFException;
 import java.io.IOException;
 import java.util.UUID;
 
+import com.github.worldsender.mcanm.MCAnm;
 import com.github.worldsender.mcanm.client.mcanmmodel.gl.IModelRenderData;
 import com.github.worldsender.mcanm.client.mcanmmodel.visitor.IModelVisitable;
 import com.github.worldsender.mcanm.client.mcanmmodel.visitor.IModelVisitor;
@@ -12,7 +13,6 @@ import com.github.worldsender.mcanm.common.Utils;
 import com.github.worldsender.mcanm.common.exceptions.ModelFormatException;
 import com.github.worldsender.mcanm.common.resource.IResource;
 import com.github.worldsender.mcanm.common.skeleton.visitor.ISkeletonVisitable;
-import com.github.worldsender.mcanm.common.util.ExceptionLessFunctions;
 import com.github.worldsender.mcanm.common.util.ResourceCache;
 
 /**
@@ -78,11 +78,18 @@ public class RawData implements IModelVisitable {
 		return ISkeletonVisitable.class.cast(specificData);
 	}
 
-	public static RawData retrieveFrom(IResource resource) throws ModelFormatException {
-		return CACHE.getOrCompute(resource, ExceptionLessFunctions.uncheckedFunction(RawData::loadFrom));
+	public static RawData retrieveFrom(IResource resource) {
+		return CACHE.getOrCompute(resource, r -> {
+			try {
+				return RawData.loadFrom(r);
+			} catch (ModelFormatException mfe) {
+				MCAnm.logger().error(String.format("Error loading model from %s.", r.getResourceName()), mfe);
+				return RawData.MISSING_DATA;
+			}
+		});
 	}
 
-	public static RawData loadFrom(IResource resource) throws ModelFormatException {
+	private static RawData loadFrom(IResource resource) throws ModelFormatException {
 		RawData data = new RawData();
 		DataInputStream dis = resource.getInputStream();
 

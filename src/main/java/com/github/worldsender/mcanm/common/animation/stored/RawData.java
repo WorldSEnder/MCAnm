@@ -4,12 +4,12 @@ import java.io.DataInputStream;
 import java.io.EOFException;
 import java.io.IOException;
 
+import com.github.worldsender.mcanm.MCAnm;
 import com.github.worldsender.mcanm.common.Utils;
 import com.github.worldsender.mcanm.common.animation.visitor.IAnimationVisitable;
 import com.github.worldsender.mcanm.common.animation.visitor.IAnimationVisitor;
 import com.github.worldsender.mcanm.common.exceptions.ModelFormatException;
 import com.github.worldsender.mcanm.common.resource.IResource;
-import com.github.worldsender.mcanm.common.util.ExceptionLessFunctions;
 import com.github.worldsender.mcanm.common.util.ResourceCache;
 
 public class RawData implements IAnimationVisitable {
@@ -44,11 +44,18 @@ public class RawData implements IAnimationVisitable {
 		visitor.visitEnd();
 	}
 
-	public static RawData retrieveFrom(IResource resource) throws ModelFormatException {
-		return CACHE.getOrCompute(resource, ExceptionLessFunctions.uncheckedFunction(RawData::loadFrom));
+	public static RawData retrieveFrom(IResource resource) {
+		return CACHE.getOrCompute(resource, r -> {
+			try {
+				return RawData.loadFrom(r);
+			} catch (ModelFormatException mfe) {
+				MCAnm.logger().error(String.format("Error loading animation from %s.", r.getResourceName()), mfe);
+				return RawData.MISSING_DATA;
+			}
+		});
 	}
 
-	public static RawData loadFrom(IResource resource) throws ModelFormatException {
+	private static RawData loadFrom(IResource resource) throws ModelFormatException {
 		DataInputStream dis = resource.getInputStream();
 		RawData data = new RawData();
 
