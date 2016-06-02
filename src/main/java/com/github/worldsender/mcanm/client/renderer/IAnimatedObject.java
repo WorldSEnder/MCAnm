@@ -33,7 +33,7 @@ public interface IAnimatedObject {
 				float uRotfloat,
 				float headYaw,
 				float interpolatedPitch) {
-			return IAnimatedObject.class.cast(entity).preRenderCallback(interpolatedPitch, buffer);
+			return IAnimatedObject.class.cast(entity).preRenderCallback(partialTick, buffer);
 		}
 	};
 
