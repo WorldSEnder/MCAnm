@@ -1,10 +1,25 @@
 package com.github.worldsender.mcanm.client.model;
 
-import net.minecraft.entity.Entity;
-
 import com.github.worldsender.mcanm.client.model.util.RenderPassInformation;
 
+import net.minecraft.entity.Entity;
+
 public interface IEntityAnimator {
+	public static final IEntityAnimator STATIC_ENTITY = new IEntityAnimator() {
+		@Override
+		public IRenderPassInformation preRenderCallback(
+				Entity entity,
+				RenderPassInformation buffer,
+				float partialTick,
+				float uLimbSwing,
+				float interpolatedSwing,
+				float uRotfloat,
+				float headYaw,
+				float interpolatedPitch) {
+			return buffer;
+		}
+	};
+
 	/**
 	 * Pre-render callback for the animator.<br>
 	 * This method should, when called, fill the given {@link IRenderPassInformation} with the correct values for the

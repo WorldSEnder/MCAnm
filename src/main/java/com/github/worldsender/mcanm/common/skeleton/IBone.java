@@ -5,6 +5,23 @@ import javax.vecmath.Point4f;
 import javax.vecmath.Vector3f;
 
 public interface IBone {
+	public static final IBone STATIC_BONE = new IBone() {
+		@Override
+		public void transformNormal(Vector3f normal) {}
+
+		@Override
+		public void transformToLocal(Matrix4f matrix) {}
+
+		@Override
+		public void transformFromLocal(Matrix4f matrix) {}
+
+		@Override
+		public void transform(Point4f position) {}
+
+		@Override
+		public void transform(Matrix4f matrix) {}
+	};
+
 	/**
 	 * Transforms the matrix given by the transformation currently acted out by the specified bone. Assumes that the
 	 * matrix describes a transformation relative to the bone's origin.
@@ -13,6 +30,8 @@ public interface IBone {
 	 *            the position to transform
 	 */
 	void transformFromLocal(Matrix4f matrix);
+
+	void transformToLocal(Matrix4f matrix);
 
 	/**
 	 * Transforms the matrix given by the transformation currently acted out by the specified bone. The matrix describes

@@ -11,7 +11,7 @@ import org.apache.commons.lang3.tuple.Triple;
 
 import com.github.worldsender.mcanm.common.animation.IAnimation;
 import com.github.worldsender.mcanm.common.animation.IAnimation.BoneTransformation;
-import com.github.worldsender.mcanm.common.animation.stored.BSplineInterpolation;
+import com.github.worldsender.mcanm.common.animation.parts.BSplineInterpolation;
 
 public class Animations {
 	/**
@@ -109,7 +109,7 @@ public class Animations {
 	}
 
 	/**
-	 * t \ele (0, 1]
+	 * t &#8712; (0, 1]d
 	 */
 	private static Vector3f interpolated(Vector3f f, Vector3f s, double t) {
 		float x = BSplineInterpolation.calcValue(f.x, f.x, s.x, s.x, t);
@@ -119,7 +119,7 @@ public class Animations {
 	}
 
 	/**
-	 * t \ele (0, 1]
+	 * t &#8712; (0, 1]
 	 */
 	private static Quat4f interpolated(Quat4f f, Quat4f s, double t) {
 		float x = BSplineInterpolation.calcValue(f.x, f.x, s.x, s.x, t);

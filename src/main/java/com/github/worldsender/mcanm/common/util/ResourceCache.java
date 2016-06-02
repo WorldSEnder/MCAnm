@@ -16,19 +16,19 @@ public class ResourceCache<D> {
 	}
 
 	public D getOrCompute(IResource resource, Function<IResource, D> loadFunc) {
-		Optional<IResourceLocation> location = resource.getOrigin();
-		if (location.isPresent()) {
-			IResourceLocation replayableLocation = location.get();
-			return cache.computeIfAbsent(replayableLocation, a -> loadFunc.apply(resource));
+		IResourceLocation location = resource.getOrigin();
+		if (location.shouldCache()) {
+			location.registerReloadListener(this::changedCallback);
+			return cache.computeIfAbsent(location, a -> loadFunc.apply(resource));
 		}
 		return loadFunc.apply(resource);
 	}
 
-	public Optional<D> get(IResourceLocation location) {
-		return Optional.ofNullable(cache.get(location));
+	private void changedCallback(IResourceLocation location) {
+		this.cache.remove(location);
 	}
 
-	public void onResourceManagerReloaded() {
-		cache.entrySet().removeIf(e -> e.getKey().changesWithResourceManager());
+	public Optional<D> get(IResourceLocation location) {
+		return Optional.ofNullable(cache.get(location));
 	}
 }

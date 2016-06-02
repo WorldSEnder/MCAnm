@@ -2,13 +2,13 @@ package com.github.worldsender.mcanm.client.model.util;
 
 import java.util.Objects;
 
-import net.minecraft.client.renderer.Tessellator;
-import net.minecraft.util.ResourceLocation;
-
 import com.github.worldsender.mcanm.client.IRenderPass;
 import com.github.worldsender.mcanm.client.model.IEntityRender;
 import com.github.worldsender.mcanm.client.model.IRenderPassInformation;
 import com.github.worldsender.mcanm.common.animation.IAnimation;
+
+import net.minecraft.client.renderer.Tessellator;
+import net.minecraft.util.ResourceLocation;
 
 /**
  * A collection of information neccessary to render the model.
@@ -42,7 +42,7 @@ public class RenderPass implements IRenderPass {
 	}
 
 	@Override
-	public ResourceLocation getActualResourceLocation(ResourceLocation in) {
+	public ResourceLocation getActualResourceLocation(String in) {
 		return userInfo.getActualResourceLocation(in);
 	}
 

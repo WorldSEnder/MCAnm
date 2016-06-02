@@ -2,7 +2,6 @@ package com.github.worldsender.mcanm.common.resource;
 
 import java.io.Closeable;
 import java.io.DataInputStream;
-import java.util.Optional;
 
 public interface IResource extends Closeable {
 	/**
@@ -12,7 +11,14 @@ public interface IResource extends Closeable {
 	 */
 	DataInputStream getInputStream();
 
-	String getResourceName();
+	default String getResourceName() {
+		return getOrigin().getResourceName();
+	}
 
-	Optional<IResourceLocation> getOrigin();
+	/**
+	 * Gets the origin of the resource. If the resource has no conventional, then
+	 * 
+	 * @return
+	 */
+	IResourceLocation getOrigin();
 }

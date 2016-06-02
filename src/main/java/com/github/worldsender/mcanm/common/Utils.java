@@ -44,11 +44,12 @@ import javax.vecmath.Quat4f;
 import javax.vecmath.Vector2f;
 import javax.vecmath.Vector3f;
 
-import net.minecraft.client.renderer.GLAllocation;
-
 import org.lwjgl.opengl.GL20;
 import org.lwjgl.util.vector.Quaternion;
 
+import com.google.common.primitives.Longs;
+
+import net.minecraft.client.renderer.GLAllocation;
 import sun.nio.cs.ArrayDecoder;
 
 /**
@@ -382,5 +383,14 @@ public class Utils {
 	 */
 	public static Matrix4f fromRTS(Quat4f rotation, Vector3f offset, float scale) {
 		return new Matrix4f(rotation, offset, scale);
+	}
+
+	public static long asciiToMagicNumber(String asString) {
+		byte[] asBytes = asString.getBytes();
+		if (asBytes.length != 8) {
+			throw new IllegalArgumentException(
+					"string must have a byte length of 8 but is \"" + asString + "\" (" + asBytes.length + ")");
+		}
+		return Longs.fromByteArray(asBytes);
 	}
 }

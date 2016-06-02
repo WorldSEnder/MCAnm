@@ -4,16 +4,13 @@ import java.io.IOException;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
-import java.util.function.Supplier;
 
 import com.github.worldsender.mcanm.MCAnm;
 import com.github.worldsender.mcanm.common.exceptions.ModelFormatException;
 import com.github.worldsender.mcanm.common.resource.IResource;
 import com.github.worldsender.mcanm.common.resource.IResourceLocation;
 import com.github.worldsender.mcanm.common.util.ExceptionLessFunctions.ThrowingFunction;
-import com.github.worldsender.mcanm.common.util.ExceptionLessFunctions.ThrowingSupplier;
 
-import net.minecraft.client.resources.IResourceManager;
 import net.minecraft.util.ResourceLocation;
 
 public abstract class ReloadableData<D> {
@@ -45,92 +42,74 @@ public abstract class ReloadableData<D> {
 		};
 	}
 
-	private final Optional<IResourceLocation> reloadLocation;
-	private Function<Optional<IResource>, D> loader;
-	private D lastData;
-
-	public ReloadableData(IResource initial, Function<? super IResource, Optional<D>> loader, D defaultData) {
-		this(() -> initial, () -> null, loader, defaultData);
-	}
+	// Keep this around so that it doesn't get garbage collected
+	private final IResourceLocation reloadLocation;
+	private Function<IResource, D> loader;
+	private D latestData;
+	private D defaultData;
 
 	/**
 	 * Constructs Reloadable Data by first opening the initial resource and then reading from it.<br>
-	 * Iff opening the resource throws an IOException, then reloadLocation must return a non-null,
-	 * {@link IResourceLocation} to load the resource from on the next reload. If it does not, that is considered an
-	 * {@link IllegalArgumentException} because the resource can not ever be anything else but the default data.<br>
-	 * Iff opening the resource from initial succeeds, reloadLocation will not be called and the location will be
+	 * Any time loading from the supplied {@link IResourceLocation} fails because of an {@link IOException}, instead the
+	 * defaultData is assumed.<br>
+	 * <b>This constructor will instantly fire a load. If you wish to do any setup you may supply a Runnable to the
+	 * constructor which will be run shortly before the resource is loaded. This is to trick java into running your
+	 * constructor code before the resource is first openened.
 	 * 
 	 * @param initial
 	 *            the initial location
-	 * @param reloadLocation
-	 *            the reload location
 	 * @param loader
 	 *            a function that loads the raw data from a specific {@link IResource}.
 	 * @param defaultData
-	 *            the data to use if loading fails
+	 *            the data to use if loading fails, can be null
+	 * @param additionalArgs
+	 *            these arguments will be forwarded to preInit. Use this to initialize before the resource is loaded the
+	 *            first time
 	 * @throws IllegalArgumentException
 	 *             iff initial fails and reloadLocation returns null
 	 */
-	public <U extends D> ReloadableData(
-			ThrowingSupplier<? extends IResource, IOException> initial,
-			Supplier<? extends IResourceLocation> reloadLocation,
-			Function<? super IResource, Optional<U>> loader,
-			D defaultData) {
+	public ReloadableData(
+			IResourceLocation initial,
+			Function<? super IResource, Optional<D>> loader,
+			D defaultData,
+			Object... additionalArgs) {
 		Objects.requireNonNull(initial);
-		Objects.requireNonNull(reloadLocation);
 		Objects.requireNonNull(loader);
-		this.loader = o -> {
-			Optional<U> loaded = o.flatMap(loader);
-			if (loaded.isPresent()) {
-				return loaded.get();
-			}
-			return defaultData;
-		};
-		Optional<IResource> resource;
-		Optional<IResourceLocation> reload;
+		Objects.requireNonNull(defaultData);
+		// We do this strange lambda because of java's shitty generic capture...
+		this.loader = loader.andThen(d -> d.orElse(defaultData))::apply;
+		this.reloadLocation = initial;
+		this.defaultData = defaultData;
+		preInit(additionalArgs);
+		initial.registerReloadListener(this::reload);
+	}
+
+	// For the leisure of sub-objects.... fuck java
+	protected void preInit(Object... args) {
+
+	}
+
+	private D getData() {
 		try {
-			IResource res = initial.get();
-			resource = Optional.of(res);
-			reload = res.getOrigin();
+			return loader.apply(reloadLocation.open());
 		} catch (IOException ioe) {
-			resource = Optional.empty();
-			IResourceLocation resLoc = reloadLocation.get();
-			if (resLoc == null) {
-				throw new IllegalArgumentException(
-						"Loading the initial resource has failed, but the reloadLocation is also null",
-						ioe);
-			}
-			reload = Optional.of(resLoc);
+			return defaultData;
 		}
-		this.reloadLocation = reload;
-		loadFrom(resource);
 	}
 
-	public void reload(IResourceManager newManager) {
-		Optional<IResource> res = reloadLocation.map(l -> {
-			try {
-				return l.openWith(newManager);
-			} catch (IOException ioe) {
-				return null;
-			}
-		});
-		loadFrom(res);
-	}
-
-	private void loadFrom(Optional<IResource> resource) {
-		lastData = loader.apply(resource);
-		loadData(lastData);
+	private void reload(IResourceLocation dummy) {
+		assert dummy == reloadLocation;
+		loadData(getData());
 	}
 
 	protected abstract void loadData(D data);
 
 	/**
-	 * Gets the {@link ResourceLocation} this model was loaded from. This may be <code>null</code> if this model was
-	 * loaded from a stream.
+	 * Gets the {@link ResourceLocation} this model was loaded from.
 	 *
 	 * @return
 	 */
-	public Optional<IResourceLocation> getResourceLocation() {
+	public IResourceLocation getResourceLocation() {
 		return this.reloadLocation;
 	}
 
@@ -138,7 +117,7 @@ public abstract class ReloadableData<D> {
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((lastData == null) ? 0 : lastData.hashCode());
+		result = prime * result + ((latestData == null) ? 0 : latestData.hashCode());
 		result = prime * result + ((reloadLocation == null) ? 0 : reloadLocation.hashCode());
 		return result;
 	}
@@ -155,11 +134,11 @@ public abstract class ReloadableData<D> {
 			return false;
 		}
 		ReloadableData<?> other = (ReloadableData<?>) obj;
-		if (lastData == null) {
-			if (other.lastData != null) {
+		if (latestData == null) {
+			if (other.latestData != null) {
 				return false;
 			}
-		} else if (!lastData.equals(other.lastData)) {
+		} else if (!latestData.equals(other.latestData)) {
 			return false;
 		}
 		if (reloadLocation == null) {

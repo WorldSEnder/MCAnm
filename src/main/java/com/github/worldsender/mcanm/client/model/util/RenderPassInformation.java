@@ -48,7 +48,7 @@ public class RenderPassInformation implements IRenderPassInformation {
 	private float frame;
 	private IAnimation animation;
 	private Predicate<String> partPredicate;
-	private Function<ResourceLocation, ResourceLocation> textureRemap;
+	private Function<String, ResourceLocation> textureRemap;
 
 	public RenderPassInformation() {
 		this.reset();
@@ -58,7 +58,7 @@ public class RenderPassInformation implements IRenderPassInformation {
 			float frame,
 			Optional<IAnimation> animation,
 			Optional<Predicate<String>> partPredicate,
-			Optional<Function<ResourceLocation, ResourceLocation>> resourceRemap) {
+			Optional<Function<String, ResourceLocation>> resourceRemap) {
 		this.setFrame(frame).setAnimation(animation).setPartPredicate(partPredicate).setTextureTransform(resourceRemap);
 	}
 
@@ -66,8 +66,8 @@ public class RenderPassInformation implements IRenderPassInformation {
 	 * Resets this information to be reused.
 	 */
 	public void reset() {
-		this.setFrame(0F).setAnimation(Optional.of(BIND_POSE)).setPartPredicate(Optional.of(RENDER_ALL))
-				.setTextureTransform(Optional.of(IDENTITY));
+		this.setFrame(0F).setAnimation(Optional.empty()).setPartPredicate(Optional.empty())
+				.setTextureTransform(Optional.empty());
 	}
 
 	/**
@@ -97,7 +97,7 @@ public class RenderPassInformation implements IRenderPassInformation {
 	}
 
 	@Override
-	public ResourceLocation getActualResourceLocation(ResourceLocation in) {
+	public ResourceLocation getActualResourceLocation(String in) {
 		return this.textureRemap.apply(in);
 	}
 
@@ -128,9 +128,8 @@ public class RenderPassInformation implements IRenderPassInformation {
 		return this;
 	}
 
-	public RenderPassInformation setTextureTransform(
-			Optional<Function<ResourceLocation, ResourceLocation>> textureRemap) {
-		this.textureRemap = textureRemap.orElse(IDENTITY);
+	public RenderPassInformation setTextureTransform(Optional<Function<String, ResourceLocation>> textureRemap) {
+		this.textureRemap = textureRemap.orElse(ResourceLocation::new);
 		return this;
 	}
 }

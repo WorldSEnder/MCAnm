@@ -4,8 +4,10 @@ import com.github.worldsender.mcanm.client.model.IEntityAnimator;
 import com.github.worldsender.mcanm.client.model.IRenderPassInformation;
 import com.github.worldsender.mcanm.client.model.util.RenderPassInformation;
 import com.github.worldsender.mcanm.client.renderer.entity.RenderAnimatedModel;
+import com.github.worldsender.mcanm.common.skeleton.ISkeleton;
 
 import net.minecraft.entity.Entity;
+import net.minecraft.util.ResourceLocation;
 
 /**
  * An animatable type that is typically rendered with a {@link RenderAnimatedModel} or a //TODO: RenderMHFCModelTile<br>
@@ -17,7 +19,7 @@ import net.minecraft.entity.Entity;
 public interface IAnimatedObject {
 	/**
 	 * An animator that can be used in
-	 * {@link RenderAnimatedModel#fromResLocation(IEntityAnimator, net.minecraft.util.ResourceLocation, float)} when the
+	 * {@link RenderAnimatedModel#fromResLocation(IEntityAnimator, ResourceLocation, ISkeleton, float)} when the
 	 * animated entity implements the {@link IAnimatedObject} interface.
 	 */
 	public static final IEntityAnimator ANIMATOR_ADAPTER = new IEntityAnimator() {
@@ -31,7 +33,7 @@ public interface IAnimatedObject {
 				float uRotfloat,
 				float headYaw,
 				float interpolatedPitch) {
-			return ((IAnimatedObject) entity).preRenderCallback(interpolatedPitch, buffer);
+			return IAnimatedObject.class.cast(entity).preRenderCallback(interpolatedPitch, buffer);
 		}
 	};
 

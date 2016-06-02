@@ -6,17 +6,27 @@ import java.io.InputStream;
 import java.util.Objects;
 
 public abstract class ResourceAdapter implements IResource {
-	private final DataInputStream dis;
-
-	public ResourceAdapter(InputStream managed) throws IOException {
-		if (managed == null) {
+	private static DataInputStream convertChecked(InputStream source) throws IOException {
+		if (source == null) {
 			throw new IOException("Can't read from null");
 		}
-		dis = new DataInputStream(managed);
+		return new DataInputStream(source);
 	}
 
-	public ResourceAdapter(DataInputStream managed) {
+	private final DataInputStream dis;
+	private final IResourceLocation resLoc;
+
+	public ResourceAdapter(InputStream managed) throws IOException {
+		this(IResourceLocation.UNKNOWN_LOCATION, managed);
+	}
+
+	public ResourceAdapter(IResourceLocation parent, InputStream managed) throws IOException {
+		this(parent, convertChecked(managed));
+	}
+
+	public ResourceAdapter(IResourceLocation parent, DataInputStream managed) {
 		dis = Objects.requireNonNull(managed);
+		resLoc = parent;
 	}
 
 	@Override
@@ -27,5 +37,10 @@ public abstract class ResourceAdapter implements IResource {
 	@Override
 	public DataInputStream getInputStream() {
 		return dis;
+	}
+
+	@Override
+	public IResourceLocation getOrigin() {
+		return resLoc;
 	}
 }

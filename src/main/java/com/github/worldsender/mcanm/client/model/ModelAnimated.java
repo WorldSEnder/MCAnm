@@ -7,7 +7,7 @@ import static org.lwjgl.opengl.GL11.glTranslatef;
 
 import java.util.Objects;
 
-import com.github.worldsender.mcanm.client.mcanmmodel.stored.ModelMCMD;
+import com.github.worldsender.mcanm.client.mcanmmodel.IModel;
 import com.github.worldsender.mcanm.client.model.util.RenderPass;
 import com.github.worldsender.mcanm.client.model.util.RenderPassInformation;
 
@@ -29,7 +29,7 @@ public class ModelAnimated extends ModelBase {
 		return newPartialTick >= 0.0F && newPartialTick <= 1.0F;
 	}
 
-	private ModelMCMD model;
+	private IModel model;
 	private float partialTick;
 	private IEntityRender renderer; // The renderer, used to bind textures
 
@@ -42,7 +42,7 @@ public class ModelAnimated extends ModelBase {
 	 * @param model
 	 *            the model to render
 	 */
-	public ModelAnimated(ModelMCMD model) {
+	public ModelAnimated(IModel model) {
 		this.model = model; // No null-checks, getters could be overridden
 		// Useless piece of .... sklsdalsafhkjasd
 		// So we don't get problems with arrows in our entity.
@@ -109,7 +109,7 @@ public class ModelAnimated extends ModelBase {
 	 *
 	 * @return
 	 */
-	protected ModelMCMD getModel() {
+	protected IModel getModel() {
 		return this.model;
 	}
 
@@ -121,8 +121,8 @@ public class ModelAnimated extends ModelBase {
 	}
 
 	/**
-	 * Sets the given {@link IEntityRender} as the current Render. Users should not use this, only if they are the coding the
-	 * render.<br>
+	 * Sets the given {@link IEntityRender} as the current Render. Users should not use this, only if they are the
+	 * coding the render.<br>
 	 * The Render however should always call this at least once before rendering the model, as the render is used to
 	 * bind the textures of the model.
 	 *

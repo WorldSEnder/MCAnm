@@ -4,6 +4,7 @@ import org.apache.logging.log4j.Logger;
 
 import com.github.worldsender.mcanm.client.config.MCAnmConfiguration;
 import com.github.worldsender.mcanm.test.CubeEntity;
+import com.github.worldsender.mcanm.test.CubeEntityV2;
 
 import cpw.mods.fml.client.event.ConfigChangedEvent.OnConfigChangedEvent;
 import cpw.mods.fml.common.FMLCommonHandler;
@@ -48,10 +49,10 @@ public class MCAnm {
 
 	@Mod.EventHandler
 	public void init(FMLInitializationEvent event) {
-		if (!isDebug)
-			return;
-		int id = 0;
-		EntityRegistry.registerModEntity(CubeEntity.class, "Cube", id, this, 80, 1, true);
+		if (isDebug) {
+			EntityRegistry.registerModEntity(CubeEntity.class, "Cube", 0, this, 80, 1, true);
+			EntityRegistry.registerModEntity(CubeEntityV2.class, "CubeV2", 1, this, 80, 1, true);
+		}
 		proxy.init();
 	}
 

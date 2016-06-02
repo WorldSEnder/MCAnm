@@ -1,13 +1,25 @@
 package com.github.worldsender.mcanm.common.resource;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 
 import com.github.worldsender.mcanm.common.util.CallResolver;
 
-import net.minecraft.client.resources.IResourceManager;
+public class EmbeddedResourceLocation extends ResourceLocationAdapter {
+	private static InputStream createStream(URL url) throws IOException {
+		if (url == null) {
+			throw new IOException("Couldn't open the stream");
+		}
+		return url.openStream();
+	}
 
-public class EmbeddedResourceLocation implements IResourceLocation {
+	private /* static */ class EmbeddedResource extends ResourceAdapter {
+		public EmbeddedResource(URL url) throws IOException {
+			super(EmbeddedResourceLocation.this, createStream(url));
+		}
+	}
+
 	private final URL url;
 
 	public EmbeddedResourceLocation(String name) {
@@ -23,13 +35,13 @@ public class EmbeddedResourceLocation implements IResourceLocation {
 	}
 
 	@Override
-	public boolean changesWithResourceManager() {
-		return false;
+	public IResource open() throws IOException {
+		return new EmbeddedResource(url);
 	}
 
 	@Override
-	public IResource openWith(IResourceManager manager) throws IOException {
-		return new EmbeddedResource(url);
+	public String getResourceName() {
+		return url.toString();
 	}
 
 	@Override

@@ -5,14 +5,15 @@ import java.io.EOFException;
 import java.io.IOException;
 
 import com.github.worldsender.mcanm.common.Utils;
+import com.github.worldsender.mcanm.common.animation.visitor.IAnimationVisitable;
+import com.github.worldsender.mcanm.common.animation.visitor.IAnimationVisitor;
 import com.github.worldsender.mcanm.common.exceptions.ModelFormatException;
 import com.github.worldsender.mcanm.common.resource.IResource;
 import com.github.worldsender.mcanm.common.util.ExceptionLessFunctions;
 import com.github.worldsender.mcanm.common.util.ResourceCache;
 
 public class RawData implements IAnimationVisitable {
-	public static final long MAGIC_NUMBER = 0x4d48464320414e4dL;
-	public static final ResourceCache<RawData> CACHE = new ResourceCache<>();
+	public static final long MAGIC_NUMBER = Utils.asciiToMagicNumber("MHFC ANM");
 
 	public static final RawData MISSING_DATA;
 
@@ -24,6 +25,12 @@ public class RawData implements IAnimationVisitable {
 			public void visitBy(IAnimationVisitor visitor) {}
 		};
 	}
+
+	private static interface VersionizedModelLoader {
+		IVersionSpecificData loadFrom(DataInputStream dis) throws IOException, ModelFormatException;
+	}
+
+	private static final ResourceCache<RawData> CACHE = new ResourceCache<>();
 
 	private String artist;
 	private IVersionSpecificData versionized;
@@ -49,9 +56,11 @@ public class RawData implements IAnimationVisitable {
 			long magic = dis.readLong();
 			if (magic != MAGIC_NUMBER)
 				throw new ModelFormatException(
-						String.format("Wrong magic number. Found %x, expected %x.", magic, MAGIC_NUMBER));
+						String.format("Wrong MAGIC_NUMBER number. Found %x, expected %x.", magic, MAGIC_NUMBER));
 			data.artist = Utils.readString(dis);
-			data.versionized = RawDataV1.readFrom(dis);
+			// Why did I use a byte here, but an int for all other formats??? -.-
+			int version = dis.readUnsignedByte();
+			data.versionized = getLoaderForVersion(version).loadFrom(dis);
 			return data;
 		} catch (EOFException eofe) {
 			throw new ModelFormatException(
@@ -66,6 +75,18 @@ public class RawData implements IAnimationVisitable {
 					String.format("Illegal Animation format in %s", resource.getResourceName()),
 					mfe);
 		}
+	}
+
+	private static VersionizedModelLoader getLoaderForVersion(int version) {
+		switch (version) {
+		case 1:
+			return RawDataV1::loadFrom;
+		default:
+			break;
+		}
+		return o -> {
+			throw new ModelFormatException("Unknown version: " + version);
+		};
 	}
 
 }

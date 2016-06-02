@@ -1,10 +1,10 @@
 package com.github.worldsender.mcanm.client.renderer.entity;
 
-import com.github.worldsender.mcanm.client.mcanmmodel.stored.ModelMCMD;
+import com.github.worldsender.mcanm.client.mcanmmodel.IModel;
 import com.github.worldsender.mcanm.client.model.IEntityAnimator;
 import com.github.worldsender.mcanm.client.model.IEntityRender;
 import com.github.worldsender.mcanm.client.model.ModelAnimated;
-import com.github.worldsender.mcanm.common.skeleton.ISkeleton;
+import com.github.worldsender.mcanm.client.renderer.IAnimatedObject;
 
 import net.minecraft.client.renderer.entity.RenderLiving;
 import net.minecraft.client.renderer.texture.TextureMap;
@@ -52,25 +52,34 @@ public class RenderAnimatedModel extends RenderLiving implements IEntityRender {
 	}
 
 	/**
-	 * Convenience alternative to the constructor. A new {@link ModelAnimated} is instanciated from the
+	 * Convenience alternative to the constructor. The entity this render is used for has to extend
+	 * {@link IAnimatedObject}.
+	 * 
+	 * @param model
+	 *            the model to use
+	 * @param shadowSize
+	 *            the shadow size...
+	 * @return
+	 */
+	public static RenderAnimatedModel fromModel(IModel model, float shadowSize) {
+		return fromModel(IAnimatedObject.ANIMATOR_ADAPTER, model, shadowSize);
+	}
+
+	/**
+	 * Convenience alternative to the constructor. A new {@link ModelAnimated} is instantiated from the
 	 * {@link ResourceLocation} given (using the normal constructor).
 	 *
 	 * @param animator
 	 *            the animator for the entity
-	 * @param resLoc
-	 *            the resource location to load the entity from
+	 * @param model
+	 *            the model to use
 	 * @param shadowSize
 	 *            the shadow size...
 	 * @return the constructed {@link RenderAnimatedModel}
 	 * @see IEntityAnimator
 	 */
-	public static RenderAnimatedModel fromResLocation(
-			IEntityAnimator animator,
-			ResourceLocation resLoc,
-			ISkeleton skeleton,
-			float shadowSize) {
-		ModelMCMD rawmodel = new ModelMCMD(resLoc, skeleton);
-		ModelAnimated mcmodel = new ModelAnimated(rawmodel);
+	public static RenderAnimatedModel fromModel(IEntityAnimator animator, IModel model, float shadowSize) {
+		ModelAnimated mcmodel = new ModelAnimated(model);
 
 		return new RenderAnimatedModel(mcmodel, animator, shadowSize);
 	}
