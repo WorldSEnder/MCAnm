@@ -1,10 +1,12 @@
 package com.github.worldsender.mcanm.client.renderer.entity;
 
+import com.github.worldsender.mcanm.client.ClientLoader;
 import com.github.worldsender.mcanm.client.mcanmmodel.IModel;
 import com.github.worldsender.mcanm.client.model.IEntityAnimator;
 import com.github.worldsender.mcanm.client.model.IEntityRender;
 import com.github.worldsender.mcanm.client.model.ModelAnimated;
 import com.github.worldsender.mcanm.client.renderer.IAnimatedObject;
+import com.github.worldsender.mcanm.common.skeleton.ISkeleton;
 
 import net.minecraft.client.renderer.entity.RenderLiving;
 import net.minecraft.client.renderer.texture.TextureMap;
@@ -77,6 +79,9 @@ public class RenderAnimatedModel extends RenderLiving implements IEntityRender {
 	 *            the shadow size...
 	 * @return the constructed {@link RenderAnimatedModel}
 	 * @see IEntityAnimator
+	 * @see IEntityAnimator#STATIC_ENTITY
+	 * @see IAnimatedObject#ANIMATOR_ADAPTER
+	 * @see ClientLoader#loadModel(ResourceLocation, ISkeleton)
 	 */
 	public static RenderAnimatedModel fromModel(IEntityAnimator animator, IModel model, float shadowSize) {
 		ModelAnimated mcmodel = new ModelAnimated(model);

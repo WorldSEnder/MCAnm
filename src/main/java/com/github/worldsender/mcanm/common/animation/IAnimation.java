@@ -66,7 +66,7 @@ public interface IAnimation {
 
 	/**
 	 * Returns the bone's current {@link BoneTransformation} (identified by name). <br>
-	 * If the requested bone is not known to the animation it should return an {@link Optional#absent()). This means
+	 * If the requested bone is not known to the animation it should return an {@link Optional#empty())}. This means
 	 * (for the model) that the bone is placed at it's identity position and not transformed at all, but it also gives
 	 * other animations the chance to supply their Transformation
 	 *
