@@ -1,5 +1,6 @@
 package com.github.worldsender.mcanm.common.skeleton;
 
+import static org.lwjgl.opengl.GL11.GL_DEPTH_TEST;
 import static org.lwjgl.opengl.GL11.GL_LINES;
 import static org.lwjgl.opengl.GL11.GL_TEXTURE_2D;
 import static org.lwjgl.opengl.GL11.glColor4f;
@@ -190,6 +191,7 @@ public abstract class AbstractSkeleton extends ReloadableData<ISkeletonVisitable
 	@Override
 	public void debugDraw(Tessellator tess) {
 		glDisable(GL_TEXTURE_2D);
+		glDisable(GL_DEPTH_TEST);
 		tess.startDrawing(GL_LINES);
 		glColor4f(0f, 0f, 0f, 1f);
 		for (Bone bone : bonesBreadthFirst) {
@@ -199,6 +201,7 @@ public abstract class AbstractSkeleton extends ReloadableData<ISkeletonVisitable
 			tess.addVertex(head.x, head.z, -head.y);
 		}
 		tess.draw();
+		glEnable(GL_DEPTH_TEST);
 		glEnable(GL_TEXTURE_2D);
 	}
 

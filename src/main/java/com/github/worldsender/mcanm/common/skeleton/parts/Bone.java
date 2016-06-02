@@ -16,6 +16,10 @@ import com.github.worldsender.mcanm.common.skeleton.IBone;
 public class Bone implements IBone {
 	private static final Matrix4f identity = new Matrix4f();
 
+	static {
+		identity.setIdentity();
+	}
+
 	public static class BoneBuilder {
 		private Quat4f rotation;
 		private Vector3f offset;

@@ -24,7 +24,7 @@ public class MCAnm {
 	/**
 	 * Enables various visual outputs, e.g. the bones of models are rendered.
 	 */
-	public static final boolean isDebug = true;
+	public static final boolean isDebug = false;
 
 	@Mod.Instance(Reference.core_modid)
 	public static MCAnm instance;
