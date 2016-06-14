@@ -154,12 +154,10 @@ class SceneProps(PropertyGroup):
         del Scene.mcprops
 
 
-def collect_armatures(_, context):
+def collect_armatures(self, context):
     t = []
-    for mod in context.object.modifiers:
-        if mod.type != 'ARMATURE' or mod.object is None:
-            continue
-        name = mod.object.data.name
+    for arm in bpy.data.armatures:
+        name = arm.name
         t.append((name, name, ''))
     return t
 

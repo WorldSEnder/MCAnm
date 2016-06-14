@@ -121,7 +121,7 @@ class Point(object):
                     insert_into_binds((idx, value))
 
     def dump(self, writer):
-        binds = sorted(self.bindings, key=lambda x: x[1])[-4:]
+        binds = sorted(self.bindings, key=lambda x: x[1], reverse=True)[:4]
         co = self.coords
         norm = self.normal
         uv = self.uv
@@ -260,8 +260,8 @@ class Animation(object):
                 writer.write_packed(">B", 10)
             return write_all(write_point(right.co),
                              wrapped,
-                             write_point(left.handle_right),
-                             write_point(right.handle_left))
+                             write_point(left.handle_left),
+                             write_point(right.handle_right))
 
         def constant_extrapolation(writer):
             writer.write_packed(">B", 16)
@@ -366,7 +366,6 @@ class MeshAbstract(object):
         # never none
         arm_vgroup_idxs = [] if sorted_bones is None else [
             obj.vertex_groups.find(bone.name) for bone in sorted_bones]
-
         g_layer = None
         if 'MCRenderGroupIndex' in bmesh.faces.layers.int:
             g_layer = bmesh.faces.layers.int['MCRenderGroupIndex']
@@ -545,16 +544,16 @@ def export_mesh(context, options):
         except (KeyError, NotImplementedError):
             Reporter.fatal(
                 "Version {v} is not implemented yet", v=options.version)
-    # No more error (apart from IO) should happen now
-    with Writer(filepath) as writer:
-        writer.write_bytes(b'MHFC MDL')
-        writer.write_packed(">4I",
-                            uuid_vec[0] & bitmask,
-                            uuid_vec[1] & bitmask,
-                            uuid_vec[2] & bitmask,
-                            uuid_vec[3] & bitmask)
-        writer.write_string(mesh.mcprops.artist)
-        model.dump(writer)
+        # No more error (apart from IO) should happen now
+        with Writer(filepath) as writer:
+            writer.write_bytes(b'MHFC MDL')
+            writer.write_packed(">4I",
+                                uuid_vec[0] & bitmask,
+                                uuid_vec[1] & bitmask,
+                                uuid_vec[2] & bitmask,
+                                uuid_vec[3] & bitmask)
+            writer.write_string(mesh.mcprops.artist)
+            model.dump(writer)
 
 
 class SkeletonExportOptions(object):
