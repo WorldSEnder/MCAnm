@@ -204,9 +204,9 @@ class AnimationExporter(Operator):
             self.report({'ERROR'}, "Active object {obj} is not an armature".format(
                 obj=context.object.name))
             return {'CANCELLED'}
-        self.armature = context.object.name
+        self.skeleton = context.object.name
         try:
-            self.arm_action, props = AnimationExporter.guess_action(
+            self.action, props = AnimationExporter.guess_action(
                 context.object)
         except ValueError as ex:
             self.report(
