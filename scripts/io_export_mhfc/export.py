@@ -257,7 +257,7 @@ class Animation(object):
         def bezier_between(left, right):
             def wrapped(writer):
                 write_point(right.co)
-                writer.write_packed(">B", 9)
+                writer.write_packed(">B", 10)
             return write_all(write_point(right.co),
                              wrapped,
                              write_point(left.handle_right),
