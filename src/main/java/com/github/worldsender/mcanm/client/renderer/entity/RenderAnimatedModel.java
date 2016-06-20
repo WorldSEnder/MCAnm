@@ -53,6 +53,11 @@ public class RenderAnimatedModel extends RenderLiving implements IEntityRender {
 		super.bindTexture(texLocation);
 	}
 
+	@Override
+	protected void rotateCorpse(EntityLivingBase entity, float rotation, float yaw, float partialFrame) {
+		// No-op. We do not want to do anything here
+	}
+
 	/**
 	 * Convenience alternative to the constructor. The entity this render is used for has to extend
 	 * {@link IAnimatedObject}.

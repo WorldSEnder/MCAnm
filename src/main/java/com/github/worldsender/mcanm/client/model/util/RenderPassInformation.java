@@ -7,6 +7,9 @@ import java.util.function.Predicate;
 
 import com.github.worldsender.mcanm.client.model.IRenderPassInformation;
 import com.github.worldsender.mcanm.common.animation.IAnimation;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 
 import net.minecraft.util.ResourceLocation;
 
@@ -40,6 +43,21 @@ public class RenderPassInformation implements IRenderPassInformation {
 			return Optional.empty();
 		};
 	};
+
+	public static final Function<String, ResourceLocation> makeCachingTransform(
+			Function<String, ResourceLocation> cacheLoader) {
+		LoadingCache<String, ResourceLocation> cachedResourceLoc = CacheBuilder.newBuilder().maximumSize(100)
+				.build(new CacheLoader<String, ResourceLocation>() {
+					@Override
+					public ResourceLocation load(String key) {
+						return cacheLoader.apply(key);
+					}
+				});
+		return cachedResourceLoc::getUnchecked;
+	}
+
+	public static final Function<String, ResourceLocation> TRANSFORM_DIRECT = makeCachingTransform(
+			ResourceLocation::new);
 	/**
 	 * This is the default texture rebinding, it just returns the given resource-location and as such does not change
 	 * the bound texture.
@@ -138,7 +156,7 @@ public class RenderPassInformation implements IRenderPassInformation {
 	}
 
 	public RenderPassInformation setTextureTransform(Optional<Function<String, ResourceLocation>> textureRemap) {
-		return setTextureTransform(textureRemap.orElse(ResourceLocation::new));
+		return setTextureTransform(textureRemap.orElse(TRANSFORM_DIRECT));
 	}
 
 	public RenderPassInformation setTextureTransform(Function<String, ResourceLocation> textureRemap) {
