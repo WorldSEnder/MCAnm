@@ -11,10 +11,9 @@ import javax.vecmath.Vector4f;
 
 import com.github.worldsender.mcanm.client.mcanmmodel.visitor.BoneBinding;
 import com.github.worldsender.mcanm.client.mcanmmodel.visitor.TesselationPoint;
+import com.github.worldsender.mcanm.client.renderer.ITesselator;
 import com.github.worldsender.mcanm.common.skeleton.IBone;
 import com.github.worldsender.mcanm.common.skeleton.ISkeleton;
-
-import net.minecraft.client.renderer.Tessellator;
 
 public class Point {
 	private static class BoundPoint extends Point {
@@ -41,8 +40,9 @@ public class Point {
 			 *            the vertex to add to. If null is given, it is just assigned to
 			 * @return the final vertex, a new vertex if <code>null</code> was given
 			 */
-			public Vertex addTransformed(Vertex base, Vertex trgt) {
+			public void addTransformed(Vertex base, Vertex trgt) {
 				Objects.requireNonNull(base);
+				Objects.requireNonNull(trgt);
 
 				base.getPosition(posBuff);
 				base.getNormal(normBuff);
@@ -52,13 +52,9 @@ public class Point {
 
 				posBuff.scale(this.strength);
 				normBuff.scale(this.strength);
-				if (trgt == null) {
-					trgt = new Vertex(posBuff, normBuff, new Vector2f());
-				} else {
-					trgt.offset(posBuff);
-					trgt.addNormal(normBuff);
-				}
-				return trgt;
+
+				trgt.offset(posBuff);
+				trgt.addNormal(normBuff);
 			}
 
 			public void normalize(float sum) {
@@ -67,11 +63,13 @@ public class Point {
 		}
 
 		private List<Binding> binds;
+		private Vertex transformed;
 
 		public BoundPoint(Vector3f pos, Vector3f norm, Vector2f uv, BoneBinding[] readBinds, ISkeleton skelet) {
 			super(pos, norm, uv);
 			// readBinds can be assumed to at least be size 1
 			this.binds = new ArrayList<>();
+			this.transformed = new Vertex(this.vert);
 			float strengthSummed = 0.0F;
 			for (BoneBinding bind : readBinds) {
 				if (bind.bindingValue <= 0.0f)
@@ -87,14 +85,18 @@ public class Point {
 			}
 		}
 
+		private Vertex setupTransformed() {
+			this.transformed.retainUVOnly();
+			return this.transformed;
+		}
+
 		@Override
-		public void render(Tessellator renderer) {
+		public void render(ITesselator renderer) {
 			Vertex base = this.vert;
-			Vertex transformed = null;
+			Vertex transformed = setupTransformed();
 			for (Binding bind : this.binds) {
-				transformed = bind.addTransformed(base, transformed);
+				bind.addTransformed(base, transformed);
 			}
-			transformed.copyUV(this.vert);
 			transformed.render(renderer);
 		}
 	}
@@ -111,7 +113,7 @@ public class Point {
 	 * @param bones
 	 *            the models bones
 	 */
-	public void render(Tessellator renderer) {
+	public void render(ITesselator renderer) {
 		this.vert.render(renderer);
 	}
 

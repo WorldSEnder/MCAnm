@@ -1,15 +1,14 @@
 package com.github.worldsender.mcanm.client.mcanmmodel.gl;
 
-import static org.lwjgl.opengl.GL11.GL_TRIANGLES;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.function.Function;
 
 import com.github.worldsender.mcanm.MCAnm;
 import com.github.worldsender.mcanm.client.IRenderPass;
-import com.github.worldsender.mcanm.client.mcanmmodel.parts.Part;
-import com.github.worldsender.mcanm.client.mcanmmodel.parts.Part.PartBuilder;
+import com.github.worldsender.mcanm.client.mcanmmodel.parts.IPart;
+import com.github.worldsender.mcanm.client.mcanmmodel.parts.PartBuilder;
 import com.github.worldsender.mcanm.client.mcanmmodel.visitor.IMaterialVisitor;
 import com.github.worldsender.mcanm.client.mcanmmodel.visitor.IModelVisitable;
 import com.github.worldsender.mcanm.client.mcanmmodel.visitor.IModelVisitor;
@@ -20,9 +19,9 @@ import com.github.worldsender.mcanm.common.skeleton.ISkeleton;
 
 import net.minecraft.client.renderer.Tessellator;
 
-public class ModelRenderDataBasic implements IModelRenderData {
+public abstract class ModelRenderAbstract<P extends IPart> implements IModelRenderData {
 	private class ModelVisitor implements IModelVisitor {
-		List<Part> parts = new ArrayList<>();
+		List<IPart> parts = new ArrayList<>();
 
 		@Override
 		public void visitModelUUID(UUID uuid) {}
@@ -39,7 +38,7 @@ public class ModelRenderDataBasic implements IModelRenderData {
 
 				@Override
 				public void visitEnd() {
-					parts.set(partIndex, builder.build());
+					parts.set(partIndex, buildingFunc.apply(builder));
 				}
 
 				@Override
@@ -79,15 +78,17 @@ public class ModelRenderDataBasic implements IModelRenderData {
 
 		@Override
 		public void visitEnd() {
-			ModelRenderDataBasic.this.parts = this.parts.toArray(new Part[0]);
+			ModelRenderAbstract.this.parts = this.parts.toArray(new IPart[0]);
 		}
 	}
 
-	private Part[] parts; // May have Random order
+	private IPart[] parts; // May have Random order
 	private final ISkeleton skeleton;
+	private final Function<PartBuilder, P> buildingFunc;
 
-	public ModelRenderDataBasic(IModelVisitable data, ISkeleton skeleton) {
+	public ModelRenderAbstract(IModelVisitable data, ISkeleton skeleton, Function<PartBuilder, P> buildingFunc) {
 		this.skeleton = skeleton;
+		this.buildingFunc = buildingFunc;
 		ModelVisitor visitor = new ModelVisitor();
 		data.visitBy(visitor);
 	}
@@ -113,17 +114,13 @@ public class ModelRenderDataBasic implements IModelRenderData {
 
 	@Override
 	public void render(IRenderPass currentPass) {
-		Tessellator tess = currentPass.getTesselator();
-
 		setup(currentPass.getAnimation(), currentPass.getFrame());
-		tess.startDrawing(GL_TRIANGLES);
-		for (Part part : this.parts) {
+		for (IPart part : this.parts) {
 			if (currentPass.shouldRenderPart(part.getName()))
 				part.render(currentPass);
 		}
-		tess.draw();
 		if (MCAnm.isDebug) {
-			this.skeleton.debugDraw(tess);
+			this.skeleton.debugDraw(Tessellator.instance);
 		}
 	}
 }

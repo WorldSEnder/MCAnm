@@ -7,7 +7,6 @@ import com.github.worldsender.mcanm.client.model.IEntityRender;
 import com.github.worldsender.mcanm.client.model.IRenderPassInformation;
 import com.github.worldsender.mcanm.common.animation.IAnimation;
 
-import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.util.ResourceLocation;
 
 /**
@@ -18,12 +17,10 @@ import net.minecraft.util.ResourceLocation;
  */
 public class RenderPass implements IRenderPass {
 	private IRenderPassInformation userInfo;
-	private Tessellator tesselator;
 	private IEntityRender render;
 
-	public RenderPass(IRenderPassInformation info, Tessellator tesselator, IEntityRender renderer) {
+	public RenderPass(IRenderPassInformation info, IEntityRender renderer) {
 		this.userInfo = Objects.requireNonNull(info);
-		this.tesselator = tesselator;
 	}
 
 	@Override
@@ -49,16 +46,6 @@ public class RenderPass implements IRenderPass {
 	@Override
 	public void bindTexture(ResourceLocation resLoc) {
 		this.render.bindTexture(resLoc);
-	}
-
-	@Override
-	public Tessellator getTesselator() {
-		return Objects.requireNonNull(tesselator);
-	}
-
-	public RenderPass setTesellator(Tessellator tesselator) {
-		this.tesselator = Objects.requireNonNull(tesselator);
-		return this;
 	}
 
 	public RenderPass setRenderPassInformation(IRenderPassInformation info) {

@@ -6,7 +6,7 @@ import java.util.UUID;
 
 import com.github.worldsender.mcanm.client.IRenderPass;
 import com.github.worldsender.mcanm.client.mcanmmodel.gl.IModelRenderData;
-import com.github.worldsender.mcanm.client.mcanmmodel.gl.ModelRenderDataBasic;
+import com.github.worldsender.mcanm.client.mcanmmodel.gl.ModelRenderDataGLArray;
 import com.github.worldsender.mcanm.client.mcanmmodel.stored.RawData;
 import com.github.worldsender.mcanm.client.mcanmmodel.visitor.IModelVisitable;
 import com.github.worldsender.mcanm.common.resource.IResourceLocation;
@@ -34,9 +34,7 @@ public class ModelMCMD extends ReloadableData<IModelVisitable> implements IModel
 
 	static {
 		// TODO: Decide depending on OpenGL capabilities?
-		LOADING_FUNC = (data, skl) -> {
-			return new ModelRenderDataBasic(data, skl);
-		};
+		LOADING_FUNC = ModelRenderDataGLArray::new;
 	}
 
 	private String artist;

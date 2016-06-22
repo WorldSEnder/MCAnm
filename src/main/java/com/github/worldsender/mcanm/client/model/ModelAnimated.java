@@ -14,7 +14,6 @@ import com.github.worldsender.mcanm.client.model.util.RenderPassInformation;
 import net.minecraft.client.model.ModelBase;
 import net.minecraft.client.model.ModelRenderer;
 import net.minecraft.client.model.TextureOffset;
-import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.entity.Entity;
 
 /**
@@ -34,7 +33,7 @@ public class ModelAnimated extends ModelBase {
 	private IEntityRender renderer; // The renderer, used to bind textures
 
 	private RenderPassInformation userPassCache = new RenderPassInformation();
-	private RenderPass passCache = new RenderPass(userPassCache, null, null);
+	private RenderPass passCache = new RenderPass(userPassCache, null);
 
 	/**
 	 * This constructor just puts the model into itself. Nothing is checked
@@ -81,7 +80,7 @@ public class ModelAnimated extends ModelBase {
 				uRotfloat,
 				headYaw,
 				interpolatedPitch);
-		passCache.setRenderPassInformation(currentPass).setTesellator(Tessellator.instance).setRender(currentRender);
+		passCache.setRenderPassInformation(currentPass).setRender(currentRender);
 
 		getModel().render(passCache);
 

@@ -8,6 +8,8 @@ import javax.vecmath.Tuple4f;
 import javax.vecmath.Vector3f;
 import javax.vecmath.Vector4f;
 
+import com.github.worldsender.mcanm.client.renderer.ITesselator;
+
 import net.minecraft.client.renderer.Tessellator;
 
 public class Vertex {
@@ -22,10 +24,16 @@ public class Vertex {
 		this.uv = new Point2f(uv);
 	}
 
+	public Vertex(Vertex copyFrom) {
+		this.pos = new Point4f(copyFrom.pos);
+		this.norm = new Vector3f(copyFrom.norm);
+		this.uv = new Point2f(copyFrom.uv);
+	}
+
 	/**
 	 * Uses the {@link Tessellator} to draw the model. Take care that the Tessellator is already drawing.
 	 */
-	public void render(Tessellator renderer) {
+	public void render(ITesselator renderer) {
 		renderer.setNormal(norm.x, norm.z, -norm.y);
 		renderer.setTextureUV(uv.x, uv.y);
 		renderer.addVertex(pos.x / pos.w, pos.z / pos.w, -pos.y / pos.w);
@@ -53,20 +61,6 @@ public class Vertex {
 	}
 
 	/**
-	 * Sets the UV texture coordinates for this vertex
-	 *
-	 * @param uv
-	 *            the new texture coordinates
-	 */
-	public void setUV(Tuple2f uv) {
-		this.uv.set(uv);
-	}
-
-	public void copyUV(Vertex src) {
-		this.uv.set(src.uv);
-	}
-
-	/**
 	 * Stores this vertex's uv coordinates in the target.
 	 */
 	public void getUV(Tuple2f trgt) {
@@ -85,5 +79,10 @@ public class Vertex {
 	 */
 	public void getPosition(Tuple4f trgt) {
 		trgt.set(this.pos);
+	}
+
+	public void retainUVOnly() {
+		this.pos.set(0, 0, 0, 0);
+		this.norm.set(0, 0, 0);
 	}
 }
