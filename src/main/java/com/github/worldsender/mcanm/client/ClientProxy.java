@@ -16,6 +16,7 @@ import cpw.mods.fml.client.registry.RenderingRegistry;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.IReloadableResourceManager;
 import net.minecraft.client.resources.IResourceManager;
+import net.minecraft.client.resources.IResourceManagerReloadListener;
 import net.minecraft.util.ResourceLocation;
 
 public class ClientProxy implements Proxy {
@@ -24,7 +25,12 @@ public class ClientProxy implements Proxy {
 		IResourceManager resManager = Minecraft.getMinecraft().getResourceManager();
 		if (resManager instanceof IReloadableResourceManager) {
 			IReloadableResourceManager registry = (IReloadableResourceManager) resManager;
-			registry.registerReloadListener(this::reload);
+			registry.registerReloadListener(new IResourceManagerReloadListener() {
+				@Override
+				public void onResourceManagerReload(IResourceManager p_110549_1_) {
+					ClientProxy.this.reload(resManager);
+				}
+			});
 		} else {
 			MCAnm.logger()
 					.warn("Couldn't register reload managers. Models will not be reloaded on switching resource pack");

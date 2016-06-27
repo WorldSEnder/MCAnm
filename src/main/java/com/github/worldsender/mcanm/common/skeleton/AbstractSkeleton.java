@@ -8,6 +8,7 @@ import static org.lwjgl.opengl.GL11.glDisable;
 import static org.lwjgl.opengl.GL11.glEnable;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -33,7 +34,6 @@ import com.github.worldsender.mcanm.common.skeleton.visitor.ISkeletonVisitor;
 import com.github.worldsender.mcanm.common.util.ReloadableData;
 
 import net.minecraft.client.renderer.Tessellator;
-import scala.actors.threadpool.Arrays;
 
 public abstract class AbstractSkeleton extends ReloadableData<ISkeletonVisitable> implements ISkeleton {
 
