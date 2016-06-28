@@ -45,7 +45,7 @@ public class RenderPass implements IRenderPass {
 
 	@Override
 	public void bindTexture(ResourceLocation resLoc) {
-		this.render.bindTexture(resLoc);
+		this.render.bindTextureFrom(resLoc);
 	}
 
 	public RenderPass setRenderPassInformation(IRenderPassInformation info) {

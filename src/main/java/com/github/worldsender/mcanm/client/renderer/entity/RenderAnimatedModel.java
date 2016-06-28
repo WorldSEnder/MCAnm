@@ -49,8 +49,8 @@ public class RenderAnimatedModel extends RenderLiving implements IEntityRender {
 	}
 
 	@Override
-	public void bindTexture(ResourceLocation texLocation) {
-		super.bindTexture(texLocation);
+	public void bindTextureFrom(ResourceLocation resLoc) {
+		this.bindTexture(resLoc);
 	}
 
 	@Override

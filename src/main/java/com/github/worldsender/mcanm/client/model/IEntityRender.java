@@ -13,5 +13,5 @@ public interface IEntityRender {
 	/**
 	 * Binds a texture
 	 */
-	void bindTexture(ResourceLocation resLoc);
+	void bindTextureFrom(ResourceLocation resLoc);
 }
