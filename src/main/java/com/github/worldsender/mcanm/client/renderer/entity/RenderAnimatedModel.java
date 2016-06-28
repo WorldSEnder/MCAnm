@@ -1,5 +1,7 @@
 package com.github.worldsender.mcanm.client.renderer.entity;
 
+import static org.lwjgl.opengl.GL11.glRotatef;
+
 import com.github.worldsender.mcanm.client.ClientLoader;
 import com.github.worldsender.mcanm.client.mcanmmodel.IModel;
 import com.github.worldsender.mcanm.client.model.IEntityAnimator;
@@ -55,7 +57,8 @@ public class RenderAnimatedModel extends RenderLiving implements IEntityRender {
 
 	@Override
 	protected void rotateCorpse(EntityLivingBase entity, float rotation, float yaw, float partialFrame) {
-		// No-op. We do not want to do anything here
+		glRotatef(180.0F - yaw, 0.0F, 1.0F, 0.0F);
+		// No-op. We do not want to do anything else here
 	}
 
 	/**

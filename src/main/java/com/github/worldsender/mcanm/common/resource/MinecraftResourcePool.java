@@ -27,6 +27,7 @@ public class MinecraftResourcePool {
 			MinecraftResourceLocation resLoc = it.next().get();
 			if (resLoc == null) { // Already garbage collected
 				it.remove();
+				continue;
 			}
 			resLoc.triggerReload();
 		}
