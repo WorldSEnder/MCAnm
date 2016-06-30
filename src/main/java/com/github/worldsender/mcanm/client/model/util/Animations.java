@@ -1,13 +1,9 @@
 package com.github.worldsender.mcanm.client.model.util;
 
 import java.util.Arrays;
-import java.util.Objects;
-import java.util.Optional;
 
 import javax.vecmath.Quat4f;
 import javax.vecmath.Vector3f;
-
-import org.apache.commons.lang3.tuple.Triple;
 
 import com.github.worldsender.mcanm.common.animation.IAnimation;
 import com.github.worldsender.mcanm.common.animation.IAnimation.BoneTransformation;
@@ -39,71 +35,13 @@ public class Animations {
 	public static IAnimation combined(final Iterable<IAnimation> choices) {
 		return new IAnimation() {
 			@Override
-			public Optional<BoneTransformation> getCurrentTransformation(String bone, float frame) {
-				Optional<BoneTransformation> value = Optional.empty();
+			public boolean storeCurrentTransformation(String bone, float frame, BoneTransformation transform) {
 				for (IAnimation other : choices) {
-					value = other.getCurrentTransformation(bone, frame);
-					if (value.isPresent())
-						break;
+					if (other.storeCurrentTransformation(bone, frame, transform)) {
+						return true;
+					}
 				}
-				return value;
-			}
-		};
-	}
-
-	/**
-	 * Concenates two animations together with a smooth transition between them. The resulting animation has
-	 * <ul>
-	 * <li>the value of the first animation if <code>frame < endFirst </code>
-	 * <li>the value of the second animation if <code>frame > endFirst + transitionLength</code>
-	 * <li>interpolates smoothly if <code> frame &#x2208; [endFrist, endFirst + transitionLength]</code>
-	 *
-	 * </ul>
-	 *
-	 * @param first
-	 *            the first animation
-	 * @param endFirst
-	 *            the end frame of the first animation
-	 * @param transitionLength
-	 *            the transition length
-	 * @param second
-	 *            the second animation
-	 * @return an animation that concatenates the two animation smoothly
-	 */
-	public static IAnimation concat(
-			IAnimation first,
-			final float endFirst,
-			final float transitionLength,
-			IAnimation second) {
-		final IAnimation f = Objects.requireNonNull(first);
-		final IAnimation s = Objects.requireNonNull(second);
-
-		return new IAnimation() {
-			@Override
-			public Optional<BoneTransformation> getCurrentTransformation(String bone, float frame) {
-				if (frame < endFirst) {
-					return f.getCurrentTransformation(bone, frame);
-				} else if (frame > endFirst + transitionLength) {
-					return s.getCurrentTransformation(bone, frame - endFirst - transitionLength);
-				}
-				Optional<BoneTransformation> currentF = f.getCurrentTransformation(bone, frame);
-				Optional<BoneTransformation> currentS = s
-						.getCurrentTransformation(bone, frame - endFirst - transitionLength);
-				if (!currentF.isPresent()) {
-					return currentS;
-				} else if (!currentS.isPresent()) {
-					return currentF; // Always present at this point
-				}
-				Triple<Vector3f, Quat4f, Vector3f> trsF = currentF.get().asTRS();
-				Triple<Vector3f, Quat4f, Vector3f> trsS = currentS.get().asTRS();
-				float tr = (frame - endFirst) / transitionLength; // \ele (0, 1]
-				// TODO: t is mostly constant, might also pre-evaluate that
-				double t = BSplineInterpolation.findZero(0, 1, 0, 1, tr);
-				return Optional.of(
-						new BoneTransformation(
-								interpolated(trsF.getLeft(), trsS.getLeft(), t),
-								interpolated(trsF.getMiddle(), trsS.getMiddle(), t),
-								interpolated(trsF.getRight(), trsS.getRight(), t)));
+				return false;
 			}
 		};
 	}

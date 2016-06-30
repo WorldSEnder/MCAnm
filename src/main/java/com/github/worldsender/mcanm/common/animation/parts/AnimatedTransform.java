@@ -6,6 +6,7 @@ import java.io.IOException;
 import javax.vecmath.Quat4f;
 import javax.vecmath.Vector3f;
 
+import com.github.worldsender.mcanm.common.Utils;
 import com.github.worldsender.mcanm.common.animation.IAnimation.BoneTransformation;
 import com.github.worldsender.mcanm.common.animation.StoredAnimation;
 import com.github.worldsender.mcanm.common.animation.parts.AnimatedValue.AnimatedValueBuilder;
@@ -58,6 +59,10 @@ public class AnimatedTransform {
 	private AnimatedValue scale_y;
 	private AnimatedValue scale_z;
 
+	private ThreadLocal<Vector3f> translationBuffer = ThreadLocal.withInitial(Vector3f::new);
+	private ThreadLocal<Quat4f> rotationBuffer = ThreadLocal.withInitial(Quat4f::new);
+	private ThreadLocal<Vector3f> scaleBuffer = ThreadLocal.withInitial(Vector3f::new);
+
 	/**
 	 * Reads a {@link AnimatedTransform} from the {@link DataInputStream} given.
 	 *
@@ -69,22 +74,22 @@ public class AnimatedTransform {
 	}
 
 	/**
-	 * Gets the transformation of the bone at a specific point in the animation. This method interpolates between the
+	 * Stores the transformation of the bone at a specific point in the animation. This method interpolates between the
 	 * nearest two key-frames using the correct interpolation mode.
 	 *
 	 * @param frame
+	 * @param transform
 	 * @param subFrame
 	 * @return
 	 */
-	public BoneTransformation getTransformAt(float frame) {
-		Vector3f translation = new Vector3f(loc_x.getValueAt(frame), loc_y.getValueAt(frame), loc_z.getValueAt(frame));
-		Quat4f quaternion = new Quat4f(
-				quat_x.getValueAt(frame),
-				quat_y.getValueAt(frame),
-				quat_z.getValueAt(frame),
-				quat_w.getValueAt(frame));
-		quaternion.normalize();
-		Vector3f scale = new Vector3f(scale_x.getValueAt(frame), scale_y.getValueAt(frame), scale_z.getValueAt(frame));
-		return new BoneTransformation(translation, quaternion, scale);
+	public void storeTransformAt(float frame, BoneTransformation transform) {
+		Vector3f t = translationBuffer.get();
+		t.set(loc_x.getValueAt(frame), loc_y.getValueAt(frame), loc_z.getValueAt(frame));
+		Quat4f r = rotationBuffer.get();
+		r.set(quat_x.getValueAt(frame), quat_y.getValueAt(frame), quat_z.getValueAt(frame), quat_w.getValueAt(frame));
+		r.normalize();
+		Vector3f s = scaleBuffer.get();
+		s.set(scale_x.getValueAt(frame), scale_y.getValueAt(frame), scale_z.getValueAt(frame));
+		Utils.fromRTS(r, t, s, transform.matrix);
 	}
 }

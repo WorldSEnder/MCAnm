@@ -2,7 +2,6 @@ package com.github.worldsender.mcanm.common.animation;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 
 import com.github.worldsender.mcanm.common.animation.parts.AnimatedTransform;
 import com.github.worldsender.mcanm.common.animation.stored.RawData;
@@ -41,12 +40,13 @@ public class StoredAnimation extends ReloadableData<IAnimationVisitable> impleme
 	}
 
 	@Override
-	public Optional<BoneTransformation> getCurrentTransformation(String bone, float frame) {
+	public boolean storeCurrentTransformation(String bone, float frame, BoneTransformation transform) {
 		AnimatedTransform anim = this.animations.get(bone);
 		if (anim == null) {
-			return Optional.empty();
+			return false;
 		}
-		return Optional.of(anim.getTransformAt(frame));
+		anim.storeTransformAt(frame, transform);
+		return true;
 	}
 
 	@Override

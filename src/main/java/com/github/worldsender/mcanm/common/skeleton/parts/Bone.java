@@ -65,7 +65,7 @@ public class Bone implements IBone {
 		}
 
 		public Bone build() {
-			Matrix4f localToParent = Utils.fromRTS(rotation, offset, 1.0F);
+			Matrix4f localToParent = Utils.fromRTS(rotation, offset, 1.0F, new Matrix4f());
 			if (parent != null)
 				return new ParentedBone(localToParent, name, parent);
 			return new Bone(localToParent, name);
@@ -99,9 +99,11 @@ public class Bone implements IBone {
 	protected final Matrix4f parentToLocal;
 	public final String name;
 
-	protected Matrix4f transformed = new Matrix4f(); // For childs
 	protected Matrix4f transformedGlobalToGlobal = new Matrix4f(); // vertices
 	protected Matrix4f transformedGlobalToGlobalIT = new Matrix4f(); // normals
+
+	protected BoneTransformation transformCache = new BoneTransformation();
+	protected Matrix4f transformed = transformCache.matrix;
 
 	protected Bone(Matrix4f localMatrix, String name) {
 		this.localToParent = new Matrix4f(localMatrix);
@@ -159,8 +161,9 @@ public class Bone implements IBone {
 	 *            the subframe
 	 */
 	public void setTransformation(IAnimation anim, float frame) {
-		BoneTransformation btr = anim.getCurrentTransformation(this.name, frame).orElse(BoneTransformation.identity);
-		transformed.set(btr.getMatrix());
+		transformCache.matrix.set(identity);
+		anim.storeCurrentTransformation(this.name, frame, transformCache);
+		// transform = transformCache.matrix;
 
 		transformedGlobalToGlobal.setIdentity();
 		this.globalToLocal(transformedGlobalToGlobal);

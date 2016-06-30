@@ -359,19 +359,22 @@ public class Utils {
 	 * - if rotation is <code>null</code> the upper left 3x3 matrix will be the identity matrix - if translation is
 	 * <code>null</code> the third column will be the identity vector
 	 *
-	 * @return
 	 */
-	public static Matrix4f fromRTS(Quat4f rotation, Vector3f offset, Vector3f scale) {
-		Matrix4f scaleMat = new Matrix4f();
-		scaleMat.m00 = scale.x;
-		scaleMat.m11 = scale.y;
-		scaleMat.m22 = scale.z;
-		scaleMat.m33 = 1.0F;
+	public static Matrix4f fromRTS(Quat4f rotation, Vector3f offset, Vector3f scale, Matrix4f out) {
+		fromRTS(rotation, offset, 1.0f, out);
+		float sX = scale.x, sY = scale.y, sZ = scale.z;
+		out.m00 *= sX;
+		out.m01 *= sX;
+		out.m02 *= sX;
 
-		Matrix4f mat = fromRTS(rotation, offset, 1.0f);
-		mat.mul(scaleMat);
+		out.m10 *= sY;
+		out.m11 *= sY;
+		out.m12 *= sY;
 
-		return mat;
+		out.m20 *= sZ;
+		out.m21 *= sZ;
+		out.m22 *= sZ;
+		return out;
 	}
 
 	/**
@@ -381,8 +384,9 @@ public class Utils {
 	 * @return
 	 * @see #fromRTS(Quat4f, Vector3f, Vector3f)
 	 */
-	public static Matrix4f fromRTS(Quat4f rotation, Vector3f offset, float scale) {
-		return new Matrix4f(rotation, offset, scale);
+	public static Matrix4f fromRTS(Quat4f rotation, Vector3f offset, float scale, Matrix4f out) {
+		out.set(rotation, offset, scale);
+		return out;
 	}
 
 	public static long asciiToMagicNumber(String asString) {

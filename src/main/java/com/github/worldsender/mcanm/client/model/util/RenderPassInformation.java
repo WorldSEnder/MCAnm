@@ -39,8 +39,8 @@ public class RenderPassInformation implements IRenderPassInformation {
 	 */
 	public static final IAnimation BIND_POSE = new IAnimation() {
 		@Override
-		public Optional<BoneTransformation> getCurrentTransformation(String bone, float frame) {
-			return Optional.empty();
+		public boolean storeCurrentTransformation(String bone, float frame, BoneTransformation transform) {
+			return false;
 		};
 	};
 

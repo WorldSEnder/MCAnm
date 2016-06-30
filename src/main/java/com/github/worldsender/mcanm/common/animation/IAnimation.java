@@ -1,12 +1,8 @@
 package com.github.worldsender.mcanm.common.animation;
 
-import java.util.Optional;
-
 import javax.vecmath.Matrix4f;
 import javax.vecmath.Quat4f;
 import javax.vecmath.Vector3f;
-
-import org.apache.commons.lang3.tuple.Triple;
 
 import com.github.worldsender.mcanm.common.Utils;
 
@@ -18,7 +14,8 @@ import com.github.worldsender.mcanm.common.Utils;
  */
 public interface IAnimation {
 	/**
-	 * Describes a BoneTransformation, including rotation, translation and scaling.
+	 * Describes a BoneTransformation, including rotation, translation and scaling. This class is opaque i.e. all
+	 * getters and setters don't make defensive copies and states can be manipulated from the outside.
 	 *
 	 * @author WorldSEnder
 	 *
@@ -30,9 +27,7 @@ public interface IAnimation {
 			return new Vector3f(1.0F, 1.0F, 1.0F);
 		}
 
-		private final Matrix4f matrix;
-		private final Vector3f t, s;
-		private final Quat4f r;
+		public final Matrix4f matrix;
 
 		public BoneTransformation() {
 			this(null, null, null);
@@ -49,32 +44,26 @@ public interface IAnimation {
 				translation = new Vector3f();
 			if (scale == null)
 				scale = identityScale();
-			this.t = translation;
-			this.r = quat;
-			this.s = scale;
-			this.matrix = Utils.fromRTS(quat, translation, scale);
+			this.matrix = Utils.fromRTS(quat, translation, scale, new Matrix4f());
 		}
 
 		public Matrix4f getMatrix() {
-			return (Matrix4f) matrix.clone();
-		}
-
-		public Triple<Vector3f, Quat4f, Vector3f> asTRS() {
-			return Triple.of(t, r, s);
+			return matrix;
 		}
 	}
 
 	/**
-	 * Returns the bone's current {@link BoneTransformation} (identified by name). <br>
-	 * If the requested bone is not known to the animation it should return an {@link Optional#empty())}. This means
-	 * (for the model) that the bone is placed at it's identity position and not transformed at all, but it also gives
-	 * other animations the chance to supply their Transformation
+	 * Stores the bone's current {@link BoneTransformation} in transform(identified by name). <br>
+	 * If the requested bone is not known to the animation transform is left untouched and this return
+	 * <code>false</code>. Otherwise transform is set to the bone's current transform state.
 	 *
 	 * @param bone
 	 *            the name of the bone the matrix is requested
 	 * @param frame
 	 *            the current frame in the animation
-	 * @return the present position of the bone.
+	 * @param transform
+	 *            the transform to set
+	 * @return if a transformation has been set
 	 */
-	public Optional<BoneTransformation> getCurrentTransformation(String bone, float frame);
+	public boolean storeCurrentTransformation(String bone, float frame, BoneTransformation transform);
 }
