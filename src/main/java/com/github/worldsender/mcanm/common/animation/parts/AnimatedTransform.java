@@ -6,8 +6,8 @@ import java.io.IOException;
 import javax.vecmath.Quat4f;
 import javax.vecmath.Vector3f;
 
-import com.github.worldsender.mcanm.common.animation.StoredAnimation;
 import com.github.worldsender.mcanm.common.animation.IAnimation.BoneTransformation;
+import com.github.worldsender.mcanm.common.animation.StoredAnimation;
 import com.github.worldsender.mcanm.common.animation.parts.AnimatedValue.AnimatedValueBuilder;
 import com.github.worldsender.mcanm.common.exceptions.ModelFormatException;
 
@@ -18,8 +18,8 @@ import com.github.worldsender.mcanm.common.exceptions.ModelFormatException;
  */
 public class AnimatedTransform {
 	public static class AnimatedTransformBuilder {
-		public static AnimatedValueBuilder builder = new AnimatedValueBuilder();
 
+		private final AnimatedValueBuilder builder = new AnimatedValueBuilder();
 		private AnimatedTransform value = null;
 
 		private void checkAvailable() {

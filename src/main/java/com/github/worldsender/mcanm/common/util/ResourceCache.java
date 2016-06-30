@@ -19,13 +19,17 @@ public class ResourceCache<D> {
 		IResourceLocation location = resource.getOrigin();
 		if (location.shouldCache()) {
 			location.registerReloadListener(this::changedCallback);
-			return cache.computeIfAbsent(location, a -> loadFunc.apply(resource));
+			synchronized (cache) {
+				return cache.computeIfAbsent(location, a -> loadFunc.apply(resource));
+			}
 		}
 		return loadFunc.apply(resource);
 	}
 
 	private void changedCallback(IResourceLocation location) {
-		this.cache.remove(location);
+		synchronized (cache) {
+			this.cache.remove(location);
+		}
 	}
 
 	public Optional<D> get(IResourceLocation location) {
