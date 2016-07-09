@@ -34,14 +34,16 @@ minecraft {
     replace "@MODNAME@", project.longname
 }
 
+tasks["jar"].classifier = getArtifactID()
+
 task deobfJar(type: Jar) {
     from sourceSets.main.output
-    classifier = 'deobf'
+    classifier = getArtifactID() + '-deobf'
 }
 
 task sourceJar(type: Jar) {
     from sourceSets.main.allSource
-    classifier = 'sources'
+    classifier = getArtifactID() + '-sources'
 }
 
 tasks.build.dependsOn('deobfJar', 'sourceJar')
@@ -79,14 +81,27 @@ def getVersion() {
         args "rev-list", "--count", "HEAD"
         standardOutput = stdout
     }
-    project.ext.revision = stdout.toString().trim()
-    stdout.reset()
+    def revision = stdout.toString().trim()
+    return "${major}.${minor}.${patch}.${revision}"
+}
+
+def getArtifactID() {
+    def stdout = new ByteArrayOutputStream()
     exec {
         executable "git"
         args "rev-parse", "--abbrev-ref", "HEAD"
         standardOutput = stdout
     }
-    project.ext.branch = stdout.toString().trim()
-    return "${major}.${minor}.${patch}.${revision}${branch == 'master' ? '' : '-' + branch}-${minecraft.version}"
+    def branch = stdout.toString().trim()
+    if(branch == "HEAD") {
+        stdout.reset()
+        exec {
+            executable "git"
+            args "rev-parse", "--short", "HEAD"
+            standardOutput = stdout
+        }
+        branch = stdout.toString().trim()
+    }
+	return "${branch == 'master' ? '' : branch + '-'}${minecraft.version}"
 }
 
