@@ -4,7 +4,7 @@ from bpy.types import Panel, Menu, UIList, Header, UILayout
 
 from .operators import ObjectExporter, AnimationExporter, SkeletonExporter,\
     AddRenderGroup, RemoveRenderGroup, AddFacesToGroup, SelectGroup,\
-    UpdateGroupsVisual, TechneImport, SceneExporter
+    UpdateGroupsVisual, TechneImport, SceneExporter, TabulaImport
 
 
 class LayoutWrapper(object):
@@ -212,6 +212,8 @@ def export_func(self, context):
 def import_func(self, context):
     self.layout.operator(
         TechneImport.bl_idname, text="Techne Models (.tcn)")
+    self.layout.operator(
+        TabulaImport.bl_idname, text="Tabula Models (.tbl)")
 
 
 def register():

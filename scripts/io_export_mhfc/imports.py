@@ -12,79 +12,215 @@ from mathutils import Matrix, Vector, Quaternion, Euler
 from .utils import Reporter
 
 
-def import_tabula4(model, animations_only):
-    tex_width, tex_height = model['textureWidth'], model['textureHeight']
+def import_tabula4(tblzip, jsonmodel, animations_only, scene):
     with ExitStack() as stack:
         bm = bmesh.new()
         stack.callback(bm.free)
 
-        def convert_uv(u, v):
-            return u / tex_width, 1 - v / tex_height
+        model_name = jsonmodel['modelName']
+        author = jsonmodel['authorName']
+
+        mesh = bpy.data.meshes.new(model_name)
+        mesh.mcprops.artist = author
+        uvmap = mesh.uv_textures.new('UVMap')
+        bm.from_mesh(mesh)
+        uvloop = bm.loops.layers.uv[uvmap.name]
+
+        identifier_to_cube = set()
+
+        tex_width = jsonmodel['textureWidth']
+        tex_height = jsonmodel['textureHeight']
+        texture_matrix = Matrix.Identity(3)
+        texture_matrix[0][0] = 1 / tex_width
+        texture_matrix[1][1] = -1 / tex_height
+        texture_matrix[1][2] = 1
+        print(texture_matrix)
+
+        texture_name = 'texture.png'
+        try:
+            tblzip.extract(texture_name, path=bpy.app.tempdir)
+            texture_file = os.path.join(bpy.app.tempdir, texture_name)
+        except KeyError:
+            Reporter.error(
+                "Missing texture file", texname=texture_file)
+        else:
+            image = bpy.data.images.load(texture_file)
+            image.pack()
+            image.use_alpha = True
+            os.remove(texture_file)
+
+        def Position(vec):
+            s = Matrix.Identity(4)
+            s.row[0][3], s.row[1][3], s.row[2][3] = vec
+            return s
 
         def Scale(vec):
             s = Matrix.Identity(4)
             s.row[0][0], s.row[1][1], s.row[2][2] = vec
+            return s
 
         def Rotation(rot):
             return Euler(rot, 'XYZ').to_matrix().to_4x4()
 
-        def make_cube(cube, to_global, parent):
-            # TODO: build the cube and convert to internal format
+        def emit_cube(cube, local_to_global):
+            offset = Position(cube['offset'])  # Offset
+            dim_x, dim_y, dim_z = cube['dimensions']
+            dimensions = Scale((dim_x, dim_y, dim_z))
+            matrix = local_to_global * offset * dimensions
+            tx_transform = Matrix.Identity(3)
+            tx_transform.col[2] =\
+                cube['txOffset'][0], cube['txOffset'][1], 1
+            tx_transform = texture_matrix * tx_transform
+            print(tx_transform)
+
+            v0 = bm.verts.new((matrix * Vector((0, 0, 0, 1)))[0:3])
+            v1 = bm.verts.new((matrix * Vector((0, 0, 1, 1)))[0:3])
+            v2 = bm.verts.new((matrix * Vector((0, 1, 0, 1)))[0:3])
+            v3 = bm.verts.new((matrix * Vector((0, 1, 1, 1)))[0:3])
+            v4 = bm.verts.new((matrix * Vector((1, 0, 0, 1)))[0:3])
+            v5 = bm.verts.new((matrix * Vector((1, 0, 1, 1)))[0:3])
+            v6 = bm.verts.new((matrix * Vector((1, 1, 0, 1)))[0:3])
+            v7 = bm.verts.new((matrix * Vector((1, 1, 1, 1)))[0:3])
+            bm.edges.new((v0, v1))
+            bm.edges.new((v0, v2))
+            bm.edges.new((v0, v4))
+            bm.edges.new((v1, v3))
+            bm.edges.new((v1, v5))
+            bm.edges.new((v2, v3))
+            bm.edges.new((v2, v6))
+            bm.edges.new((v3, v7))
+            bm.edges.new((v4, v5))
+            bm.edges.new((v4, v6))
+            bm.edges.new((v5, v7))
+            bm.edges.new((v6, v7))
+            f0 = bm.faces.new((v0, v1, v3, v2))
+            f1 = bm.faces.new((v0, v4, v5, v1))
+            f2 = bm.faces.new((v0, v2, v6, v4))
+            f3 = bm.faces.new((v4, v6, v7, v5))
+            f4 = bm.faces.new((v2, v3, v7, v6))
+            f5 = bm.faces.new((v1, v5, v7, v3))
+            f0.loops[0][uvloop].uv = (
+                tx_transform * Vector((dim_z, dim_z, 1)))[0:2]
+            f0.loops[1][uvloop].uv = (
+                tx_transform * Vector((0, dim_z, 1)))[0:2]
+            f0.loops[2][uvloop].uv = (
+                tx_transform * Vector((0, dim_z + dim_y, 1)))[0:2]
+            f0.loops[3][uvloop].uv = (
+                tx_transform * Vector((dim_z, dim_z + dim_y, 1)))[0:2]
+            f1.loops[0][uvloop].uv = (
+                tx_transform * Vector((dim_z, dim_z, 1)))[0:2]
+            f1.loops[1][uvloop].uv = (
+                tx_transform * Vector((dim_z + dim_x, dim_z, 1)))[0:2]
+            f1.loops[2][uvloop].uv = (
+                tx_transform * Vector((dim_z + dim_x, 0, 1)))[0:2]
+            f1.loops[3][uvloop].uv = (
+                tx_transform * Vector((dim_z, 0, 1)))[0:2]
+            f2.loops[0][uvloop].uv = (
+                tx_transform * Vector((dim_z, dim_z, 1)))[0:2]
+            f2.loops[1][uvloop].uv = (
+                tx_transform * Vector((dim_z, dim_z + dim_y, 1)))[0:2]
+            f2.loops[2][uvloop].uv = (
+                tx_transform * Vector((dim_z + dim_x, dim_z + dim_y, 1)))[0:2]
+            f2.loops[3][uvloop].uv = (
+                tx_transform * Vector((dim_z + dim_x, dim_z, 1)))[0:2]
+            f3.loops[0][uvloop].uv = (
+                tx_transform * Vector((2 * dim_z + 2 * dim_x, dim_z, 1)))[0:2]
+            f3.loops[1][uvloop].uv = (
+                tx_transform * Vector((dim_z + 2 * dim_x, dim_z, 1)))[0:2]
+            f3.loops[2][uvloop].uv = (
+                tx_transform * Vector((dim_z + 2 * dim_x, dim_z + dim_y, 1)))[0:2]
+            f3.loops[3][uvloop].uv = (
+                tx_transform * Vector((2 * dim_z + 2 * dim_x, dim_z + dim_y, 1)))[0:2]
+            f4.loops[0][uvloop].uv = (
+                tx_transform * Vector((dim_z + 2 * dim_x, dim_z, 1)))[0:2]
+            f4.loops[1][uvloop].uv = (
+                tx_transform * Vector((dim_z + 2 * dim_x, 0, 1)))[0:2]
+            f4.loops[2][uvloop].uv = (
+                tx_transform * Vector((dim_z + dim_x, 0, 1)))[0:2]
+            f4.loops[3][uvloop].uv = (
+                tx_transform * Vector((dim_z + dim_x, dim_z, 1)))[0:2]
+            f5.loops[0][uvloop].uv = (
+                tx_transform * Vector((dim_z + dim_x, dim_z, 1)))[0:2]
+            f5.loops[1][uvloop].uv = (
+                tx_transform * Vector((dim_z + dim_x, dim_z + dim_y, 1)))[0:2]
+            f5.loops[2][uvloop].uv = (
+                tx_transform * Vector((dim_z + 2 * dim_x, dim_z + dim_y, 1)))[0:2]
+            f5.loops[3][uvloop].uv = (
+                tx_transform * Vector((dim_z + 2 * dim_x, dim_z, 1)))[0:2]
+            bm.verts.index_update()
+            bm.edges.index_update()
+            bm.faces.index_update()
+
+            bm.normal_update()
+            return
+
+        def make_cube(cube, to_global):
             identifier = cube['identifier']
             name = cube['name']
 
-            position = Vector(cube['position'])  # Rotation point
-            offset = Vector(cube['offset'])  # Offset
+            position = Position(cube['position'])  # Rotation point
             scale = Scale(cube['scale'])
             rotation = Rotation(cube['rotation'])
-            dimensions = Vector(cube['dimensions'])
+
+            local_to_global = to_global * position * rotation * scale
 
             if identifier in identifier_to_cube:
                 Reporter.warning(
                     "Identifier reused in the model: {id}", id=identifier)
-            identifier_to_cube = cube
-            local_to_global = to_global
+            identifier_to_cube.add(identifier)
+
+            emit_cube(cube, local_to_global)
+
             for child in cube['children']:
-                make_cube(child, local_to_global, cube)
+                make_cube(child, local_to_global)
 
-        def make_group(group, to_global, parentgroup):
+        def make_group(group, to_global):
             for cube in group['cubes']:
-                make_cube(cube, to_global, None)
+                make_cube(cube, to_global)
             for child in group['cubeGroups']:
-                make_cube(child, to_global, group)
+                make_cube(child, to_global)
 
-        def make_animation(*args):
-            pass  # TODO: import animations aswell?
-
-        model_name = model['modelName']
-        author = model['authorName']
         model_transform = Matrix.Scale(1 / 16, 4)
-        model_transform *= Scale(model['scale'])
-        identifier_to_cube = {}
+        model_transform[1][2] = model_transform[2][2]
+        model_transform[2][1] = -model_transform[1][1]
+        model_transform[1][1] = model_transform[2][2] = 0
+        model_transform[2][3] = 51 / 32
+        model_transform *= Scale(jsonmodel['scale'])
 
-        for group in model['cubeGroups']:
-            make_group(group, model_transform, None)
-        for cube in model['cubes']:
-            make_cube(cube, model_transform, None)
-        for animation in model['anims']:
-            make_animation(animation, model_transform)
+        for group in jsonmodel['cubeGroups']:
+            make_group(group, model_transform)
+        for cube in jsonmodel['cubes']:
+            make_cube(cube, model_transform)
+
+        bm.to_mesh(mesh)
+        object = bpy.data.objects.new(model_name, mesh)
+        scene.objects.link(object)
+        scene.update()
+
+    def make_animation(*args):
+        pass  # TODO: import animations aswell?
+
+    for animation in jsonmodel['anims']:
+        make_animation(animation, model_transform)
 
 import_fns = {
-    4: import_tabula4
+    4: import_tabula4,
+    3: import_tabula4,
+    2: import_tabula4
 }
 
 
 def import_tabula(filepath, scene, animations_only):
-    with ZipFile(filepath, 'b') as tabula:
+    with ZipFile(filepath, 'r') as tabula:
         modelstr = tabula.read('model.json').decode()
-    model = json.loads(modelstr)
-    # Successfully loaded the model json, now convert it
-    version = model['projVersion']
-    try:
-        import_fns[version](model, animations_only)
-    except (KeyError, NotImplementedError) as e:
-        Reporter.fatal(
-            "tabula version {v} is not (yet) supported".format(version))
+        model = json.loads(modelstr)
+        # Successfully loaded the model json, now convert it
+        version = model['projVersion']
+        try:
+            import_fns[version](tabula, model, animations_only, scene)
+        except (KeyError, NotImplementedError) as e:
+            Reporter.fatal(
+                "tabula version {v} is not (yet) supported".format(v=version))
 
 
 class ElementFactory(object):

@@ -390,7 +390,7 @@ class SceneExporter(Operator):
         return {'RUNNING_MODAL'}
 
 
-class TabulaImporter(Operator, ImportHelper):
+class TabulaImport(Operator, ImportHelper):
     bl_idname = "tabula.load"
     bl_label = "Import Tabula model (.tbl)"
 
@@ -423,7 +423,7 @@ class TabulaImporter(Operator, ImportHelper):
 
     def invoke(self, context, event):
         self.scene = context.scene.name
-        return context.window_manager.fileselect_add(self)
+        return super().invoke(context, event)
 
 
 class TechneImport(Operator, ImportHelper):
