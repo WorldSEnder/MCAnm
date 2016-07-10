@@ -5,11 +5,11 @@ import java.util.List;
 
 import com.github.worldsender.mcanm.Reference;
 
-import cpw.mods.fml.client.config.IConfigElement;
-import cpw.mods.fml.client.event.ConfigChangedEvent.OnConfigChangedEvent;
 import net.minecraftforge.common.config.ConfigElement;
 import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.common.config.Property;
+import net.minecraftforge.fml.client.config.IConfigElement;
+import net.minecraftforge.fml.client.event.ConfigChangedEvent.OnConfigChangedEvent;
 
 public class MCAnmConfiguration {
 
@@ -38,6 +38,6 @@ public class MCAnmConfiguration {
 	}
 
 	public void addPropertiesToDisplayList(List<IConfigElement> list) {
-		list.add(new ConfigElement<Boolean>(enableReload));
+		list.add(new ConfigElement(enableReload));
 	}
 }

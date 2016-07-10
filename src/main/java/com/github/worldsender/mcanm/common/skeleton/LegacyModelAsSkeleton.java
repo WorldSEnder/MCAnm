@@ -1,11 +1,10 @@
 package com.github.worldsender.mcanm.common.skeleton;
 
 import com.github.worldsender.mcanm.client.mcanmmodel.stored.RawData;
+import com.github.worldsender.mcanm.common.exceptions.ModelFormatException;
 import com.github.worldsender.mcanm.common.resource.IResource;
 import com.github.worldsender.mcanm.common.resource.IResourceLocation;
 import com.github.worldsender.mcanm.common.skeleton.visitor.ISkeletonVisitable;
-
-import net.minecraftforge.client.model.ModelFormatException;
 
 @Deprecated
 public class LegacyModelAsSkeleton extends AbstractSkeleton {

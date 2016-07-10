@@ -120,7 +120,7 @@ public abstract class ModelRenderAbstract<P extends IPart> implements IModelRend
 				part.render(currentPass);
 		}
 		if (MCAnm.isDebug) {
-			this.skeleton.debugDraw(Tessellator.instance);
+			this.skeleton.debugDraw(Tessellator.getInstance());
 		}
 	}
 }

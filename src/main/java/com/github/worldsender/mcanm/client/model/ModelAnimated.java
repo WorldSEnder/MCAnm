@@ -5,11 +5,8 @@ import static org.lwjgl.opengl.GL11.glPushMatrix;
 import static org.lwjgl.opengl.GL11.glScalef;
 import static org.lwjgl.opengl.GL11.glTranslatef;
 
-import java.util.Objects;
-
+import com.github.worldsender.mcanm.client.IRenderPass;
 import com.github.worldsender.mcanm.client.mcanmmodel.IModel;
-import com.github.worldsender.mcanm.client.model.util.RenderPass;
-import com.github.worldsender.mcanm.client.model.util.RenderPassInformation;
 
 import net.minecraft.client.model.ModelBase;
 import net.minecraft.client.model.ModelRenderer;
@@ -24,16 +21,8 @@ import net.minecraft.entity.Entity;
  *
  */
 public class ModelAnimated extends ModelBase {
-	private static boolean checkValidPartial(float newPartialTick) {
-		return newPartialTick >= 0.0F && newPartialTick <= 1.0F;
-	}
-
 	private IModel model;
-	private float partialTick;
-	private IEntityRender renderer; // The renderer, used to bind textures
-
-	private RenderPassInformation userPassCache = new RenderPassInformation();
-	private RenderPass passCache = new RenderPass(userPassCache, null);
+	private IRenderPass renderPass;
 
 	/**
 	 * This constructor just puts the model into itself. Nothing is checked
@@ -69,20 +58,7 @@ public class ModelAnimated extends ModelBase {
 		glScalef(-1 * size * 16, -1 * size * 16, size * 16);
 		glTranslatef(0, -1.5f - 1.5f * size, 0);
 
-		userPassCache.reset();
-		IEntityRender currentRender = getRender();
-		IRenderPassInformation currentPass = currentRender.getAnimator().preRenderCallback(
-				entity,
-				userPassCache,
-				getPartialTick(),
-				uLimbSwing,
-				interpolatedSwing,
-				uRotfloat,
-				headYaw,
-				interpolatedPitch);
-		passCache.setRenderPassInformation(currentPass).setRender(currentRender);
-
-		getModel().render(passCache);
+		getModel().render(renderPass);
 
 		glPopMatrix();
 	}
@@ -91,15 +67,6 @@ public class ModelAnimated extends ModelBase {
 	@Override
 	public TextureOffset getTextureOffset(String boxName) {
 		return new TextureOffset(0, 0);
-	}
-
-	public float getPartialTick() {
-		return this.partialTick;
-	}
-
-	public void setPartialTick(float newPartialTick) {
-		if (checkValidPartial(newPartialTick))
-			this.partialTick = newPartialTick;
 	}
 
 	/**
@@ -112,24 +79,7 @@ public class ModelAnimated extends ModelBase {
 		return this.model;
 	}
 
-	/**
-	 * Returns the currently used renderer. Here to be overridden by subclasses
-	 */
-	protected IEntityRender getRender() {
-		return this.renderer;
-	}
-
-	/**
-	 * Sets the given {@link IEntityRender} as the current Render. Users should not use this, only if they are the
-	 * coding the render.<br>
-	 * The Render however should always call this at least once before rendering the model, as the render is used to
-	 * bind the textures of the model.
-	 *
-	 * @param newRender
-	 * @return this, to make this method builder-pattern-like
-	 */
-	public ModelAnimated setRender(IEntityRender newRender) {
-		this.renderer = Objects.requireNonNull(newRender);
-		return this;
+	public void setRenderPass(IRenderPass renderPass) {
+		this.renderPass = renderPass;
 	}
 }

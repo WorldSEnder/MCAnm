@@ -1,12 +1,5 @@
 package com.github.worldsender.mcanm.common.skeleton;
 
-import static org.lwjgl.opengl.GL11.GL_DEPTH_TEST;
-import static org.lwjgl.opengl.GL11.GL_LINES;
-import static org.lwjgl.opengl.GL11.GL_TEXTURE_2D;
-import static org.lwjgl.opengl.GL11.glColor4f;
-import static org.lwjgl.opengl.GL11.glDisable;
-import static org.lwjgl.opengl.GL11.glEnable;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -18,7 +11,6 @@ import java.util.function.Supplier;
 
 import javax.vecmath.Quat4f;
 import javax.vecmath.Vector3f;
-import javax.vecmath.Vector4f;
 
 import org.apache.commons.lang3.ArrayUtils;
 
@@ -184,9 +176,12 @@ public abstract class AbstractSkeleton extends ReloadableData<ISkeletonVisitable
 
 	@Override
 	public void debugDraw(Tessellator tess) {
+		return;
+		/*
 		glDisable(GL_TEXTURE_2D);
 		glDisable(GL_DEPTH_TEST);
-		tess.startDrawing(GL_LINES);
+		tess.getWorldRenderer().begin(GL_LINES, new VertexFormat().addElement(VertexFormatElement.EnumUsage.UV));
+		startDrawing(GL_LINES);
 		glColor4f(0f, 0f, 0f, 1f);
 		for (Bone bone : bonesBreadthFirst) {
 			Vector4f tail = bone.getTail();
@@ -196,7 +191,7 @@ public abstract class AbstractSkeleton extends ReloadableData<ISkeletonVisitable
 		}
 		tess.draw();
 		glEnable(GL_DEPTH_TEST);
-		glEnable(GL_TEXTURE_2D);
+		glEnable(GL_TEXTURE_2D);*/
 	}
 
 }

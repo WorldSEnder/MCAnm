@@ -7,6 +7,7 @@ import com.github.worldsender.mcanm.client.model.IEntityRender;
 import com.github.worldsender.mcanm.client.model.IRenderPassInformation;
 import com.github.worldsender.mcanm.common.animation.IAnimation;
 
+import net.minecraft.entity.EntityLiving;
 import net.minecraft.util.ResourceLocation;
 
 /**
@@ -15,12 +16,13 @@ import net.minecraft.util.ResourceLocation;
  * @author WorldSEnder
  *
  */
-public class RenderPass implements IRenderPass {
+public class RenderPass<T extends EntityLiving> implements IRenderPass {
 	private IRenderPassInformation userInfo;
-	private IEntityRender render;
+	private IEntityRender<T> render;
 
-	public RenderPass(IRenderPassInformation info, IEntityRender renderer) {
+	public RenderPass(IRenderPassInformation info, IEntityRender<T> renderer) {
 		this.userInfo = Objects.requireNonNull(info);
+		this.render = Objects.requireNonNull(renderer);
 	}
 
 	@Override
@@ -48,13 +50,8 @@ public class RenderPass implements IRenderPass {
 		this.render.bindTextureFrom(resLoc);
 	}
 
-	public RenderPass setRenderPassInformation(IRenderPassInformation info) {
+	public RenderPass<T> setRenderPassInformation(IRenderPassInformation info) {
 		this.userInfo = Objects.requireNonNull(info);
-		return this;
-	}
-
-	public RenderPass setRender(IEntityRender render) {
-		this.render = Objects.requireNonNull(render);
 		return this;
 	}
 }

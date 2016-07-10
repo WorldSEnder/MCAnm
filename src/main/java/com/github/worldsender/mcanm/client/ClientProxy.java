@@ -12,12 +12,13 @@ import com.github.worldsender.mcanm.common.skeleton.ISkeleton;
 import com.github.worldsender.mcanm.test.CubeEntity;
 import com.github.worldsender.mcanm.test.CubeEntityV2;
 
-import cpw.mods.fml.client.registry.RenderingRegistry;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.IReloadableResourceManager;
 import net.minecraft.client.resources.IResourceManager;
 import net.minecraft.client.resources.IResourceManagerReloadListener;
 import net.minecraft.util.ResourceLocation;
+import net.minecraftforge.fml.client.registry.IRenderFactory;
+import net.minecraftforge.fml.client.registry.RenderingRegistry;
 
 public class ClientProxy implements Proxy {
 	@Override
@@ -35,24 +36,26 @@ public class ClientProxy implements Proxy {
 			MCAnm.logger()
 					.warn("Couldn't register reload managers. Models will not be reloaded on switching resource pack");
 		}
-	}
 
-	@Override
-	public void init() {
 		if (MCAnm.isDebug) {
 			ResourceLocation modelSrc = new ResourceLocation("mcanm:models/Cube/Cube.mcmd");
+			@SuppressWarnings("deprecation")
 			ISkeleton skeleton = CommonLoader.loadLegacySkeleton(modelSrc);
 			IModel model = ClientLoader.loadModel(modelSrc, skeleton);
-			RenderAnimatedModel renderer = RenderAnimatedModel.fromModel(model, 1.0f);
+			IRenderFactory<CubeEntity> renderer = RenderAnimatedModel.fromModel(model, 1.0f);
 
 			ResourceLocation model2Src = new ResourceLocation("mcanm:models/CubeV2/Cube.mcmd");
 			IModel model2 = ClientLoader.loadModel(model2Src, ISkeleton.EMPTY);
-			RenderAnimatedModel renderer2 = RenderAnimatedModel.fromModel(IEntityAnimator.STATIC_ENTITY, model2, 1.0f);
+			IRenderFactory<CubeEntityV2> renderer2 = RenderAnimatedModel
+					.fromModel(IEntityAnimator.STATIC_ENTITY(), model2, 1.0f);
 
 			RenderingRegistry.registerEntityRenderingHandler(CubeEntity.class, renderer);
 			RenderingRegistry.registerEntityRenderingHandler(CubeEntityV2.class, renderer2);
 		}
 	}
+
+	@Override
+	public void init() {}
 
 	private void reload(IResourceManager newManager) {
 		if (!MCAnm.configuration().isReloadEnabled()) {

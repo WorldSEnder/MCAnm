@@ -6,7 +6,7 @@ import com.github.worldsender.mcanm.client.model.util.RenderPassInformation;
 import com.github.worldsender.mcanm.client.renderer.entity.RenderAnimatedModel;
 import com.github.worldsender.mcanm.common.skeleton.ISkeleton;
 
-import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityLiving;
 import net.minecraft.util.ResourceLocation;
 
 /**
@@ -22,20 +22,22 @@ public interface IAnimatedObject {
 	 * {@link RenderAnimatedModel#fromResLocation(IEntityAnimator, ResourceLocation, ISkeleton, float)} when the
 	 * animated entity implements the {@link IAnimatedObject} interface.
 	 */
-	public static final IEntityAnimator ANIMATOR_ADAPTER = new IEntityAnimator() {
-		@Override
-		public IRenderPassInformation preRenderCallback(
-				Entity entity,
-				RenderPassInformation buffer,
-				float partialTick,
-				float uLimbSwing,
-				float interpolatedSwing,
-				float uRotfloat,
-				float headYaw,
-				float interpolatedPitch) {
-			return IAnimatedObject.class.cast(entity).preRenderCallback(partialTick, buffer);
-		}
-	};
+	public static <T extends EntityLiving & IAnimatedObject> IEntityAnimator<T> ANIMATOR_ADAPTER() {
+		return new IEntityAnimator<T>() {
+			@Override
+			public IRenderPassInformation preRenderCallback(
+					T entity,
+					RenderPassInformation buffer,
+					float partialTick,
+					float uLimbSwing,
+					float interpolatedSwing,
+					float uRotfloat,
+					float headYaw,
+					float interpolatedPitch) {
+				return IAnimatedObject.class.cast(entity).preRenderCallback(partialTick, buffer);
+			}
+		};
+	}
 
 	/**
 	 * A callback to the animated object just before it is rendered. The method is always called BEFORE. The object

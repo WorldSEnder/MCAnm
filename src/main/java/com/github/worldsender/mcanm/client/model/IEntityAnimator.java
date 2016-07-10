@@ -2,13 +2,13 @@ package com.github.worldsender.mcanm.client.model;
 
 import com.github.worldsender.mcanm.client.model.util.RenderPassInformation;
 
-import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityLiving;
 
-public interface IEntityAnimator {
-	public static final IEntityAnimator STATIC_ENTITY = new IEntityAnimator() {
+public interface IEntityAnimator<T extends EntityLiving> {
+	public static final IEntityAnimator<EntityLiving> STATIC_ANIMATOR = new IEntityAnimator<EntityLiving>() {
 		@Override
 		public IRenderPassInformation preRenderCallback(
-				Entity entity,
+				EntityLiving entity,
 				RenderPassInformation buffer,
 				float partialTick,
 				float uLimbSwing,
@@ -17,8 +17,14 @@ public interface IEntityAnimator {
 				float headYaw,
 				float interpolatedPitch) {
 			return buffer;
-		}
+		};
 	};
+
+	@SuppressWarnings("unchecked")
+	public static <T extends EntityLiving> IEntityAnimator<T> STATIC_ENTITY() {
+		// Actually safe cast, because T is only in, not out
+		return (IEntityAnimator<T>) STATIC_ANIMATOR;
+	}
 
 	/**
 	 * Pre-render callback for the animator.<br>
@@ -46,7 +52,7 @@ public interface IEntityAnimator {
 	 *         after setting your values
 	 */
 	IRenderPassInformation preRenderCallback(
-			Entity entity,
+			T entity,
 			RenderPassInformation buffer,
 			float partialTick,
 			float uLimbSwing,

@@ -4,21 +4,21 @@ import net.minecraft.client.renderer.Tessellator;
 
 public interface ITesselator {
 	public static final ITesselator TESSELATOR_WRAPPER = new ITesselator() {
-		private final Tessellator instance = Tessellator.instance;
+		private final Tessellator instance = Tessellator.getInstance();
 
 		@Override
 		public void setTextureUV(double u, double v) {
-			instance.setTextureUV(u, v);
+			instance.getWorldRenderer().tex(u, v);
 		}
 
 		@Override
 		public void setNormal(float x, float y, float z) {
-			instance.setNormal(x, y, z);
+			instance.getWorldRenderer().normal(x, y, z);
 		}
 
 		@Override
 		public void addVertex(double x, double y, double z) {
-			instance.addVertex(x, y, z);
+			instance.getWorldRenderer().pos(x, y, z);
 		}
 	};
 
