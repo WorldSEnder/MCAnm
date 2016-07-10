@@ -58,7 +58,7 @@ public class MCAnm {
 
 	@SubscribeEvent
 	public void onConfigChange(OnConfigChangedEvent occe) {
-		if (!occe.modID.equals(Reference.core_modid))
+		if (!occe.getModID().equals(Reference.core_modid))
 			return;
 		config.onConfigChange(occe);
 	}
