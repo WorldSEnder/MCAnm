@@ -75,6 +75,7 @@ public class DrawElementsTesselator implements ITesselator {
 		Preconditions.checkState(floatBuffer.remaining() == 0, "not all vertices filled");
 		isDrawing = false;
 
+		// FIXME: use GLStateManager
 		this.floatBuffer.position(0);
 		GL11.glVertexPointer(3, BYTES_PER_VERTEX, this.floatBuffer);
 		GL11.glEnableClientState(GL11.GL_VERTEX_ARRAY);

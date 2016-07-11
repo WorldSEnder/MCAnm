@@ -9,6 +9,7 @@ import com.github.worldsender.mcanm.common.skeleton.SkeletonMCSKL;
 
 import net.minecraft.util.ResourceLocation;
 
+@SuppressWarnings("deprecation")
 public class CommonLoader {
 	/**
 	 * Loads a .mcskl skeleton from the given {@link ResourceLocation}. Note that while the raw data from the

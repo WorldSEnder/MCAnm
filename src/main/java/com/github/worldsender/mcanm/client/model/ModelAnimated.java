@@ -1,16 +1,12 @@
 package com.github.worldsender.mcanm.client.model;
 
-import static org.lwjgl.opengl.GL11.glPopMatrix;
-import static org.lwjgl.opengl.GL11.glPushMatrix;
-import static org.lwjgl.opengl.GL11.glScalef;
-import static org.lwjgl.opengl.GL11.glTranslatef;
-
 import com.github.worldsender.mcanm.client.IRenderPass;
 import com.github.worldsender.mcanm.client.mcanmmodel.IModel;
 
 import net.minecraft.client.model.ModelBase;
 import net.minecraft.client.model.ModelRenderer;
 import net.minecraft.client.model.TextureOffset;
+import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.entity.Entity;
 
 /**
@@ -52,15 +48,15 @@ public class ModelAnimated extends ModelBase {
 			float headYaw,
 			float interpolatedPitch,
 			float size) {
-		glPushMatrix();
+		GlStateManager.pushMatrix();
 
 		// Get our object into place
-		glScalef(-1 * size * 16, -1 * size * 16, size * 16);
-		glTranslatef(0, -1.5f - 1.5f * size, 0);
+		GlStateManager.scale(-1 * size * 16, -1 * size * 16, size * 16);
+		GlStateManager.translate(0, -1.5f - 1.5f * size, 0);
 
 		getModel().render(renderPass);
 
-		glPopMatrix();
+		GlStateManager.popMatrix();
 	}
 
 	// Will not use this method

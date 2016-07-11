@@ -20,27 +20,26 @@ minecraft {
 }
 
 project.version = getVersion()
+project.ext.shortVersion = getShortVersion()
 
 minecraft {	
     replaceIn "Reference.java"
-    replace "@VERSION@", project.version
+    replace "@VERSION@", project.shortVersion
     replace "@MODID@", project.archivesBaseName
     replace "@MODNAME@", project.longname
 }
 
-tasks["jar"].classifier = getArtifactID()
-
 task deobfJar(type: Jar) {
     from sourceSets.main.output
-    classifier = getArtifactID() + '-deobf'
+    classifier = 'deobf'
 }
 
-tasks["sourceJar"].classifier = getArtifactID() + '-sources'
+tasks["sourceJar"].classifier = 'sources'
 
 tasks.build.dependsOn('deobfJar', 'sourceJar')
+install.dependsOn build
 
-processResources
-{
+processResources {
     from(sourceSets.main.resources.srcDirs) {
         include 'mcmod.info'
         expand project.properties
@@ -61,9 +60,7 @@ artifacts {
     archives sourceJar
 }
 
-install.dependsOn build
-
-def getVersion() {
+def getShortVersion() {
     def stdout = new ByteArrayOutputStream()
     exec {
         executable "git"
@@ -71,7 +68,11 @@ def getVersion() {
         standardOutput = stdout
     }
     def revision = stdout.toString().trim()
-    return "${major}.${minor}.${patch}.${revision}"
+    return "${major}.${minor}.${patch}.${revision}-"
+}
+
+def getVersion() {
+	return getShortVersion() + "-" + getArtifactID()
 }
 
 def getArtifactID() {
