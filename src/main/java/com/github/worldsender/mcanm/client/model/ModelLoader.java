@@ -125,11 +125,15 @@ public enum ModelLoader implements ICustomModelLoader {
 				IModelState state,
 				VertexFormat format,
 				Function<ResourceLocation, TextureAtlasSprite> bakedTextureGetter) {
-			Map<String, TextureAtlasSprite> slotToSprite = new HashMap<>(slotToTexture.size());
+			ImmutableMap.Builder<String, TextureAtlasSprite> slotToTexSprite = ImmutableMap.builder();
+
 			for (Map.Entry<String, ResourceLocation> slotEntry : slotToTexture.entrySet()) {
-				slotToSprite.put(slotEntry.getKey(), bakedTextureGetter.apply(slotEntry.getValue()));
+				slotToTexSprite.put(slotEntry.getKey(), bakedTextureGetter.apply(slotEntry.getValue()));
 			}
-			return new BakedModelWrapper(actualModel, state, format, slotToSprite);
+			// Note the missing leading '#', surely it does not collide
+			slotToTexSprite.put("missingno", bakedTextureGetter.apply(new ResourceLocation("missingno")));
+
+			return new BakedModelWrapper(actualModel, state, format, slotToTexSprite.build());
 		}
 
 		@Override
@@ -192,7 +196,7 @@ public enum ModelLoader implements ICustomModelLoader {
 				ModelMCMD model,
 				IModelState state,
 				VertexFormat format,
-				Map<String, TextureAtlasSprite> slotToSprite) {
+				ImmutableMap<String, TextureAtlasSprite> slotToSprite) {
 			// TODO Auto-generated method stub
 			// FIXME: use the bakedTextures
 			this.actualModel = Objects.requireNonNull(model);
