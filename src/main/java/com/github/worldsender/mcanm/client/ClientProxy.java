@@ -4,6 +4,7 @@ import com.github.worldsender.mcanm.MCAnm;
 import com.github.worldsender.mcanm.Proxy;
 import com.github.worldsender.mcanm.client.mcanmmodel.IModel;
 import com.github.worldsender.mcanm.client.model.IEntityAnimator;
+import com.github.worldsender.mcanm.client.model.ModelLoader;
 import com.github.worldsender.mcanm.client.renderer.entity.RenderAnimatedModel;
 import com.github.worldsender.mcanm.common.CommonLoader;
 import com.github.worldsender.mcanm.common.resource.IResourceLocation;
@@ -17,12 +18,15 @@ import net.minecraft.client.resources.IReloadableResourceManager;
 import net.minecraft.client.resources.IResourceManager;
 import net.minecraft.client.resources.IResourceManagerReloadListener;
 import net.minecraft.util.ResourceLocation;
+import net.minecraftforge.client.model.ModelLoaderRegistry;
 import net.minecraftforge.fml.client.registry.IRenderFactory;
 import net.minecraftforge.fml.client.registry.RenderingRegistry;
 
 public class ClientProxy implements Proxy {
 	@Override
 	public void preInit() {
+		ModelLoaderRegistry.registerLoader(ModelLoader.INSTANCE);
+
 		IResourceManager resManager = Minecraft.getMinecraft().getResourceManager();
 		if (resManager instanceof IReloadableResourceManager) {
 			IReloadableResourceManager registry = (IReloadableResourceManager) resManager;
