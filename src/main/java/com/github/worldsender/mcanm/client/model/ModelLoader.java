@@ -94,7 +94,7 @@ public enum ModelLoader implements ICustomModelLoader {
 
 		private final ResourceLocation modelLocation;
 		private final ModelMCMD actualModel;
-		private final ImmutableMap<String, ResourceLocation> slotToTexture;
+		private final Map<String, ResourceLocation> slotToTexture;
 		private final Multimap<ResourceLocation, String> textureToSlots;
 
 		public ModelWrapper(ResourceLocation file, ModelDescription description) {
@@ -111,7 +111,7 @@ public enum ModelLoader implements ICustomModelLoader {
 				Multimap<ResourceLocation, String> textureToSlot) {
 			this.modelLocation = Objects.requireNonNull(file);
 			this.actualModel = Objects.requireNonNull(model);
-			this.slotToTexture = ImmutableMap.copyOf(slotToTex);
+			this.slotToTexture = new HashMap<>(slotToTex);
 			this.textureToSlots = MultimapBuilder.hashKeys().hashSetValues().build(textureToSlot);
 		}
 
@@ -125,9 +125,11 @@ public enum ModelLoader implements ICustomModelLoader {
 				IModelState state,
 				VertexFormat format,
 				Function<ResourceLocation, TextureAtlasSprite> bakedTextureGetter) {
-			// TODO Auto-generated method stub
-			// FIXME: use the bakedTextures 
-			return null;
+			Map<String, TextureAtlasSprite> slotToSprite = new HashMap<>(slotToTexture.size());
+			for (Map.Entry<String, ResourceLocation> slotEntry : slotToTexture.entrySet()) {
+				slotToSprite.put(slotEntry.getKey(), bakedTextureGetter.apply(slotEntry.getValue()));
+			}
+			return new BakedModelWrapper(actualModel, state, format, slotToSprite);
 		}
 
 		@Override
@@ -140,36 +142,45 @@ public enum ModelLoader implements ICustomModelLoader {
 			return textureToSlots.keySet();
 		}
 
+		private void updateTextureSlot(String slot, ResourceLocation updated) {
+			ResourceLocation current = slotToTexture.get(slot);
+
+			Collection<String> currentSlots = textureToSlots.get(current);
+			Collection<String> updatedSlots = textureToSlots.get(updated);
+			slotToTexture.put(slot, updated);
+			updatedSlots.add(slot);
+			currentSlots.remove(slot);
+		}
+
+		private void replaceTexture(ResourceLocation current, ResourceLocation updated) {
+			Collection<String> currentSlots = textureToSlots.get(current);
+			Collection<String> updatedSlots = textureToSlots.get(updated);
+
+			currentSlots.forEach(slot -> slotToTexture.put(slot, updated));
+			updatedSlots.addAll(currentSlots);
+			currentSlots.clear();
+		}
+
 		@Override
 		public IModel retexture(ImmutableMap<String, String> textures) {
-			Map<String, ResourceLocation> newSlotsToTex = new HashMap<>(slotToTexture);
-			Multimap<ResourceLocation, String> newTextureToSlot = MultimapBuilder.hashKeys().hashSetValues()
-					.build(textureToSlots);
+			ModelWrapper retextured = new ModelWrapper(modelLocation, actualModel, slotToTexture, textureToSlots);
+
 			for (Entry<String, String> remapped : textures.entrySet()) {
 				String toRemap = remapped.getKey();
 				String after = remapped.getValue();
+
 				boolean remapSlot = toRemap.startsWith("#");
 				if (remapSlot) {
-					ResourceLocation current = newSlotsToTex.get(toRemap);
 					ResourceLocation updated = new ResourceLocation(after);
-
-					Collection<String> currentSlots = newTextureToSlot.get(current);
-					Collection<String> updatedSlots = newTextureToSlot.get(updated);
-					newSlotsToTex.put(toRemap, updated);
-					updatedSlots.add(toRemap);
-					currentSlots.remove(toRemap);
+					retextured.updateTextureSlot(toRemap, updated);
 				} else {
 					ResourceLocation current = new ResourceLocation(toRemap);
 					ResourceLocation updated = new ResourceLocation(after);
-
-					Collection<String> currentSlots = newTextureToSlot.get(current);
-					Collection<String> updatedSlots = newTextureToSlot.get(updated);
-					currentSlots.forEach(slot -> newSlotsToTex.put(slot, updated));
-					updatedSlots.addAll(currentSlots);
-					currentSlots.clear();
+					retextured.replaceTexture(current, updated);
 				}
 			}
-			return new ModelWrapper(modelLocation, actualModel, newSlotsToTex, newTextureToSlot);
+
+			return retextured;
 		}
 	}
 
@@ -177,7 +188,13 @@ public enum ModelLoader implements ICustomModelLoader {
 	private static class BakedModelWrapper implements IBakedModel {
 		private final ModelMCMD actualModel;
 
-		public BakedModelWrapper(ModelMCMD model) {
+		public BakedModelWrapper(
+				ModelMCMD model,
+				IModelState state,
+				VertexFormat format,
+				Map<String, TextureAtlasSprite> slotToSprite) {
+			// TODO Auto-generated method stub
+			// FIXME: use the bakedTextures
 			this.actualModel = Objects.requireNonNull(model);
 		}
 
