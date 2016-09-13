@@ -1,5 +1,8 @@
 package com.github.worldsender.mcanm.client.mcanmmodel;
 
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
@@ -9,9 +12,14 @@ import com.github.worldsender.mcanm.client.mcanmmodel.gl.IModelRenderData;
 import com.github.worldsender.mcanm.client.mcanmmodel.gl.ModelRenderDataGLArray;
 import com.github.worldsender.mcanm.client.mcanmmodel.stored.RawData;
 import com.github.worldsender.mcanm.client.mcanmmodel.visitor.IModelVisitable;
+import com.github.worldsender.mcanm.client.model.IModelStateInformation;
 import com.github.worldsender.mcanm.common.resource.IResourceLocation;
 import com.github.worldsender.mcanm.common.skeleton.ISkeleton;
 import com.github.worldsender.mcanm.common.util.ReloadableData;
+
+import net.minecraft.client.renderer.block.model.BakedQuad;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.client.renderer.vertex.VertexFormat;
 
 /**
  * Represents a model that is more abstract than boxes. The format also offers animating the model through bones and a
@@ -70,6 +78,13 @@ public class ModelMCMD extends ReloadableData<IModelVisitable> implements IModel
 	 */
 	public void render(IRenderPass renderPass) {
 		model.ifPresent(m -> m.render(renderPass));
+	}
+
+	public List<BakedQuad> getAsBakedQuads(
+			IModelStateInformation currentPass,
+			Map<String, TextureAtlasSprite> slotToTex,
+			VertexFormat format) {
+		return model.map(m -> m.getAsBakedQuads(currentPass, slotToTex, format)).orElse(Collections.emptyList());
 	}
 
 	/**

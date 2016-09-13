@@ -11,6 +11,7 @@ import java.util.Map.Entry;
 import java.util.Objects;
 
 import com.github.worldsender.mcanm.client.mcanmmodel.ModelMCMD;
+import com.github.worldsender.mcanm.client.model.util.ModelStateInformation;
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.cache.CacheBuilder;
@@ -45,6 +46,8 @@ import net.minecraftforge.common.model.TRSRTransformation;
  */
 public enum ModelLoader implements ICustomModelLoader {
 	INSTANCE;
+
+	public static final String MISSING_SLOT_NAME = "missingno";
 
 	private static final String SUFFIX = ".mcmdl";
 
@@ -84,14 +87,19 @@ public enum ModelLoader implements ICustomModelLoader {
 	}
 
 	private static class ModelState implements IModelState {
+		private ModelStateInformation modelState = new ModelStateInformation();
+
 		@Override
 		public Optional<TRSRTransformation> apply(Optional<? extends IModelPart> part) {
 			return Optional.absent();
 		}
+
+		public IModelStateInformation getCurrentPass(IBlockState state) {
+			return modelState;
+		}
 	}
 
 	private static class ModelWrapper implements IRetexturableModel {
-
 		private final ResourceLocation modelLocation;
 		private final ModelMCMD actualModel;
 		private final Map<String, ResourceLocation> slotToTexture;
@@ -131,9 +139,9 @@ public enum ModelLoader implements ICustomModelLoader {
 				slotToTexSprite.put(slotEntry.getKey(), bakedTextureGetter.apply(slotEntry.getValue()));
 			}
 			// Note the missing leading '#', surely it does not collide
-			slotToTexSprite.put("missingno", bakedTextureGetter.apply(new ResourceLocation("missingno")));
+			slotToTexSprite.put(MISSING_SLOT_NAME, bakedTextureGetter.apply(new ResourceLocation(MISSING_SLOT_NAME)));
 
-			return new BakedModelWrapper(actualModel, state, format, slotToTexSprite.build());
+			return new BakedModelWrapper(actualModel, ModelState.class.cast(state), format, slotToTexSprite.build());
 		}
 
 		@Override
@@ -191,15 +199,27 @@ public enum ModelLoader implements ICustomModelLoader {
 	// FIXME: make this extend IPerspectiveAwareModel?
 	private static class BakedModelWrapper implements IBakedModel {
 		private final ModelMCMD actualModel;
+		private final ModelState bakedState;
+		private final VertexFormat format;
+		private final ImmutableMap<String, TextureAtlasSprite> slotToSprite;
+		private final TextureAtlasSprite particleSprite;
 
 		public BakedModelWrapper(
 				ModelMCMD model,
-				IModelState state,
+				ModelState state,
 				VertexFormat format,
 				ImmutableMap<String, TextureAtlasSprite> slotToSprite) {
-			// TODO Auto-generated method stub
-			// FIXME: use the bakedTextures
 			this.actualModel = Objects.requireNonNull(model);
+			this.slotToSprite = Objects.requireNonNull(slotToSprite);
+			this.bakedState = Objects.requireNonNull(state);
+			this.format = Objects.requireNonNull(format);
+			// There is at least the "missingno" texture in the list
+			particleSprite = getSpriteTexture(slotToSprite);
+		}
+
+		private TextureAtlasSprite getSpriteTexture(ImmutableMap<String, TextureAtlasSprite> slotToSprite) {
+			// FIXME: return not just any texture?
+			return slotToSprite.entrySet().asList().get(0).getValue();
 		}
 
 		@Override
@@ -225,20 +245,19 @@ public enum ModelLoader implements ICustomModelLoader {
 
 		@Override
 		public List<BakedQuad> getQuads(IBlockState state, EnumFacing side, long rand) {
-			// TODO Auto-generated method stub
-			return null;
+			IModelStateInformation currentPass = bakedState.getCurrentPass(state);
+			return actualModel.getAsBakedQuads(currentPass, slotToSprite, format);
 		}
 
 		@Override
 		public ItemOverrideList getOverrides() {
-			// FIXME: can we decide based on item-state here?
+			// we could decide based on item-modelState here?
 			return ItemOverrideList.NONE;
 		}
 
 		@Override
 		public TextureAtlasSprite getParticleTexture() {
-			// FIXME: return not just any texture
-			return null;
+			return particleSprite;
 		}
 
 	}
