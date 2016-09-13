@@ -17,6 +17,7 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.block.model.ModelResourceLocation;
 import net.minecraft.client.resources.IReloadableResourceManager;
 import net.minecraft.client.resources.IResourceManager;
 import net.minecraft.client.resources.IResourceManagerReloadListener;
@@ -62,7 +63,11 @@ public class ClientProxy implements Proxy {
 			RenderingRegistry.registerEntityRenderingHandler(CubeEntity.class, renderer);
 			RenderingRegistry.registerEntityRenderingHandler(CubeEntityV2.class, renderer2);
 
-			GameRegistry.register(new Item().setFull3D().setRegistryName("debug_item"));
+			Item debug = GameRegistry.register(new Item().setFull3D().setRegistryName("debug_item"));
+			net.minecraftforge.client.model.ModelLoader.setCustomModelResourceLocation(
+					debug,
+					0,
+					new ModelResourceLocation("mcanm:models/item/debug_item.mcmdl#inventory"));
 		}
 	}
 

@@ -38,7 +38,7 @@ public class ModelStateInformation implements IModelStateInformation {
 	}
 
 	public void reset() {
-		this.setFrame(0F).setAnimation(Optional.empty());
+		this.setFrame(0F).setAnimation(Optional.empty()).setPartPredicate(Optional.empty());
 	}
 
 	@Override

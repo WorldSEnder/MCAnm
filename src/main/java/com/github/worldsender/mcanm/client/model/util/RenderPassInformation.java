@@ -63,7 +63,7 @@ public class RenderPassInformation extends ModelStateInformation implements IRen
 	 */
 	public void reset() {
 		super.reset();
-		this.setPartPredicate(Optional.empty()).setTextureTransform(Optional.empty());
+		this.setTextureTransform(Optional.empty());
 	}
 
 	@Override

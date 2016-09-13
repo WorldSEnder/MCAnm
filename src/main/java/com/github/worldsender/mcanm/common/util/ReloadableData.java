@@ -63,7 +63,7 @@ public abstract class ReloadableData<D> {
 		try {
 			return loader.apply(reloadLocation.open());
 		} catch (IOException ioe) {
-			MCAnm.logger().error("Failed loading data from " + reloadLocation, ioe);
+			MCAnm.logger().error("Failed loading data from " + reloadLocation.getResourceName(), ioe);
 			return defaultData;
 		}
 	}
