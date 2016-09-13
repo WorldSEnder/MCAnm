@@ -1,6 +1,0 @@
-{
-    "parent": "mcanm:item/debug_item.mcmdl",
-    "textures": {
-        "layer0": "blocks/flower_allium"
-    }
-}
