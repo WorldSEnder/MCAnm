@@ -13,14 +13,11 @@ import com.github.worldsender.mcanm.common.skeleton.ISkeleton;
 
 import net.minecraft.client.renderer.entity.RenderLiving;
 import net.minecraft.client.renderer.entity.RenderManager;
-import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.entity.EntityLiving;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.fml.client.registry.IRenderFactory;
 
 public class RenderAnimatedModel<T extends EntityLiving> extends RenderLiving<T> implements IEntityRender<T> {
-	private static final ResourceLocation ignored = TextureMap.LOCATION_MISSING_TEXTURE;
-
 	protected ModelAnimated model;
 	private IEntityAnimator<T> animator;
 
@@ -64,7 +61,7 @@ public class RenderAnimatedModel<T extends EntityLiving> extends RenderLiving<T>
 
 	@Override
 	protected ResourceLocation getEntityTexture(T entity) {
-		return ignored;
+		return null;
 	}
 
 	@Override
