@@ -70,6 +70,7 @@ public class PartDirect implements IPart {
 			builder.setTexture(tex);
 			builder.setApplyDiffuseLighting(true);
 			builder.setQuadOrientation(EnumFacing.UP);
+			builder.setQuadTint(0);
 			point1.putIntoBakedQuadBuilder(builder, tex);
 			point2.putIntoBakedQuadBuilder(builder, tex);
 			point3.putIntoBakedQuadBuilder(builder, tex);
