@@ -155,6 +155,7 @@ public class Point {
 						sprite.getInterpolatedV(uvBuffer.y * 16),
 						0,
 						1);
+				break;
 			default:
 				builder.put(e);
 			}
