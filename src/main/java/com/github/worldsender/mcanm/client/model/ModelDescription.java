@@ -33,7 +33,10 @@ public class ModelDescription {
 
 	private static class DescriptionDeserializer implements JsonDeserializer<ModelDescription> {
 		@SuppressWarnings("deprecation") // We handle the legacy, not consume it
-		private AbstractSkeleton loadSkeleton(boolean legacy, ResourceLocation skeletonLocation) {
+		private AbstractSkeleton loadSkeleton(boolean legacy, JsonObject jsonObject) {
+			ResourceLocation skeletonLocation = legacy
+					? new ResourceLocation(jsonObject.get("mesh").getAsString())
+					: new ResourceLocation(jsonObject.get("skeleton").getAsString());
 			return legacy
 					? CommonLoader.loadLegacySkeleton(skeletonLocation)
 					: CommonLoader.loadSkeleton(skeletonLocation);
@@ -48,10 +51,9 @@ public class ModelDescription {
 			if (version != 0 && version != 1) {
 				throw new JsonParseException("Unsupported model version");
 			}
-			ResourceLocation modelLocation = new ResourceLocation(jsonObject.get("mesh").getAsString());
-			ResourceLocation skeletonLocation = new ResourceLocation(jsonObject.get("skeleton").getAsString());
+			AbstractSkeleton skeleton = loadSkeleton(version == 0, jsonObject);
 
-			AbstractSkeleton skeleton = loadSkeleton(version == 0, skeletonLocation);
+			ResourceLocation modelLocation = new ResourceLocation(jsonObject.get("mesh").getAsString());
 			ModelMCMD mesh = ClientLoader.loadModel(modelLocation, skeleton);
 			return new ModelDescription(mesh, skeleton);
 		}

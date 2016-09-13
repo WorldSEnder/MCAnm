@@ -17,10 +17,12 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.IReloadableResourceManager;
 import net.minecraft.client.resources.IResourceManager;
 import net.minecraft.client.resources.IResourceManagerReloadListener;
+import net.minecraft.item.Item;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.client.model.ModelLoaderRegistry;
 import net.minecraftforge.fml.client.registry.IRenderFactory;
 import net.minecraftforge.fml.client.registry.RenderingRegistry;
+import net.minecraftforge.fml.common.registry.GameRegistry;
 
 public class ClientProxy implements Proxy {
 	@Override
@@ -55,6 +57,8 @@ public class ClientProxy implements Proxy {
 
 			RenderingRegistry.registerEntityRenderingHandler(CubeEntity.class, renderer);
 			RenderingRegistry.registerEntityRenderingHandler(CubeEntityV2.class, renderer2);
+
+			GameRegistry.register(new Item().setFull3D().setRegistryName("debug_item"));
 		}
 	}
 

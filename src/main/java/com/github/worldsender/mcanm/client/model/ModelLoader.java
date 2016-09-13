@@ -95,6 +95,7 @@ public enum ModelLoader implements ICustomModelLoader {
 		}
 
 		public IModelStateInformation getCurrentPass(IBlockState state) {
+			// FIXME: animations?
 			return modelState;
 		}
 	}
