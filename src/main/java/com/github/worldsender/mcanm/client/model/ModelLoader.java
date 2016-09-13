@@ -109,8 +109,11 @@ public enum ModelLoader implements ICustomModelLoader {
 		public ModelWrapper(ResourceLocation file, ModelDescription description) {
 			this.modelLocation = Objects.requireNonNull(file);
 			this.actualModel = description.getModel();
-			this.slotToTexture = ImmutableMap.of();
+			this.slotToTexture = new HashMap<>();
 			this.textureToSlots = MultimapBuilder.hashKeys().hashSetValues().build();
+			for (Map.Entry<String, ResourceLocation> texMapping : description.getTextureLocations().entrySet()) {
+				this.updateTextureSlot(texMapping.getKey(), texMapping.getValue());
+			}
 		}
 
 		private ModelWrapper(

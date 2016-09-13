@@ -3,13 +3,16 @@ package com.github.worldsender.mcanm.client.model;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.lang.reflect.Type;
+import java.util.Map.Entry;
 import java.util.Objects;
 
 import com.github.worldsender.mcanm.client.ClientLoader;
 import com.github.worldsender.mcanm.client.mcanmmodel.ModelMCMD;
 import com.github.worldsender.mcanm.common.CommonLoader;
-import com.github.worldsender.mcanm.common.skeleton.AbstractSkeleton;
+import com.github.worldsender.mcanm.common.skeleton.ISkeleton;
 import com.github.worldsender.mcanm.common.skeleton.SkeletonMCSKL;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableMap.Builder;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonDeserializationContext;
@@ -33,10 +36,14 @@ public class ModelDescription {
 
 	private static class DescriptionDeserializer implements JsonDeserializer<ModelDescription> {
 		@SuppressWarnings("deprecation") // We handle the legacy, not consume it
-		private AbstractSkeleton loadSkeleton(boolean legacy, JsonObject jsonObject) {
+		private ISkeleton loadSkeleton(boolean legacy, JsonObject jsonObject) {
+			if (!legacy && !jsonObject.has("skeleton")) {
+				return ISkeleton.EMPTY;
+			}
 			ResourceLocation skeletonLocation = legacy
 					? new ResourceLocation(jsonObject.get("mesh").getAsString())
 					: new ResourceLocation(jsonObject.get("skeleton").getAsString());
+
 			return legacy
 					? CommonLoader.loadLegacySkeleton(skeletonLocation)
 					: CommonLoader.loadSkeleton(skeletonLocation);
@@ -51,27 +58,52 @@ public class ModelDescription {
 			if (version != 0 && version != 1) {
 				throw new JsonParseException("Unsupported model version");
 			}
-			AbstractSkeleton skeleton = loadSkeleton(version == 0, jsonObject);
+			boolean isLegacy = version == 0;
+			ISkeleton skeleton = loadSkeleton(isLegacy, jsonObject);
 
 			ResourceLocation modelLocation = new ResourceLocation(jsonObject.get("mesh").getAsString());
 			ModelMCMD mesh = ClientLoader.loadModel(modelLocation, skeleton);
-			return new ModelDescription(mesh, skeleton);
+
+			ImmutableMap<String, ResourceLocation> textureLocatons = ImmutableMap.of();
+			if (version != 0) {
+				Builder<String, ResourceLocation> builder = ImmutableMap.builder();
+				JsonObject textureMap = jsonObject.getAsJsonObject("textures");
+				for (Entry<String, JsonElement> texEntry : textureMap.entrySet()) {
+					String slotName = texEntry.getKey();
+					if (!slotName.startsWith("#")) {
+						throw new JsonParseException("Slot names must begin with '#'");
+					}
+					ResourceLocation textureLocation = new ResourceLocation(texEntry.getValue().getAsString());
+					builder.put(slotName, textureLocation);
+				}
+				textureLocatons = builder.build();
+			}
+			return new ModelDescription(mesh, skeleton, textureLocatons);
 		}
 	}
 
 	private ModelMCMD model;
-	private AbstractSkeleton skeleton;
+	private ISkeleton skeleton;
+	private ImmutableMap<String, ResourceLocation> textureMapping;
 
-	private ModelDescription(ModelMCMD model, AbstractSkeleton skeleton) {
+	private ModelDescription(
+			ModelMCMD model,
+			ISkeleton skeleton,
+			ImmutableMap<String, ResourceLocation> textureMapping) {
 		this.model = Objects.requireNonNull(model);
 		this.skeleton = Objects.requireNonNull(skeleton);
+		this.textureMapping = Objects.requireNonNull(textureMapping);
 	}
 
 	public ModelMCMD getModel() {
 		return model;
 	}
 
-	public AbstractSkeleton getSkeleton() {
+	public ImmutableMap<String, ResourceLocation> getTextureLocations() {
+		return textureMapping;
+	}
+
+	public ISkeleton getSkeleton() {
 		return skeleton;
 	}
 
