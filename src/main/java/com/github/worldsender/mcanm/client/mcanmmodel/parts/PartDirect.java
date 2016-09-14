@@ -62,15 +62,14 @@ public class PartDirect implements IPart {
 
 	public void getAsBakedQuads(Map<String, TextureAtlasSprite> slotToTex, VertexFormat format, List<BakedQuad> out) {
 		TextureAtlasSprite tex = retrieveSprite(slotToTex);
-		for (int i = 0; i < indices.length / 3; i++) {
+		for (int i = 0; i < indices.length; i += 3) {
 			Point point1 = pointsList[indices[i]];
 			Point point2 = pointsList[indices[i + 1]];
 			Point point3 = pointsList[indices[i + 2]];
 			UnpackedBakedQuad.Builder builder = new UnpackedBakedQuad.Builder(format);
 			builder.setTexture(tex);
 			builder.setApplyDiffuseLighting(true);
-			builder.setQuadOrientation(EnumFacing.UP);
-			builder.setQuadTint(0);
+			builder.setQuadOrientation(EnumFacing.SOUTH);
 			point1.putIntoBakedQuadBuilder(builder, tex);
 			point2.putIntoBakedQuadBuilder(builder, tex);
 			point3.putIntoBakedQuadBuilder(builder, tex);

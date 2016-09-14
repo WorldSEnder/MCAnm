@@ -143,18 +143,23 @@ public class Point {
 			VertexFormatElement element = vertexFormat.getElement(e);
 			switch (element.getUsage()) {
 			case POSITION:
-				builder.put(e, positionBuffer.x, positionBuffer.y, positionBuffer.z, positionBuffer.w);
+				builder.put(e, positionBuffer.x, positionBuffer.z, -positionBuffer.y, positionBuffer.w);
 				break;
 			case NORMAL:
-				builder.put(e, normalBuffer.x, normalBuffer.y, normalBuffer.z, 0);
+				builder.put(e, normalBuffer.x, normalBuffer.z, normalBuffer.y, 0);
 				break;
 			case UV:
+				if (element.getIndex() != 0)
+					break;
 				builder.put(
 						e,
 						sprite.getInterpolatedU(uvBuffer.x * 16),
 						sprite.getInterpolatedV(uvBuffer.y * 16),
 						0,
 						1);
+				break;
+			case COLOR:
+				builder.put(e, 1, 1, 1, 1);
 				break;
 			default:
 				builder.put(e);
