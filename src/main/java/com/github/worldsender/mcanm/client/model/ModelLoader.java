@@ -254,7 +254,6 @@ public enum ModelLoader implements ICustomModelLoader {
 
 		@Override
 		public List<BakedQuad> getQuads(IBlockState state, EnumFacing side, long rand) {
-			// FIXME: nothing is shown?????
 			IModelStateInformation currentPass = bakedState.getCurrentPass(state);
 			return actualModel.getAsBakedQuads(currentPass, slotToSprite, format);
 		}
