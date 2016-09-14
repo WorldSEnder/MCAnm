@@ -54,6 +54,7 @@ public enum ModelLoader implements ICustomModelLoader {
 	INSTANCE;
 
 	public static final String MISSING_SLOT_NAME = "missingno";
+	public static final String PARTICLE_SLOT_NAME = "#particle_sprite";
 
 	private static final String SUFFIX = ".mcmdl";
 
@@ -223,12 +224,11 @@ public enum ModelLoader implements ICustomModelLoader {
 			this.bakedState = Objects.requireNonNull(state);
 			this.format = Objects.requireNonNull(format);
 			// There is at least the "missingno" texture in the list
-			particleSprite = getSpriteTexture(slotToSprite);
+			particleSprite = getParticleSprite(slotToSprite);
 		}
 
-		private TextureAtlasSprite getSpriteTexture(ImmutableMap<String, TextureAtlasSprite> slotToSprite) {
-			// FIXME: return not just any texture?
-			return slotToSprite.entrySet().asList().get(0).getValue();
+		private TextureAtlasSprite getParticleSprite(ImmutableMap<String, TextureAtlasSprite> slotToSprite) {
+			return slotToSprite.getOrDefault(PARTICLE_SLOT_NAME, slotToSprite.entrySet().asList().get(0).getValue());
 		}
 
 		@Override
