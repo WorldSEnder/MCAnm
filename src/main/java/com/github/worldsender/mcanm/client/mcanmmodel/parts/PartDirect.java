@@ -13,7 +13,6 @@ import com.github.worldsender.mcanm.client.renderer.DrawElementsTesselator;
 import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.renderer.vertex.VertexFormat;
-import net.minecraft.util.EnumFacing;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.client.model.pipeline.UnpackedBakedQuad;
 
@@ -67,13 +66,11 @@ public class PartDirect implements IPart {
 			Point point2 = pointsList[indices[i + 1]];
 			Point point3 = pointsList[indices[i + 2]];
 			UnpackedBakedQuad.Builder builder = new UnpackedBakedQuad.Builder(format);
-			builder.setTexture(tex);
-			builder.setApplyDiffuseLighting(true);
-			builder.setQuadOrientation(EnumFacing.SOUTH);
 			point1.putIntoBakedQuadBuilder(builder, tex);
 			point2.putIntoBakedQuadBuilder(builder, tex);
 			point3.putIntoBakedQuadBuilder(builder, tex);
-			point3.putIntoBakedQuadBuilder(builder, tex);
+			point1.putIntoBakedQuadBuilder(builder, tex);
+			builder.setTexture(tex);
 			out.add(builder.build());
 		}
 	}

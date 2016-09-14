@@ -146,7 +146,7 @@ public class Point {
 				builder.put(e, positionBuffer.x, positionBuffer.z, -positionBuffer.y, positionBuffer.w);
 				break;
 			case NORMAL:
-				builder.put(e, normalBuffer.x, normalBuffer.z, normalBuffer.y, 0);
+				builder.put(e, normalBuffer.x, normalBuffer.z, -normalBuffer.y, 0);
 				break;
 			case UV:
 				if (element.getIndex() != 0)
