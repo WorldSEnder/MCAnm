@@ -68,7 +68,7 @@ def getShortVersion() {
         standardOutput = stdout
     }
     def revision = stdout.toString().trim()
-    return "${major}.${minor}.${patch}.${revision}-"
+    return "${major}.${minor}.${patch}.${revision}"
 }
 
 def getVersion() {
@@ -92,6 +92,6 @@ def getArtifactID() {
         }
         branch = stdout.toString().trim()
     }
-	return "${branch == 'master' ? '' : branch + '-'}${minecraft.version}"
+	return "${branch == 'master' ? '' : branch.replace('/', '_') + '-'}${minecraft.version}"
 }
 
