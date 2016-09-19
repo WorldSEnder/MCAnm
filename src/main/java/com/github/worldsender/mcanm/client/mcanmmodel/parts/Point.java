@@ -5,6 +5,9 @@ import java.util.List;
 import java.util.Objects;
 
 import javax.vecmath.Point4f;
+import javax.vecmath.Tuple2f;
+import javax.vecmath.Tuple3f;
+import javax.vecmath.Tuple4f;
 import javax.vecmath.Vector2f;
 import javax.vecmath.Vector3f;
 import javax.vecmath.Vector4f;
@@ -14,6 +17,11 @@ import com.github.worldsender.mcanm.client.mcanmmodel.visitor.TesselationPoint;
 import com.github.worldsender.mcanm.client.renderer.ITesselator;
 import com.github.worldsender.mcanm.common.skeleton.IBone;
 import com.github.worldsender.mcanm.common.skeleton.ISkeleton;
+
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.client.renderer.vertex.VertexFormat;
+import net.minecraft.client.renderer.vertex.VertexFormatElement;
+import net.minecraftforge.client.model.pipeline.UnpackedBakedQuad;
 
 public class Point {
 	private static class BoundPoint extends Point {
@@ -85,19 +93,18 @@ public class Point {
 			}
 		}
 
-		private Vertex setupTransformed() {
-			this.transformed.retainUVOnly();
-			return this.transformed;
-		}
-
-		@Override
-		public void render(ITesselator renderer) {
+		protected Vertex getTransformedVertex() {
 			Vertex base = this.vert;
 			Vertex transformed = setupTransformed();
 			for (Binding bind : this.binds) {
 				bind.addTransformed(base, transformed);
 			}
-			transformed.render(renderer);
+			return transformed;
+		}
+
+		private Vertex setupTransformed() {
+			this.transformed.retainUVOnly();
+			return this.transformed;
 		}
 	}
 
@@ -114,7 +121,50 @@ public class Point {
 	 *            the models bones
 	 */
 	public void render(ITesselator renderer) {
-		this.vert.render(renderer);
+		getTransformedVertex().render(renderer);
+	}
+
+	protected Vertex getTransformedVertex() {
+		return vert;
+	}
+
+	public void putIntoBakedQuadBuilder(UnpackedBakedQuad.Builder builder, TextureAtlasSprite sprite) {
+		Vertex transformed = getTransformedVertex();
+		Tuple4f positionBuffer = new Vector4f();
+		transformed.getPosition(positionBuffer);
+		Tuple3f normalBuffer = new Vector3f();
+		transformed.getNormal(normalBuffer);
+		Tuple2f uvBuffer = new Vector2f();
+		transformed.getUV(uvBuffer);
+
+		VertexFormat vertexFormat = builder.getVertexFormat();
+		int elementCount = vertexFormat.getElementCount();
+		for (int e = 0; e < elementCount; e++) {
+			VertexFormatElement element = vertexFormat.getElement(e);
+			switch (element.getUsage()) {
+			case POSITION:
+				builder.put(e, positionBuffer.x, positionBuffer.z, -positionBuffer.y, positionBuffer.w);
+				break;
+			case NORMAL:
+				builder.put(e, normalBuffer.x, normalBuffer.z, -normalBuffer.y, 0);
+				break;
+			case UV:
+				if (element.getIndex() != 0)
+					break;
+				builder.put(
+						e,
+						sprite.getInterpolatedU(uvBuffer.x * 16),
+						sprite.getInterpolatedV(uvBuffer.y * 16),
+						0,
+						1);
+				break;
+			case COLOR:
+				builder.put(e, 1, 1, 1, 1);
+				break;
+			default:
+				builder.put(e);
+			}
+		}
 	}
 
 	/**

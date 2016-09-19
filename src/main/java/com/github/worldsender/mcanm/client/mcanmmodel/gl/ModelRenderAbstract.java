@@ -2,6 +2,7 @@ package com.github.worldsender.mcanm.client.mcanmmodel.gl;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.function.Function;
 
@@ -14,10 +15,14 @@ import com.github.worldsender.mcanm.client.mcanmmodel.visitor.IModelVisitable;
 import com.github.worldsender.mcanm.client.mcanmmodel.visitor.IModelVisitor;
 import com.github.worldsender.mcanm.client.mcanmmodel.visitor.IPartVisitor;
 import com.github.worldsender.mcanm.client.mcanmmodel.visitor.TesselationPoint;
+import com.github.worldsender.mcanm.client.model.IModelStateInformation;
 import com.github.worldsender.mcanm.common.animation.IAnimation;
 import com.github.worldsender.mcanm.common.skeleton.ISkeleton;
 
 import net.minecraft.client.renderer.Tessellator;
+import net.minecraft.client.renderer.block.model.BakedQuad;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.client.renderer.vertex.VertexFormat;
 
 public abstract class ModelRenderAbstract<P extends IPart> implements IModelRenderData {
 	private class ModelVisitor implements IModelVisitor {
@@ -108,13 +113,13 @@ public abstract class ModelRenderAbstract<P extends IPart> implements IModelRend
 		skeleton.setup(anim, frame);
 	}
 
-	public void setup(IAnimation currAnimation, float frame) {
-		setupBones(currAnimation, frame);
+	public void setup(IModelStateInformation currAnimation) {
+		setupBones(currAnimation.getAnimation(), currAnimation.getFrame());
 	}
 
 	@Override
 	public void render(IRenderPass currentPass) {
-		setup(currentPass.getAnimation(), currentPass.getFrame());
+		setup(currentPass);
 		for (IPart part : this.parts) {
 			if (currentPass.shouldRenderPart(part.getName()))
 				part.render(currentPass);
@@ -122,5 +127,19 @@ public abstract class ModelRenderAbstract<P extends IPart> implements IModelRend
 		if (MCAnm.isDebug) {
 			this.skeleton.debugDraw(Tessellator.getInstance());
 		}
+	}
+
+	// Totally inefficient
+	public List<BakedQuad> getAsBakedQuads(
+			IModelStateInformation currentPass,
+			Map<String, TextureAtlasSprite> slotToTex,
+			VertexFormat format) {
+		List<BakedQuad> quads = new ArrayList<>();
+		setup(currentPass);
+		for (IPart part : this.parts) {
+			if (currentPass.shouldRenderPart(part.getName()))
+				part.getAsBakedQuads(slotToTex, format, quads);
+		}
+		return quads;
 	}
 }

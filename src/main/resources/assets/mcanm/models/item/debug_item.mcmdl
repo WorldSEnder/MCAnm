@@ -1,0 +1,7 @@
+{
+    version: 1,
+    mesh: "mcanm:models/CubeV2/Cube.mcmd",
+    textures: {
+        "#Untitled": "mcanm:models/Cube/Untitled"
+    }
+}

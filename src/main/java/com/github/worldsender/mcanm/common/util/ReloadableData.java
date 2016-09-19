@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.Objects;
 import java.util.function.Function;
 
+import com.github.worldsender.mcanm.MCAnm;
 import com.github.worldsender.mcanm.common.resource.IResource;
 import com.github.worldsender.mcanm.common.resource.IResourceLocation;
 
@@ -62,6 +63,7 @@ public abstract class ReloadableData<D> {
 		try {
 			return loader.apply(reloadLocation.open());
 		} catch (IOException ioe) {
+			MCAnm.logger().error("Failed loading data from " + reloadLocation.getResourceName(), ioe);
 			return defaultData;
 		}
 	}

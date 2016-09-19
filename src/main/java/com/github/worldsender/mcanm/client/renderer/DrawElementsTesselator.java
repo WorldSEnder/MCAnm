@@ -10,6 +10,7 @@ import org.lwjgl.opengl.GL11;
 import com.google.common.base.Preconditions;
 
 import net.minecraft.client.renderer.GLAllocation;
+import net.minecraft.client.renderer.GlStateManager;
 
 /**
  * Only used to draw triangles!!! Implements a tesselator that draws a model with never-changing indices but changing
@@ -75,24 +76,23 @@ public class DrawElementsTesselator implements ITesselator {
 		Preconditions.checkState(floatBuffer.remaining() == 0, "not all vertices filled");
 		isDrawing = false;
 
-		// FIXME: use GLStateManager
 		this.floatBuffer.position(0);
 		GL11.glVertexPointer(3, BYTES_PER_VERTEX, this.floatBuffer);
-		GL11.glEnableClientState(GL11.GL_VERTEX_ARRAY);
+		GlStateManager.glEnableClientState(GL11.GL_VERTEX_ARRAY);
 
 		this.floatBuffer.position(3);
 		GL11.glNormalPointer(BYTES_PER_VERTEX, this.floatBuffer);
-		GL11.glEnableClientState(GL11.GL_NORMAL_ARRAY);
+		GlStateManager.glEnableClientState(GL11.GL_NORMAL_ARRAY);
 
 		this.floatBuffer.position(6);
 		GL11.glTexCoordPointer(2, BYTES_PER_VERTEX, this.floatBuffer);
-		GL11.glEnableClientState(GL11.GL_TEXTURE_COORD_ARRAY);
+		GlStateManager.glEnableClientState(GL11.GL_TEXTURE_COORD_ARRAY);
 
 		GL11.glDrawElements(GL_TRIANGLES, indexBuffer);
 
-		GL11.glDisableClientState(GL11.GL_TEXTURE_COORD_ARRAY);
-		GL11.glDisableClientState(GL11.GL_NORMAL_ARRAY);
-		GL11.glDisableClientState(GL11.GL_VERTEX_ARRAY);
+		GlStateManager.glDisableClientState(GL11.GL_TEXTURE_COORD_ARRAY);
+		GlStateManager.glDisableClientState(GL11.GL_NORMAL_ARRAY);
+		GlStateManager.glDisableClientState(GL11.GL_VERTEX_ARRAY);
 	}
 
 }

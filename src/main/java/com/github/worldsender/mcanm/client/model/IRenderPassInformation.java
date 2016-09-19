@@ -1,21 +1,14 @@
 package com.github.worldsender.mcanm.client.model;
 
-import com.github.worldsender.mcanm.common.animation.IAnimation;
-
 import net.minecraft.util.ResourceLocation;
 
-public interface IRenderPassInformation {
-	IAnimation getAnimation();
-
-	float getFrame();
-
-	boolean shouldRenderPart(String part);
-
+public interface IRenderPassInformation extends IModelStateInformation {
 	/**
-	 * Offers the {@link IRenderPassInformation} a possibility to transform the {@link String} used to bind the texture
-	 * of the model to any other location. Useful if the texture is to be decided based on some state of the entity.
-	 *
-	 * @return
+	 * Retrieves the texture that should go into the texture slot slot
+	 * 
+	 * @param slot
+	 *            the name of the texture slot getting polled
+	 * @return the resource location of the texture to stick
 	 */
-	ResourceLocation getActualResourceLocation(String in);
+	ResourceLocation getActualResourceLocation(String slot);
 }

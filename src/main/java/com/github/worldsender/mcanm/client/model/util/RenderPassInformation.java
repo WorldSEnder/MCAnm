@@ -23,27 +23,7 @@ import net.minecraft.util.ResourceLocation;
  * @author WorldSEnder
  *
  */
-public class RenderPassInformation implements IRenderPassInformation {
-	/**
-	 * A suitable {@link Predicate} to return in {@link #getPartPredicate(float)} to render all parts without exception.
-	 * Note that this will not test if the currently executed animation wants to display the part.
-	 */
-	public static final Predicate<String> RENDER_ALL = g -> true;
-	/**
-	 * A suitable {@link Predicate} to return in {@link #getPartPredicate(float)} to render no parts without exception.
-	 * Note that this will not test if the currently executed animation wants to display the part.
-	 */
-	public static final Predicate<String> RENDER_NONE = g -> false;
-	/**
-	 * This is a default animation that never returns a pose for any bone it is asked for.
-	 */
-	public static final IAnimation BIND_POSE = new IAnimation() {
-		@Override
-		public boolean storeCurrentTransformation(String bone, float frame, BoneTransformation transform) {
-			return false;
-		};
-	};
-
+public class RenderPassInformation extends ModelStateInformation implements IRenderPassInformation {
 	public static final Function<String, ResourceLocation> makeCachingTransform(
 			Function<String, ResourceLocation> cacheLoader) {
 		LoadingCache<String, ResourceLocation> cachedResourceLoc = CacheBuilder.newBuilder().maximumSize(100)
@@ -64,9 +44,6 @@ public class RenderPassInformation implements IRenderPassInformation {
 	 */
 	public static final Function<ResourceLocation, ResourceLocation> IDENTITY = Function.identity();
 
-	private float frame;
-	private IAnimation animation;
-	private Predicate<String> partPredicate;
 	private Function<String, ResourceLocation> textureRemap;
 
 	public RenderPassInformation() {
@@ -85,34 +62,8 @@ public class RenderPassInformation implements IRenderPassInformation {
 	 * Resets this information to be reused.
 	 */
 	public void reset() {
-		this.setFrame(0F).setAnimation(Optional.empty()).setPartPredicate(Optional.empty())
-				.setTextureTransform(Optional.empty());
-	}
-
-	/**
-	 * Returns the current Frame in the animation. This is not inside the {@link IAnimation} so that each object/entity
-	 * can decide on its own. Should include the current subframe for smoother transitions.
-	 *
-	 * @return the current frame
-	 */
-	@Override
-	public float getFrame() {
-		return frame;
-	}
-
-	/**
-	 * Gets the animation to play. If you return null here the model will be displayed in bind pose.
-	 *
-	 * @return the current animation
-	 */
-	@Override
-	public IAnimation getAnimation() {
-		return animation;
-	}
-
-	@Override
-	public boolean shouldRenderPart(String part) {
-		return this.partPredicate.test(part);
+		super.reset();
+		this.setTextureTransform(Optional.empty());
 	}
 
 	@Override
@@ -120,16 +71,13 @@ public class RenderPassInformation implements IRenderPassInformation {
 		return this.textureRemap.apply(in);
 	}
 
-	/**
-	 * @param animation
-	 *            the animation to set, Optional.empty() for bind pose
-	 */
 	public RenderPassInformation setAnimation(Optional<IAnimation> animation) {
-		return setAnimation(animation.orElse(BIND_POSE));
+		super.setAnimation(animation);
+		return this;
 	}
 
 	public RenderPassInformation setAnimation(IAnimation animation) {
-		this.animation = Objects.requireNonNull(animation);
+		super.setAnimation(animation);
 		return this;
 	}
 
@@ -138,7 +86,7 @@ public class RenderPassInformation implements IRenderPassInformation {
 	 *            the frame to set
 	 */
 	public RenderPassInformation setFrame(float frame) {
-		this.frame = frame;
+		super.setFrame(frame);
 		return this;
 	}
 
@@ -147,11 +95,12 @@ public class RenderPassInformation implements IRenderPassInformation {
 	 *            the partPredicate to set, Optional.empty() for RENDER_ALL
 	 */
 	public RenderPassInformation setPartPredicate(Optional<Predicate<String>> partPredicate) {
-		return setPartPredicate(partPredicate.orElse(RENDER_ALL));
+		super.setPartPredicate(partPredicate);
+		return this;
 	}
 
 	public RenderPassInformation setPartPredicate(Predicate<String> partPredicate) {
-		this.partPredicate = Objects.requireNonNull(partPredicate);
+		super.setPartPredicate(partPredicate);
 		return this;
 	}
 
