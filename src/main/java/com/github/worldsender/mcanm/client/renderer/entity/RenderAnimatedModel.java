@@ -18,6 +18,7 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.fml.client.registry.IRenderFactory;
 
 public class RenderAnimatedModel<T extends EntityLiving> extends RenderLiving<T> implements IEntityRender<T> {
+	private static final ResourceLocation UNUSED_TEXTURE = new ResourceLocation("missingno");
 	protected ModelAnimated model;
 	private IEntityAnimator<T> animator;
 
@@ -61,7 +62,8 @@ public class RenderAnimatedModel<T extends EntityLiving> extends RenderLiving<T>
 
 	@Override
 	protected ResourceLocation getEntityTexture(T entity) {
-		return null;
+		// We have to return non-null here to get rendered.
+		return UNUSED_TEXTURE;
 	}
 
 	@Override
