@@ -11,6 +11,7 @@ import com.github.worldsender.mcanm.client.model.util.RenderPassInformation;
 import com.github.worldsender.mcanm.client.renderer.IAnimatedObject;
 import com.github.worldsender.mcanm.common.skeleton.ISkeleton;
 
+import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.entity.RenderLiving;
 import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.client.resources.DefaultPlayerSkin;
@@ -59,6 +60,13 @@ public class RenderAnimatedModel<T extends EntityLiving> extends RenderLiving<T>
 				interpolatedPitch);
 		passCache.setRenderPassInformation(currentPass);
 		super.renderModel(entity, uLimbSwing, interpolatedSwing, uRotfloat, headYaw, interpolatedPitch, scaleFactor);
+	}
+
+	@Override
+	public float prepareScale(T entitylivingbaseIn, float partialTicks) {
+		GlStateManager.enableRescaleNormal();
+		this.preRenderCallback(entitylivingbaseIn, partialTicks);
+		return 1f;
 	}
 
 	@Override

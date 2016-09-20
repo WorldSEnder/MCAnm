@@ -50,10 +50,6 @@ public class ModelAnimated extends ModelBase {
 			float size) {
 		GlStateManager.pushMatrix();
 
-		// Get our object into place
-		GlStateManager.scale(-1 * size * 16, -1 * size * 16, size * 16);
-		GlStateManager.translate(0, -1.5f - 1.5f * size, 0);
-
 		getModel().render(renderPass);
 
 		GlStateManager.popMatrix();
