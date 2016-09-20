@@ -6,6 +6,7 @@ import com.github.worldsender.mcanm.client.config.MCAnmConfiguration;
 import com.github.worldsender.mcanm.test.CubeEntity;
 import com.github.worldsender.mcanm.test.CubeEntityV2;
 
+import net.minecraft.launchwrapper.Launch;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.client.event.ConfigChangedEvent.OnConfigChangedEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -24,7 +25,7 @@ public class MCAnm {
 	/**
 	 * Enables various visual outputs, e.g. the bones of models are rendered.
 	 */
-	public static final boolean isDebug = true;
+	public static final boolean isDebug = (Boolean) Launch.blackboard.get("fml.deobfuscatedEnvironment");
 
 	@Mod.Instance(Reference.core_modid)
 	public static MCAnm instance;
