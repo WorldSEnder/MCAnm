@@ -13,12 +13,13 @@ import com.github.worldsender.mcanm.common.skeleton.ISkeleton;
 
 import net.minecraft.client.renderer.entity.RenderLiving;
 import net.minecraft.client.renderer.entity.RenderManager;
+import net.minecraft.client.resources.DefaultPlayerSkin;
 import net.minecraft.entity.EntityLiving;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.fml.client.registry.IRenderFactory;
 
 public class RenderAnimatedModel<T extends EntityLiving> extends RenderLiving<T> implements IEntityRender<T> {
-	private static final ResourceLocation UNUSED_TEXTURE = new ResourceLocation("missingno");
+	private static final ResourceLocation UNUSED_TEXTURE = DefaultPlayerSkin.getDefaultSkinLegacy();
 	protected ModelAnimated model;
 	private IEntityAnimator<T> animator;
 
