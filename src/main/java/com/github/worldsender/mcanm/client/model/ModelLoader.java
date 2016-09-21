@@ -16,6 +16,7 @@ import org.apache.commons.lang3.tuple.Pair;
 
 import com.github.worldsender.mcanm.client.mcanmmodel.ModelMCMD;
 import com.github.worldsender.mcanm.client.model.util.ModelStateInformation;
+import com.github.worldsender.mcanm.common.animation.IAnimation;
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.cache.CacheBuilder;
@@ -93,17 +94,52 @@ public enum ModelLoader implements ICustomModelLoader {
 		return new ModelWrapper(file, description);
 	}
 
-	private static class ModelState implements IModelState {
-		private ModelStateInformation modelState = new ModelStateInformation();
-
+	private static class EmptyModelState implements IModelState {
 		@Override
 		public Optional<TRSRTransformation> apply(Optional<? extends IModelPart> part) {
+			if (!part.isPresent()) {
+				return Optional.absent();
+			}
+			if (!(part.get() instanceof Bone)) {
+				return Optional.absent();
+			}
+			Bone bone = (Bone) part.get();
+			bone.name.length(); // Waste cycles... or lookup in a map, maybe??
 			return Optional.absent();
 		}
+	}
 
-		public IModelStateInformation getCurrentPass(IBlockState state) {
-			// FIXME: animations?
-			return modelState;
+	private static class Bone implements IModelPart {
+		private String name;
+
+		public Bone(String name) {
+			this.name = name;
+		}
+	}
+
+	private static class AnimationStateProxy implements IAnimation {
+		private IModelState modelState;
+		private LoadingCache<String, Bone> boneCache = CacheBuilder.newBuilder().maximumSize(1000)
+				.build(new CacheLoader<String, Bone>() {
+					@Override
+					public Bone load(String key) {
+						return new Bone(key);
+					}
+				});
+
+		public AnimationStateProxy(IModelState state) {
+			this.modelState = Objects.requireNonNull(state);
+		}
+
+		@Override
+		public boolean storeCurrentTransformation(String bone, float frame, BoneTransformation transform) {
+			Optional<Bone> bonePart = Optional.of(boneCache.getUnchecked(bone));
+			Optional<TRSRTransformation> transformation = modelState.apply(bonePart);
+			if (!transformation.isPresent()) {
+				return false;
+			}
+			transform.matrix.set(transformation.get().getMatrix());
+			return true;
 		}
 	}
 
@@ -152,12 +188,12 @@ public enum ModelLoader implements ICustomModelLoader {
 			// Note the missing leading '#', surely it does not collide
 			slotToTexSprite.put(MISSING_SLOT_NAME, bakedTextureGetter.apply(new ResourceLocation(MISSING_SLOT_NAME)));
 
-			return new BakedModelWrapper(actualModel, ModelState.class.cast(state), format, slotToTexSprite.build());
+			return new BakedModelWrapper(actualModel, state, format, slotToTexSprite.build());
 		}
 
 		@Override
 		public IModelState getDefaultState() {
-			return new ModelState();
+			return new EmptyModelState();
 		}
 
 		@Override
@@ -209,14 +245,15 @@ public enum ModelLoader implements ICustomModelLoader {
 
 	private static class BakedModelWrapper implements IBakedModel, IPerspectiveAwareModel {
 		private final ModelMCMD actualModel;
-		private final ModelState bakedState;
+		private final IModelState bakedState;
 		private final VertexFormat format;
 		private final ImmutableMap<String, TextureAtlasSprite> slotToSprite;
 		private final TextureAtlasSprite particleSprite;
+		private final ModelStateInformation stateInformation;
 
 		public BakedModelWrapper(
 				ModelMCMD model,
-				ModelState state,
+				IModelState state,
 				VertexFormat format,
 				ImmutableMap<String, TextureAtlasSprite> slotToSprite) {
 			this.actualModel = Objects.requireNonNull(model);
@@ -225,6 +262,9 @@ public enum ModelLoader implements ICustomModelLoader {
 			this.format = Objects.requireNonNull(format);
 			// There is at least the "missingno" texture in the list
 			particleSprite = getParticleSprite(slotToSprite);
+			this.stateInformation = new ModelStateInformation();
+			stateInformation.setAnimation(new AnimationStateProxy(state));
+			stateInformation.setFrame(0);
 		}
 
 		private TextureAtlasSprite getParticleSprite(ImmutableMap<String, TextureAtlasSprite> slotToSprite) {
@@ -254,8 +294,7 @@ public enum ModelLoader implements ICustomModelLoader {
 
 		@Override
 		public List<BakedQuad> getQuads(IBlockState state, EnumFacing side, long rand) {
-			IModelStateInformation currentPass = bakedState.getCurrentPass(state);
-			return actualModel.getAsBakedQuads(currentPass, slotToSprite, format);
+			return actualModel.getAsBakedQuads(stateInformation, slotToSprite, format);
 		}
 
 		@Override
