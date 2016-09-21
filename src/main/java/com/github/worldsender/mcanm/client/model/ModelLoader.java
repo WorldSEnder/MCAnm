@@ -11,6 +11,7 @@ import java.util.Map.Entry;
 import java.util.Objects;
 
 import javax.vecmath.Matrix4f;
+import javax.vecmath.Vector3f;
 
 import org.apache.commons.lang3.tuple.Pair;
 
@@ -304,7 +305,26 @@ public enum ModelLoader implements ICustomModelLoader {
 		}
 
 		public Pair<? extends IBakedModel, Matrix4f> handlePerspective(TransformType cameraTransformType) {
-			return IPerspectiveAwareModel.MapWrapper.handlePerspective(this, bakedState, cameraTransformType);
+			Matrix4f matr = new Matrix4f();
+			matr.setIdentity();
+			if (cameraTransformType == TransformType.THIRD_PERSON_RIGHT_HAND) {
+				matr.setTranslation(new Vector3f(0.5f, 0.375f, 0.5f));
+			}
+			if (cameraTransformType == TransformType.THIRD_PERSON_LEFT_HAND) {
+				matr.setTranslation(new Vector3f(-0.5f, 0.375f, 0.5f));
+			}
+			if (cameraTransformType == TransformType.FIRST_PERSON_RIGHT_HAND) {
+				matr.setTranslation(new Vector3f(0.25f, 0, 0.5f));
+			}
+			if (cameraTransformType == TransformType.FIRST_PERSON_LEFT_HAND) {
+				matr.setTranslation(new Vector3f(-0.75f, 0, 0.5f));
+			}
+			// Additional transformations
+			TRSRTransformation tr = bakedState.apply(Optional.of(cameraTransformType)).orNull();
+			if (tr != null && tr != TRSRTransformation.identity()) {
+				matr.mul(tr.getMatrix(), matr);
+			}
+			return Pair.of(this, matr);
 		}
 
 		@Override
