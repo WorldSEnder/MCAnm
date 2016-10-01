@@ -95,17 +95,34 @@ public enum ModelLoader implements ICustomModelLoader {
 		return new ModelWrapper(file, description);
 	}
 
-	private static class EmptyModelState implements IModelState {
+	private static class TransformModelState implements IModelState {
+		private final Map<TransformType, TRSRTransformation> customTransforms;
+
+		public TransformModelState(Map<TransformType, TRSRTransformation> customTransforms) {
+			this.customTransforms = customTransforms;
+		}
+
 		@Override
 		public Optional<TRSRTransformation> apply(Optional<? extends IModelPart> part) {
 			if (!part.isPresent()) {
 				return Optional.absent();
 			}
-			if (!(part.get() instanceof Bone)) {
-				return Optional.absent();
+			IModelPart modelPart = part.get();
+			if (modelPart instanceof Bone) {
+				return getTransformForBone((Bone) modelPart);
 			}
-			Bone bone = (Bone) part.get();
-			bone.name.length(); // Waste cycles... or lookup in a map, maybe??
+			if (modelPart instanceof TransformType) {
+				return getTransformForView((TransformType) modelPart);
+			}
+			return Optional.absent();
+		}
+
+		private Optional<TRSRTransformation> getTransformForView(TransformType modelPart) {
+			TRSRTransformation transformation = customTransforms.getOrDefault(modelPart, TRSRTransformation.identity());
+			return Optional.of(transformation);
+		}
+
+		private Optional<TRSRTransformation> getTransformForBone(Bone modelPart) {
 			return Optional.absent();
 		}
 	}
@@ -115,6 +132,11 @@ public enum ModelLoader implements ICustomModelLoader {
 
 		public Bone(String name) {
 			this.name = name;
+		}
+
+		public String getName() {
+			// FIXME: add animations??
+			return name;
 		}
 	}
 
@@ -148,12 +170,14 @@ public enum ModelLoader implements ICustomModelLoader {
 		private final ResourceLocation modelLocation;
 		private final ModelMCMD actualModel;
 		private final Map<String, ResourceLocation> slotToTexture;
+		private final Map<TransformType, TRSRTransformation> viewTransformations;
 		private final Multimap<ResourceLocation, String> textureToSlots;
 
 		public ModelWrapper(ResourceLocation file, ModelDescription description) {
 			this.modelLocation = Objects.requireNonNull(file);
 			this.actualModel = description.getModel();
 			this.slotToTexture = new HashMap<>();
+			this.viewTransformations = new HashMap<>(description.getCustomTransformations());
 			this.textureToSlots = MultimapBuilder.hashKeys().hashSetValues().build();
 			for (Map.Entry<String, ResourceLocation> texMapping : description.getTextureLocations().entrySet()) {
 				this.updateTextureSlot(texMapping.getKey(), texMapping.getValue());
@@ -163,10 +187,12 @@ public enum ModelLoader implements ICustomModelLoader {
 		private ModelWrapper(
 				ResourceLocation file,
 				ModelMCMD model,
+				Map<TransformType, TRSRTransformation> viewTransformations,
 				Map<String, ResourceLocation> slotToTex,
 				Multimap<ResourceLocation, String> textureToSlot) {
 			this.modelLocation = Objects.requireNonNull(file);
 			this.actualModel = Objects.requireNonNull(model);
+			this.viewTransformations = new HashMap<>(viewTransformations);
 			this.slotToTexture = new HashMap<>(slotToTex);
 			this.textureToSlots = MultimapBuilder.hashKeys().hashSetValues().build(textureToSlot);
 		}
@@ -194,7 +220,7 @@ public enum ModelLoader implements ICustomModelLoader {
 
 		@Override
 		public IModelState getDefaultState() {
-			return new EmptyModelState();
+			return new TransformModelState(viewTransformations);
 		}
 
 		@Override
@@ -223,7 +249,12 @@ public enum ModelLoader implements ICustomModelLoader {
 
 		@Override
 		public IModel retexture(ImmutableMap<String, String> textures) {
-			ModelWrapper retextured = new ModelWrapper(modelLocation, actualModel, slotToTexture, textureToSlots);
+			ModelWrapper retextured = new ModelWrapper(
+					modelLocation,
+					actualModel,
+					viewTransformations,
+					slotToTexture,
+					textureToSlots);
 
 			for (Entry<String, String> remapped : textures.entrySet()) {
 				String toRemap = remapped.getKey();

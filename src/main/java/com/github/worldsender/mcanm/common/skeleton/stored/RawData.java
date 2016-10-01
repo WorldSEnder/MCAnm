@@ -100,4 +100,9 @@ public class RawData implements ISkeletonVisitable {
 		};
 	}
 
+	@Override
+	public String toString() {
+		return "Skeleton[artist=" + artist + ", modelUUID=" + modelUUID + "]";
+	}
+
 }
