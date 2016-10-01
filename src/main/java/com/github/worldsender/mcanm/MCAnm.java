@@ -7,6 +7,7 @@ import com.github.worldsender.mcanm.test.CubeEntity;
 import com.github.worldsender.mcanm.test.CubeEntityV2;
 
 import net.minecraft.launchwrapper.Launch;
+import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.client.event.ConfigChangedEvent.OnConfigChangedEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -51,8 +52,10 @@ public class MCAnm {
 	@Mod.EventHandler
 	public void init(FMLInitializationEvent event) {
 		if (isDebug) {
-			EntityRegistry.registerModEntity(CubeEntity.class, "Cube", 0, this, 80, 1, true);
-			EntityRegistry.registerModEntity(CubeEntityV2.class, "CubeV2", 1, this, 80, 1, true);
+			ResourceLocation ID_CUBE = new ResourceLocation("cube");
+			ResourceLocation ID_CUBE_V2 = new ResourceLocation("cube2");
+			EntityRegistry.registerModEntity(ID_CUBE, CubeEntity.class, "Cube", 0, this, 80, 1, true);
+			EntityRegistry.registerModEntity(ID_CUBE_V2, CubeEntityV2.class, "CubeV2", 1, this, 80, 1, true);
 		}
 		proxy.init();
 	}

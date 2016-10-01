@@ -25,6 +25,7 @@ public class MCAnmGuiFactory implements IModGuiFactory {
 	}
 
 	@Override
+	@Deprecated
 	public RuntimeOptionGuiHandler getHandlerFor(RuntimeOptionCategoryElement element) {
 		// UNUSED
 		return null;
