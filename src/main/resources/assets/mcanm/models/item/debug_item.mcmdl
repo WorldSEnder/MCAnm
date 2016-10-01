@@ -3,5 +3,8 @@
     mesh: "mcanm:models/CubeV2/Cube.mcmd",
     textures: {
         "#Untitled": "mcanm:models/Cube/Untitled"
+    },
+    transforms: {
+        "GUI": { "scale": 0.4142, "rotation": [{"x": 30}, {"y": 45}] }
     }
 }
