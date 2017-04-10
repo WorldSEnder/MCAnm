@@ -29,6 +29,7 @@ class LogLevel(Enum):
         if self == LogLevel.FATAL:
             return {'ERROR'}
 
+
 ReportItem = namedtuple('ReportItem', 'message etype value traceback')
 
 
@@ -299,17 +300,18 @@ def asset_to_dir(assetstr):
     """
     if not assetstr:
         Reporter.error("Asset-String can't be empty")
-    vals = assetstr.split(':')
-    if len(vals) == 1:
-        return "assets/minecraft/" + assetstr
-    elif len(vals) == 2:
-        if not vals[0] or not vals[1]:
-            Reporter.error(
-                "Asset-String {loc}: Splitted string mustn't be empty".format(loc=assetstr))
-        return "assets/{mod}/{file}".format(mod=vals[0], file=vals[1])
-    else:
+    *resourceDomains, resourcePath = assetstr.split(':')
+    if not resourceDomains:
+        resourceDomains = ["minecraft"]
+    if len(resourceDomains) > 1:
         Reporter.error(
             "Asset-String {loc} can't contain more than one ':'".format(loc=assetstr))
+    domain = resourceDomains[0].lower()
+    path = resourcePath.lower()
+    if not domain or not path:
+        Reporter.error(
+            "Asset-String {loc}: Splitted string mustn't be empty".format(loc=assetstr))
+    return "assets/{mod}/{file}".format(mod=domain, file=path)
 
 
 def openw_save(filepath, flags, *args, **wargs):
