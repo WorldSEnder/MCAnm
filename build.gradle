@@ -25,7 +25,7 @@ project.ext.shortVersion = getShortVersion()
 minecraft {	
     replaceIn "Reference.java"
     replace "@VERSION@", project.shortVersion
-    replace "@MODID@", project.archivesBaseName
+    replace "@modid@", project.archivesBaseName
     replace "@MODNAME@", project.longname
 }
 
