@@ -3,12 +3,12 @@ package com.github.worldsender.mcanm.client.model;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 import javax.vecmath.Matrix4f;
 import javax.vecmath.Vector3f;
@@ -172,6 +172,7 @@ public enum ModelLoader implements ICustomModelLoader {
 		private final Map<String, ResourceLocation> slotToTexture;
 		private final Map<TransformType, TRSRTransformation> viewTransformations;
 		private final Multimap<ResourceLocation, String> textureToSlots;
+		private final ItemOverrideList itemOverrides;
 
 		public ModelWrapper(ResourceLocation file, ModelDescription description) {
 			this.modelLocation = Objects.requireNonNull(file);
@@ -182,6 +183,7 @@ public enum ModelLoader implements ICustomModelLoader {
 			for (Map.Entry<String, ResourceLocation> texMapping : description.getTextureLocations().entrySet()) {
 				this.updateTextureSlot(texMapping.getKey(), texMapping.getValue());
 			}
+			this.itemOverrides = description.getItemOverrides();
 		}
 
 		private ModelWrapper(
@@ -189,17 +191,20 @@ public enum ModelLoader implements ICustomModelLoader {
 				ModelMCMD model,
 				Map<TransformType, TRSRTransformation> viewTransformations,
 				Map<String, ResourceLocation> slotToTex,
-				Multimap<ResourceLocation, String> textureToSlot) {
+				Multimap<ResourceLocation, String> textureToSlot,
+				ItemOverrideList itemOverrides) {
 			this.modelLocation = Objects.requireNonNull(file);
 			this.actualModel = Objects.requireNonNull(model);
 			this.viewTransformations = new HashMap<>(viewTransformations);
 			this.slotToTexture = new HashMap<>(slotToTex);
 			this.textureToSlots = MultimapBuilder.hashKeys().hashSetValues().build(textureToSlot);
+			this.itemOverrides = Objects.requireNonNull(itemOverrides);
 		}
 
 		@Override
 		public Collection<ResourceLocation> getDependencies() {
-			return Collections.emptyList();
+			return itemOverrides.getOverrides().stream().map(override -> override.getLocation())
+					.collect(Collectors.toList());
 		}
 
 		@Override
@@ -215,7 +220,7 @@ public enum ModelLoader implements ICustomModelLoader {
 			// Note the missing leading '#', surely it does not collide
 			slotToTexSprite.put(MISSING_SLOT_NAME, bakedTextureGetter.apply(new ResourceLocation(MISSING_SLOT_NAME)));
 
-			return new BakedModelWrapper(actualModel, state, format, slotToTexSprite.build());
+			return new BakedModelWrapper(actualModel, state, format, slotToTexSprite.build(), itemOverrides);
 		}
 
 		@Override
@@ -254,7 +259,8 @@ public enum ModelLoader implements ICustomModelLoader {
 					actualModel,
 					viewTransformations,
 					slotToTexture,
-					textureToSlots);
+					textureToSlots,
+					itemOverrides);
 
 			for (Entry<String, String> remapped : textures.entrySet()) {
 				String toRemap = remapped.getKey();
@@ -282,12 +288,14 @@ public enum ModelLoader implements ICustomModelLoader {
 		private final ImmutableMap<String, TextureAtlasSprite> slotToSprite;
 		private final TextureAtlasSprite particleSprite;
 		private final ModelStateInformation stateInformation;
+		private final ItemOverrideList itemOverrides;
 
 		public BakedModelWrapper(
 				ModelMCMD model,
 				IModelState state,
 				VertexFormat format,
-				ImmutableMap<String, TextureAtlasSprite> slotToSprite) {
+				ImmutableMap<String, TextureAtlasSprite> slotToSprite,
+				ItemOverrideList itemOverrides) {
 			this.actualModel = Objects.requireNonNull(model);
 			this.slotToSprite = Objects.requireNonNull(slotToSprite);
 			this.bakedState = Objects.requireNonNull(state);
@@ -297,6 +305,7 @@ public enum ModelLoader implements ICustomModelLoader {
 			this.stateInformation = new ModelStateInformation();
 			stateInformation.setAnimation(new AnimationStateProxy(state));
 			stateInformation.setFrame(0);
+			this.itemOverrides = Objects.requireNonNull(itemOverrides);
 		}
 
 		private TextureAtlasSprite getParticleSprite(ImmutableMap<String, TextureAtlasSprite> slotToSprite) {
@@ -331,8 +340,7 @@ public enum ModelLoader implements ICustomModelLoader {
 
 		@Override
 		public ItemOverrideList getOverrides() {
-			// we could decide based on item-modelState here?
-			return ItemOverrideList.NONE;
+			return itemOverrides;
 		}
 
 		public Pair<? extends IBakedModel, Matrix4f> handlePerspective(TransformType cameraTransformType) {

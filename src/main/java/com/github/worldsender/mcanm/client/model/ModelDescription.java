@@ -19,6 +19,7 @@ import com.github.worldsender.mcanm.common.skeleton.SkeletonMCSKL;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableMap.Builder;
 import com.google.common.collect.ListMultimap;
+import com.google.common.collect.Lists;
 import com.google.common.collect.MultimapBuilder;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -29,6 +30,10 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 
 import net.minecraft.client.renderer.block.model.ItemCameraTransforms.TransformType;
+import net.minecraft.client.renderer.block.model.ItemOverride;
+import net.minecraft.client.renderer.block.model.ItemOverrideBridge;
+import net.minecraft.client.renderer.block.model.ItemOverrideList;
+import net.minecraft.util.JsonUtils;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.client.model.ForgeBlockStateV1;
 import net.minecraftforge.common.model.TRSRTransformation;
@@ -43,7 +48,8 @@ import net.minecraftforge.common.model.TRSRTransformation;
 public class ModelDescription {
 	private static final Gson GSON = new GsonBuilder()
 			.registerTypeAdapter(ModelDescription.class, new DescriptionDeserializer())
-			.registerTypeAdapter(TRSRTransformation.class, ForgeBlockStateV1.TRSRDeserializer.INSTANCE).create();
+			.registerTypeAdapter(TRSRTransformation.class, ForgeBlockStateV1.TRSRDeserializer.INSTANCE)
+			.registerTypeAdapter(ItemOverride.class, new ItemOverrideBridge.Deserializer()).create();
 
 	private static final ImmutableMap<TransformType, TRSRTransformation> EMPTY_MAP;
 	private static final Map<ResourceLocation, ImmutableMap<TransformType, TRSRTransformation>> PREDEFINED_TRANSFORMS;
@@ -137,6 +143,20 @@ public class ModelDescription {
 			return result.build();
 		}
 
+		private List<ItemOverride> getItemOverrides(
+				JsonObject object,
+				JsonDeserializationContext deserializationContext) {
+			List<ItemOverride> list = Lists.<ItemOverride>newArrayList();
+
+			if (object.has("overrides")) {
+				for (JsonElement jsonelement : JsonUtils.getJsonArray(object, "overrides")) {
+					list.add((ItemOverride) deserializationContext.deserialize(jsonelement, ItemOverride.class));
+				}
+			}
+
+			return list;
+		}
+
 		@Override
 		public ModelDescription deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context)
 				throws JsonParseException {
@@ -167,7 +187,8 @@ public class ModelDescription {
 				textureLocatons = builder.build();
 			}
 			ImmutableMap<TransformType, TRSRTransformation> viewMapping = parseViewMapping(jsonObject, context);
-			return new ModelDescription(mesh, skeleton, textureLocatons, viewMapping);
+			List<ItemOverride> itemOverrides = getItemOverrides(jsonObject, context);
+			return new ModelDescription(mesh, skeleton, textureLocatons, viewMapping, itemOverrides);
 		}
 	}
 
@@ -175,16 +196,19 @@ public class ModelDescription {
 	private final ISkeleton skeleton;
 	private final ImmutableMap<String, ResourceLocation> textureMapping;
 	private final ImmutableMap<TransformType, TRSRTransformation> viewMapping;
+	private final ItemOverrideList itemOverrides;
 
 	private ModelDescription(
 			ModelMCMD model,
 			ISkeleton skeleton,
 			ImmutableMap<String, ResourceLocation> textureMapping,
-			ImmutableMap<TransformType, TRSRTransformation> viewMapping) {
+			ImmutableMap<TransformType, TRSRTransformation> viewMapping,
+			List<ItemOverride> itemOverrides) {
 		this.model = Objects.requireNonNull(model);
 		this.skeleton = Objects.requireNonNull(skeleton);
 		this.textureMapping = Objects.requireNonNull(textureMapping);
 		this.viewMapping = Objects.requireNonNull(viewMapping);
+		this.itemOverrides = new ItemOverrideList(itemOverrides);
 	}
 
 	public ModelMCMD getModel() {
@@ -201,6 +225,10 @@ public class ModelDescription {
 
 	public Map<TransformType, TRSRTransformation> getCustomTransformations() {
 		return viewMapping;
+	}
+
+	public ItemOverrideList getItemOverrides() {
+		return itemOverrides;
 	}
 
 	public static ModelDescription parse(InputStream input) {
