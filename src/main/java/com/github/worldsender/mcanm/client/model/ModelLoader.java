@@ -4,10 +4,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.vecmath.Matrix4f;
@@ -28,23 +30,32 @@ import com.google.common.collect.Multimap;
 import com.google.common.collect.MultimapBuilder;
 
 import net.minecraft.block.state.IBlockState;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.renderer.block.model.IBakedModel;
 import net.minecraft.client.renderer.block.model.ItemCameraTransforms;
 import net.minecraft.client.renderer.block.model.ItemCameraTransforms.TransformType;
+import net.minecraft.client.renderer.block.model.ItemOverride;
 import net.minecraft.client.renderer.block.model.ItemOverrideList;
+import net.minecraft.client.renderer.block.model.ModelResourceLocation;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.client.renderer.vertex.VertexFormat;
 import net.minecraft.client.resources.IResourceManager;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.registry.IRegistry;
+import net.minecraftforge.client.event.ModelBakeEvent;
 import net.minecraftforge.client.model.ICustomModelLoader;
 import net.minecraftforge.client.model.IModel;
 import net.minecraftforge.client.model.IPerspectiveAwareModel;
 import net.minecraftforge.client.model.IRetexturableModel;
+import net.minecraftforge.client.model.ModelLoaderRegistry;
 import net.minecraftforge.common.model.IModelPart;
 import net.minecraftforge.common.model.IModelState;
 import net.minecraftforge.common.model.TRSRTransformation;
+import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 /**
  * A model loader for item models (new with 1.9) (IModel)
@@ -59,6 +70,56 @@ public enum ModelLoader implements ICustomModelLoader {
 	public static final String PARTICLE_SLOT_NAME = "#particle_sprite";
 
 	private static final String SUFFIX = ".mcmdl";
+
+	// FIXME: apparently, we have to inject our dependencies ourselves. See also
+	// net.minecraftforge.client.model.ModelLoader.VanillaModelWrapper.getDependencies() how forge hacks in vanilla dependencies
+	@EventBusSubscriber
+	private static class EventListener {
+		@SubscribeEvent
+		public static void atModelsBaked(ModelBakeEvent bakeEvent) {
+			IRegistry<ModelResourceLocation, IBakedModel> modelRegistry = bakeEvent.getModelRegistry();
+			Map<ModelResourceLocation, IBakedModel> dependencies = new HashMap<>();
+			for (IBakedModel model : modelRegistry) {
+				if (!(model instanceof BakedModelWrapper)) {
+					continue;
+				}
+
+				BakedModelWrapper bakedModel = (BakedModelWrapper) model;
+				Set<ResourceLocation> overrideLocations = getDependencies(bakedModel);
+				for (ResourceLocation dep : overrideLocations) {
+					ModelResourceLocation actualDep = net.minecraftforge.client.model.ModelLoader
+							.getInventoryVariant(dep.toString());
+					if (modelRegistry.getKeys().contains(actualDep)) {
+						continue;
+					}
+
+					IModel depModel = ModelLoaderRegistry.getModelOrLogError(dep, "Missing dependency model");
+					IBakedModel depBakedModel = depModel.bake(
+							depModel.getDefaultState(),
+							DefaultVertexFormats.ITEM,
+							EventListener::getTextureAtlas);
+					dependencies.put(actualDep, depBakedModel);
+				}
+			}
+
+			for (Entry<ModelResourceLocation, IBakedModel> entry : dependencies.entrySet()) {
+				modelRegistry.putObject(entry.getKey(), entry.getValue());
+			}
+		}
+
+		private static TextureAtlasSprite getTextureAtlas(ResourceLocation location) {
+			return Minecraft.getMinecraft().getTextureMapBlocks().getAtlasSprite(location.toString());
+		}
+
+		private static Set<ResourceLocation> getDependencies(BakedModelWrapper bakedModel) {
+			Set<ResourceLocation> overrideLocations = new HashSet<>();
+			for (ItemOverride override : bakedModel.getOverrides().getOverrides()) {
+				ResourceLocation overrideLocation = override.getLocation();
+				overrideLocations.add(overrideLocation);
+			}
+			return overrideLocations;
+		}
+	}
 
 	private IResourceManager manager;
 	private final LoadingCache<ResourceLocation, ModelDescription> modelCache = CacheBuilder.newBuilder()

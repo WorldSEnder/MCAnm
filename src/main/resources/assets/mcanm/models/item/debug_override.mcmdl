@@ -1,0 +1,10 @@
+{
+    version: 1,
+    mesh: "mcanm:models/cube/cube.mcmd",
+    textures: {
+        "#Untitled": "mcanm:models/cube/untitled"
+    },
+    transforms: {
+        "GUI": { "scale": 0.1, "rotation": [{"x": 30}, {"y": 45}] }
+    }
+}

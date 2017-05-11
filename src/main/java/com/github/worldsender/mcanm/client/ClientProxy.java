@@ -22,8 +22,12 @@ import net.minecraft.client.resources.IReloadableResourceManager;
 import net.minecraft.client.resources.IResourceManager;
 import net.minecraft.client.resources.IResourceManagerReloadListener;
 import net.minecraft.entity.EntityLiving;
+import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.item.IItemPropertyGetter;
 import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.world.World;
 import net.minecraftforge.client.model.ModelLoaderRegistry;
 import net.minecraftforge.fml.client.registry.IRenderFactory;
 import net.minecraftforge.fml.client.registry.RenderingRegistry;
@@ -63,7 +67,14 @@ public class ClientProxy implements Proxy {
 			RenderingRegistry.registerEntityRenderingHandler(CubeEntity.class, renderer);
 			RenderingRegistry.registerEntityRenderingHandler(CubeEntityV2.class, renderer2);
 
-			Item debug = GameRegistry.register(new Item().setFull3D().setRegistryName("debug_item"));
+			Item debug = new Item();
+			debug.addPropertyOverride(new ResourceLocation("test"), new IItemPropertyGetter() {
+				@Override
+				public float apply(ItemStack stack, World worldIn, EntityLivingBase entityIn) {
+					return (entityIn.ticksExisted / 100f) % 1f;
+				}
+			});
+			GameRegistry.register(debug.setFull3D().setRegistryName("debug_item"));
 			net.minecraftforge.client.model.ModelLoader.setCustomModelResourceLocation(
 					debug,
 					0,
