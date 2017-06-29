@@ -50,7 +50,6 @@ import org.lwjgl.util.vector.Quaternion;
 import com.google.common.primitives.Longs;
 
 import net.minecraft.client.renderer.GLAllocation;
-import sun.nio.cs.ArrayDecoder;
 
 /**
  * Utility class that has static methods to help loading/encoding, etc.
@@ -107,24 +106,19 @@ public class Utils {
 		int strLen = 0;
 		int maxLen = (int) Math.ceil(offset * utf8Decoder.maxCharsPerByte());
 		char[] target = new char[maxLen];
-		if (utf8Decoder instanceof ArrayDecoder) {
-			// If array possible
-			strLen = ((ArrayDecoder) utf8Decoder).decode(buffer, 0, offset, target);
-		} else {
-			// Wrap in buffer
-			ByteBuffer sourceBuff = ByteBuffer.wrap(buffer, 0, offset);
-			CharBuffer targetBuff = CharBuffer.wrap(target);
-			// Standard decoder procedure
-			try {
-				CoderResult cr = utf8Decoder.decode(sourceBuff, targetBuff, true);
-				if (!cr.isUnderflow())
-					cr.throwException();
-				cr = utf8Decoder.flush(targetBuff);
-				if (!cr.isUnderflow())
-					cr.throwException();
-			} catch (CharacterCodingException x) {} // Shouldn't happen
-			strLen = targetBuff.position();
-		}
+		// Wrap in buffer
+		ByteBuffer sourceBuff = ByteBuffer.wrap(buffer, 0, offset);
+		CharBuffer targetBuff = CharBuffer.wrap(target);
+		// Standard decoder procedure
+		try {
+			CoderResult cr = utf8Decoder.decode(sourceBuff, targetBuff, true);
+			if (!cr.isUnderflow())
+				cr.throwException();
+			cr = utf8Decoder.flush(targetBuff);
+			if (!cr.isUnderflow())
+				cr.throwException();
+		} catch (CharacterCodingException x) {} // Shouldn't happen
+		strLen = targetBuff.position();
 		return new String(target, 0, strLen);
 	}
 
