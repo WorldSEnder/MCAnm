@@ -17,6 +17,7 @@ import javax.vecmath.Vector3f;
 
 import org.apache.commons.lang3.tuple.Pair;
 
+import com.github.worldsender.mcanm.Reference;
 import com.github.worldsender.mcanm.client.mcanmmodel.ModelMCMD;
 import com.github.worldsender.mcanm.client.model.util.ModelStateInformation;
 import com.github.worldsender.mcanm.common.animation.IAnimation;
@@ -56,6 +57,7 @@ import net.minecraftforge.common.model.IModelState;
 import net.minecraftforge.common.model.TRSRTransformation;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.fml.relauncher.Side;
 
 /**
  * A model loader for item models (new with 1.9) (IModel)
@@ -73,7 +75,7 @@ public enum ModelLoader implements ICustomModelLoader {
 
 	// FIXME: apparently, we have to inject our dependencies ourselves. See also
 	// net.minecraftforge.client.model.ModelLoader.VanillaModelWrapper.getDependencies() how forge hacks in vanilla dependencies
-	@EventBusSubscriber
+	@EventBusSubscriber(modid = Reference.core_modid, value = Side.CLIENT)
 	private static class EventListener {
 		@SubscribeEvent
 		public static void atModelsBaked(ModelBakeEvent bakeEvent) {
