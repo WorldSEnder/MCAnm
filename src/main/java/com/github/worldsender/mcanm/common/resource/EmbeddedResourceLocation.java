@@ -21,17 +21,23 @@ public class EmbeddedResourceLocation extends ResourceLocationAdapter {
 	}
 
 	private final URL url;
+	private final String name;
 
 	public EmbeddedResourceLocation(String name) {
 		this(name, CallResolver.INSTANCE.getCallingClass().getClassLoader());
 	}
 
 	public EmbeddedResourceLocation(String name, ClassLoader loader) {
-		this(loader.getResource(name));
+		this(loader.getResource(name), name);
 	}
 
 	public EmbeddedResourceLocation(URL url) {
+		this(url, null);
+	}
+
+	public EmbeddedResourceLocation(URL url, String resourceName) {
 		this.url = url;
+		this.name = resourceName;
 	}
 
 	@Override
@@ -41,7 +47,7 @@ public class EmbeddedResourceLocation extends ResourceLocationAdapter {
 
 	@Override
 	public String getResourceName() {
-		return url.toString();
+		return url != null ? url.toString() : name != null ? name : "<unnamed resource>";
 	}
 
 	@Override
