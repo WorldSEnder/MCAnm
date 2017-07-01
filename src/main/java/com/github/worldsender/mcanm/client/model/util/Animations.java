@@ -2,12 +2,8 @@ package com.github.worldsender.mcanm.client.model.util;
 
 import java.util.Arrays;
 
-import javax.vecmath.Quat4f;
-import javax.vecmath.Vector3f;
-
 import com.github.worldsender.mcanm.common.animation.IAnimation;
 import com.github.worldsender.mcanm.common.animation.IAnimation.BoneTransformation;
-import com.github.worldsender.mcanm.common.animation.parts.BSplineInterpolation;
 
 public class Animations {
 	/**
@@ -44,26 +40,5 @@ public class Animations {
 				return false;
 			}
 		};
-	}
-
-	/**
-	 * t &#8712; (0, 1]d
-	 */
-	private static Vector3f interpolated(Vector3f f, Vector3f s, double t) {
-		float x = BSplineInterpolation.calcValue(f.x, f.x, s.x, s.x, t);
-		float y = BSplineInterpolation.calcValue(f.y, f.y, s.y, s.y, t);
-		float z = BSplineInterpolation.calcValue(f.z, f.z, s.z, s.z, t);
-		return new Vector3f(x, y, z);
-	}
-
-	/**
-	 * t &#8712; (0, 1]
-	 */
-	private static Quat4f interpolated(Quat4f f, Quat4f s, double t) {
-		float x = BSplineInterpolation.calcValue(f.x, f.x, s.x, s.x, t);
-		float y = BSplineInterpolation.calcValue(f.y, f.y, s.y, s.y, t);
-		float z = BSplineInterpolation.calcValue(f.z, f.z, s.z, s.z, t);
-		float w = BSplineInterpolation.calcValue(f.w, f.w, s.w, s.w, t);
-		return new Quat4f(x, y, z, w);
 	}
 }

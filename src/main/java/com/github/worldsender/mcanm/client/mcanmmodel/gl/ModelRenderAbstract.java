@@ -130,6 +130,7 @@ public abstract class ModelRenderAbstract<P extends IPart> implements IModelRend
 	}
 
 	// Totally inefficient
+	@Override
 	public List<BakedQuad> getAsBakedQuads(
 			IModelStateInformation currentPass,
 			Map<String, TextureAtlasSprite> slotToTex,

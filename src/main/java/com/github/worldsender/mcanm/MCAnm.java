@@ -26,7 +26,12 @@ public class MCAnm {
 	/**
 	 * Enables various visual outputs, e.g. the bones of models are rendered.
 	 */
-	public static final boolean isDebug = (Boolean) Launch.blackboard.get("fml.deobfuscatedEnvironment");
+	public static final boolean isDebug;
+	static {
+		Object deobfEnv = Launch.blackboard.get("fml.deobfuscatedEnvironment");
+		Boolean isDeobfEnv = deobfEnv instanceof Boolean ? (Boolean) deobfEnv : null;
+		isDebug = isDeobfEnv == null ? false : isDeobfEnv.booleanValue();
+	}
 
 	@Mod.Instance(Reference.core_modid)
 	public static MCAnm instance;
@@ -50,10 +55,10 @@ public class MCAnm {
 	}
 
 	@Mod.EventHandler
-	public void init(FMLInitializationEvent event) {
+	public void init(@SuppressWarnings("unused") FMLInitializationEvent event) {
 		if (isDebug) {
-			ResourceLocation ID_CUBE = new ResourceLocation("cube");
-			ResourceLocation ID_CUBE_V2 = new ResourceLocation("cube2");
+			ResourceLocation ID_CUBE = new ResourceLocation("mcanm:cube");
+			ResourceLocation ID_CUBE_V2 = new ResourceLocation("mcanm:cube2");
 			EntityRegistry.registerModEntity(ID_CUBE, CubeEntity.class, "Cube", 0, this, 80, 1, true);
 			EntityRegistry.registerModEntity(ID_CUBE_V2, CubeEntityV2.class, "CubeV2", 1, this, 80, 1, true);
 		}

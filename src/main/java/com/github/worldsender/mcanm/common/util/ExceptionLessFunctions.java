@@ -29,6 +29,11 @@ public class ExceptionLessFunctions {
 		R apply(T t) throws E;
 	}
 
+	/**
+	 * @throws E
+	 *             although this method never actually throws E, by declaring it, this forces the caller to catch it.
+	 *             Note that the exception gets thus "dragged outside" the wrapped object.
+	 */
 	public static <E extends Throwable> Runnable uncheckedRunnable(ThrowingRunnable<E> t) throws E {
 		return () -> {
 			try {
@@ -39,6 +44,10 @@ public class ExceptionLessFunctions {
 		};
 	}
 
+	/**
+	 * @throws E
+	 * @see {@link #uncheckedRunnable(ThrowingRunnable)}
+	 */
 	public static <T, E extends Exception> Consumer<T> uncheckedConsumer(ThrowingConsumer<T, E> consumer) throws E {
 		return t -> {
 			try {
@@ -49,6 +58,10 @@ public class ExceptionLessFunctions {
 		};
 	}
 
+	/**
+	 * @throws E
+	 * @see {@link #uncheckedRunnable(ThrowingRunnable)}
+	 */
 	public static <T, E extends Exception> Supplier<T> uncheckedSupplier(ThrowingSupplier<T, E> supplier) throws E {
 		return () -> {
 			try {
@@ -59,6 +72,10 @@ public class ExceptionLessFunctions {
 		};
 	}
 
+	/**
+	 * @throws E
+	 * @see {@link #uncheckedRunnable(ThrowingRunnable)}
+	 */
 	public static <T, R, E extends Exception> Function<T, R> uncheckedFunction(ThrowingFunction<T, R, E> function)
 			throws E {
 		return t -> {

@@ -93,6 +93,7 @@ public class Point {
 			}
 		}
 
+		@Override
 		protected Vertex getTransformedVertex() {
 			Vertex base = this.vert;
 			Vertex transformed = setupTransformed();

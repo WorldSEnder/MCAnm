@@ -61,6 +61,7 @@ public class RenderPassInformation extends ModelStateInformation implements IRen
 	/**
 	 * Resets this information to be reused.
 	 */
+	@Override
 	public void reset() {
 		super.reset();
 		this.setTextureTransform(Optional.empty());
@@ -71,11 +72,13 @@ public class RenderPassInformation extends ModelStateInformation implements IRen
 		return this.textureRemap.apply(in);
 	}
 
+	@Override
 	public RenderPassInformation setAnimation(Optional<IAnimation> animation) {
 		super.setAnimation(animation);
 		return this;
 	}
 
+	@Override
 	public RenderPassInformation setAnimation(IAnimation animation) {
 		super.setAnimation(animation);
 		return this;
@@ -85,6 +88,7 @@ public class RenderPassInformation extends ModelStateInformation implements IRen
 	 * @param frame
 	 *            the frame to set
 	 */
+	@Override
 	public RenderPassInformation setFrame(float frame) {
 		super.setFrame(frame);
 		return this;
@@ -94,11 +98,13 @@ public class RenderPassInformation extends ModelStateInformation implements IRen
 	 * @param partPredicate
 	 *            the partPredicate to set, Optional.empty() for RENDER_ALL
 	 */
+	@Override
 	public RenderPassInformation setPartPredicate(Optional<Predicate<String>> partPredicate) {
 		super.setPartPredicate(partPredicate);
 		return this;
 	}
 
+	@Override
 	public RenderPassInformation setPartPredicate(Predicate<String> partPredicate) {
 		super.setPartPredicate(partPredicate);
 		return this;

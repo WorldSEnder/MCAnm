@@ -76,6 +76,7 @@ public class ModelMCMD extends ReloadableData<IModelVisitable> implements IModel
 	 * @param renderPass
 	 *            a description of the current render-pass
 	 */
+	@Override
 	public void render(IRenderPass renderPass) {
 		model.ifPresent(m -> m.render(renderPass));
 	}

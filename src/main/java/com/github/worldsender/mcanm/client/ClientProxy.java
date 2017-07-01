@@ -44,7 +44,7 @@ public class ClientProxy implements Proxy {
 			registry.registerReloadListener(new IResourceManagerReloadListener() {
 				@Override
 				public void onResourceManagerReload(IResourceManager p_110549_1_) {
-					ClientProxy.this.reload(resManager);
+					ClientProxy.reload();
 				}
 			});
 		} else {
@@ -99,7 +99,7 @@ public class ClientProxy implements Proxy {
 	@Override
 	public void init() {}
 
-	private void reload(IResourceManager newManager) {
+	private static void reload() {
 		if (!MCAnm.configuration().isReloadEnabled()) {
 			return;
 		}

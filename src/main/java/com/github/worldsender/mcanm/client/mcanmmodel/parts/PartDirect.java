@@ -59,6 +59,7 @@ public class PartDirect implements IPart {
 		directTesselator.draw();
 	}
 
+	@Override
 	public void getAsBakedQuads(Map<String, TextureAtlasSprite> slotToTex, VertexFormat format, List<BakedQuad> out) {
 		TextureAtlasSprite tex = retrieveSprite(slotToTex);
 		for (int i = 0; i < indices.length; i += 3) {

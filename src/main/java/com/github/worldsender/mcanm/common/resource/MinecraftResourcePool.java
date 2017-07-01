@@ -39,7 +39,7 @@ public class MinecraftResourcePool {
 
 	public MinecraftResourceLocation makeResourceLocation(ResourceLocation resLoc) {
 		MinecraftResourceLocation location = new MinecraftResourceLocation(this, resLoc);
-		allIssuedLocations.add(new WeakReference<MinecraftResourceLocation>(location));
+		allIssuedLocations.add(new WeakReference<>(location));
 		return location;
 	}
 }

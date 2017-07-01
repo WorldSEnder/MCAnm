@@ -132,6 +132,7 @@ public enum ModelLoader implements ICustomModelLoader {
 				}
 			});
 
+	@Override
 	public void onResourceManagerReload(IResourceManager manager) {
 		this.manager = manager;
 		this.modelCache.invalidateAll();
@@ -406,6 +407,7 @@ public enum ModelLoader implements ICustomModelLoader {
 			return itemOverrides;
 		}
 
+		@Override
 		public Pair<? extends IBakedModel, Matrix4f> handlePerspective(TransformType cameraTransformType) {
 			Matrix4f matr = new Matrix4f();
 			matr.setIdentity();

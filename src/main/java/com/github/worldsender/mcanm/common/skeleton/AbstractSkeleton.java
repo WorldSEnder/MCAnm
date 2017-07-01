@@ -58,7 +58,7 @@ public abstract class AbstractSkeleton extends ReloadableData<ISkeletonVisitable
 	 * @return indices in an order that is breadth first.
 	 */
 	private static int[] doBFSBoneOrdering(byte[] parents) {
-		List<List<Integer>> layers = new ArrayList<List<Integer>>();
+		List<List<Integer>> layers = new ArrayList<>();
 		int[] layerNumber = new int[parents.length];
 		Arrays.fill(layerNumber, -1);
 		for (int i = 0; i < parents.length; ++i) {

@@ -58,10 +58,12 @@ public class RawData implements IModelVisitable {
 		visitor.visitEnd();
 	}
 
+	@Override
 	public UUID getModelUUID() {
 		return modelUUID;
 	}
 
+	@Override
 	public String getArtist() {
 		return artist;
 	}

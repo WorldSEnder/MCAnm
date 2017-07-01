@@ -24,7 +24,7 @@ public class MCAnmConfiguration {
 		save();
 	}
 
-	public void onConfigChange(OnConfigChangedEvent occe) {
+	public void onConfigChange(@SuppressWarnings("unused") OnConfigChangedEvent occe) {
 		save();
 	}
 

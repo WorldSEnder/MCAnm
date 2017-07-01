@@ -203,6 +203,7 @@ public class Bone implements IBone {
 	 * @param position
 	 *            the position to transform
 	 */
+	@Override
 	public void transform(Point4f position) {
 		transformedGlobalToGlobal.transform(position);
 	}
@@ -228,6 +229,7 @@ public class Bone implements IBone {
 	 * @param position
 	 *            the position to transform
 	 */
+	@Override
 	public void transformNormal(Vector3f normal) {
 		transformedGlobalToGlobalIT.transform(normal);
 	}
