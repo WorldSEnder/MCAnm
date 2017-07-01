@@ -6,6 +6,7 @@ import com.github.worldsender.mcanm.MCAnm;
 import com.github.worldsender.mcanm.client.mcanmmodel.ModelMCMD;
 import com.github.worldsender.mcanm.common.CommonLoader;
 import com.github.worldsender.mcanm.common.skeleton.ISkeleton;
+import com.github.worldsender.mcanm.common.util.CallResolver;
 
 import net.minecraft.util.ResourceLocation;
 
@@ -27,7 +28,8 @@ public class ClientLoader {
 	 */
 	public static ModelMCMD loadModel(ResourceLocation resLoc, ISkeleton skeleton) {
 		Objects.requireNonNull(skeleton);
-		ModelMCMD model = new ModelMCMD(MCAnm.proxy.getSidedResource(resLoc), skeleton);
+		ClassLoader loader = CallResolver.INSTANCE.getCallingClass().getClassLoader();
+		ModelMCMD model = new ModelMCMD(MCAnm.proxy.getSidedResource(resLoc, loader), skeleton);
 		return model;
 	}
 }

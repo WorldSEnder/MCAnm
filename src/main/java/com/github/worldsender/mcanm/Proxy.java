@@ -18,7 +18,9 @@ public interface Proxy {
 	 * 
 	 * @param resLoc
 	 *            the resource location to load from. On the server the resource must be packed with the .jar
+	 * @param context
+	 *            when the resource is loaded on the server, it is attempted to load it from this class loader
 	 * @return
 	 */
-	IResourceLocation getSidedResource(ResourceLocation resLoc);
+	IResourceLocation getSidedResource(ResourceLocation resLoc, ClassLoader context);
 }

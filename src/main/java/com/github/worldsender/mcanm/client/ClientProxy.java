@@ -107,7 +107,7 @@ public class ClientProxy implements Proxy {
 	}
 
 	@Override
-	public IResourceLocation getSidedResource(ResourceLocation resLoc) {
+	public IResourceLocation getSidedResource(ResourceLocation resLoc, ClassLoader context) {
 		return MinecraftResourcePool.instance.makeResourceLocation(resLoc);
 	}
 }
