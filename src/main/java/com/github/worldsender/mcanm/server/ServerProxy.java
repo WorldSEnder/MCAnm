@@ -15,7 +15,7 @@ public class ServerProxy implements Proxy {
 
 	@Override
 	public IResourceLocation getSidedResource(ResourceLocation resLoc, ClassLoader context) {
-		String path = "/assets/" + resLoc.getResourceDomain() + "/" + resLoc.getResourcePath();
+		String path = "assets/" + resLoc.getResourceDomain() + "/" + resLoc.getResourcePath();
 		return new EmbeddedResourceLocation(path, context);
 	}
 }

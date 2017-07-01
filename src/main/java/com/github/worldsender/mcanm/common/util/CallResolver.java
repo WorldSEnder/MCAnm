@@ -14,6 +14,6 @@ public class CallResolver extends SecurityManager {
 	}
 
 	public Class<?> getCallingClass() {
-		return getCallingClasses()[2];
+		return getCallingClasses()[3];
 	}
 }
